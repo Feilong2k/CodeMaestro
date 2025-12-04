@@ -1,0 +1,36 @@
+id: "2-8"
+title: "Devon Agent"
+status: pending
+outcome: pending
+branch: "subtask/2-8-devon-agent"
+dependencies: ["2-5"]
+relevantFiles:
+  - "backend/src/agents/DevonAgent.js"
+  - ".prompts/Devon_Developer_v2.md"
+requiredActions:
+  - "Role: Developer — implements code"
+  - "Prompt: Load from .prompts/Devon_Developer_v2.md"
+  - "Actions: Implement code to pass tests (Green), Refactor code, Fix failing tests"
+  - "File Output: Write implementation files to disk"
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Red → Green)"
+  - "[ ] [TDD] Final verification and coverage > 80%"
+  - "[ ] Devon generates valid implementation files"
+  - "[ ] Code is syntactically correct"
+  - "[ ] Tests pass after implementation"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes:
+  - "Devon owns the Green and Refactor phases."
+lastUpdated: 2025-12-04T23:00:00Z
+updatedBy: orchestrator
+

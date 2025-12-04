@@ -1,0 +1,39 @@
+id: "2-5"
+title: "Deepseek Integration"
+status: pending
+outcome: pending
+branch: "subtask/2-5-deepseek-integration"
+dependencies: ["2-4"]
+relevantFiles:
+  - "backend/src/llm/DeepseekClient.js"
+  - "backend/src/llm/ModelAdapter.js"
+  - "backend/.env"
+requiredActions:
+  - "API Client: DeepseekClient class"
+  - "Model Adapter: Abstract interface (swap for OpenAI/Anthropic later)"
+  - "Config: API key from env, model selection"
+  - "Rate Limiting: Respect API limits"
+  - "Token Tracking: Log usage per request"
+  - "Error Handling: Timeout, rate limit, auth errors"
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Red → Green)"
+  - "[ ] [TDD] Final verification and coverage > 80%"
+  - "[ ] API calls succeed with valid key"
+  - "[ ] Errors handled gracefully"
+  - "[ ] Token usage logged"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes:
+  - "Deepseek API is OpenAI-compatible. Use deepseek-coder or deepseek-chat model."
+lastUpdated: 2025-12-04T23:00:00Z
+updatedBy: orchestrator
+

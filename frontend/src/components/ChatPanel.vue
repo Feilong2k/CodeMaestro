@@ -1,7 +1,7 @@
 <template>
-  <div class="chat-panel bg-bg-layer border border-line-base rounded-xl p-6 shadow-matrix-glow">
-    <!-- Message list area -->
-    <div class="message-list space-y-4 mb-6 max-h-[calc(100vh-16rem)] overflow-y-auto pr-2">
+  <div class="chat-panel bg-bg-layer border border-line-base rounded-xl p-6 shadow-matrix-glow h-full flex flex-col">
+    <!-- Message list area - takes available space -->
+    <div class="message-list flex-1 space-y-4 mb-6 overflow-y-auto pr-2">
       <MessageItem
         avatar-bg="bg-accent-primary"
         avatar-text="O"
@@ -11,7 +11,7 @@
       />
     </div>
 
-    <!-- Input area -->
+    <!-- Input area - fixed at bottom -->
     <div class="flex items-end space-x-3">
       <div
         ref="inputEl"
@@ -51,7 +51,7 @@ const sendMessage = () => {
 
 <style scoped>
 .chat-panel {
-  min-height: 400px;
+  /* No fixed min-height, let it fill parent via flex */
 }
 .message-list::-webkit-scrollbar {
   width: 6px;

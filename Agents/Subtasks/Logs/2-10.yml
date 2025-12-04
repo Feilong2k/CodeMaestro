@@ -1,0 +1,39 @@
+id: "2-10"
+title: "REST API Endpoints"
+status: pending
+outcome: pending
+branch: "subtask/2-10-rest-api-endpoints"
+dependencies: ["2-2", "2-3", "2-5"]
+relevantFiles:
+  - "backend/src/routes/subtasks.js"
+  - "backend/src/routes/agents.js"
+  - "backend/src/routes/events.js"
+requiredActions:
+  - "GET /api/subtasks — List all subtasks"
+  - "GET /api/subtasks/:id — Get subtask details + log"
+  - "POST /api/subtasks/:id/start — Trigger workflow for subtask"
+  - "POST /api/subtasks/:id/approve — Orion approves completion"
+  - "GET /api/agents/status — Current state of each agent"
+  - "GET /api/events — Recent event history"
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Red → Green)"
+  - "[ ] [TDD] Final verification and coverage > 80%"
+  - "[ ] All endpoints respond correctly"
+  - "[ ] Error cases handled"
+  - "[ ] Dashboard can fetch data"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes:
+  - "These endpoints wire the dashboard to the backend."
+lastUpdated: 2025-12-04T23:00:00Z
+updatedBy: orchestrator
+

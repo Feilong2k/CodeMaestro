@@ -1,0 +1,36 @@
+id: "2-7"
+title: "Tara Agent"
+status: pending
+outcome: pending
+branch: "subtask/2-7-tara-agent"
+dependencies: ["2-5"]
+relevantFiles:
+  - "backend/src/agents/TaraAgent.js"
+  - ".prompts/Tara_Tester_v2.md"
+requiredActions:
+  - "Role: Tester — writes tests, verifies coverage"
+  - "Prompt: Load from .prompts/Tara_Tester_v2.md"
+  - "Actions: Generate unit tests (Red), Generate integration tests, Run coverage check, Report verification status"
+  - "File Output: Write test files to disk"
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Red → Green)"
+  - "[ ] [TDD] Final verification and coverage > 80%"
+  - "[ ] Tara generates valid test files"
+  - "[ ] Tests are syntactically correct"
+  - "[ ] Coverage report parsed correctly"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes:
+  - "Tara owns the Red phase and final verification."
+lastUpdated: 2025-12-04T23:00:00Z
+updatedBy: orchestrator
+

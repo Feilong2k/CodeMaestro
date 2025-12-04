@@ -1,0 +1,39 @@
+id: "2-2"
+title: "PostgreSQL Database"
+status: pending
+outcome: pending
+branch: "subtask/2-2-postgresql-database"
+dependencies: ["2-1"]
+relevantFiles:
+  - "backend/src/db/connection.js"
+  - "backend/src/db/migrations/"
+  - "backend/src/db/seeds/"
+  - "backend/src/db/schema.sql"
+requiredActions:
+  - "Connection: pg driver + connection pool"
+  - "Schema: Tables for subtasks, logs, agents, events"
+  - "Migrations: Knex or raw SQL migrations"
+  - "Seed Data: Import existing YAML subtasks/logs"
+  - "Queries: Basic CRUD helpers"
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Red → Green)"
+  - "[ ] [TDD] Final verification and coverage > 80%"
+  - "[ ] Database connects successfully"
+  - "[ ] Migrations run without errors"
+  - "[ ] CRUD operations work"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes:
+  - "PostgreSQL should be running locally or via Docker."
+lastUpdated: 2025-12-04T23:00:00Z
+updatedBy: orchestrator
+

@@ -42,16 +42,13 @@ onMounted(checkHealth)
           <ChatPanel />
         </template>
 
-        <!-- Left slot (for activity log) -->
-        <template #left>
+        <!-- Right slot (for activity log) -->
+        <template #right>
           <ActivityLog />
         </template>
-
-        <!-- Right slot (for status bar) -->
-        <template #right>
-          <StatusBar />
-        </template>
       </MainLayout>
+      <!-- StatusBar fixed at bottom, outside MainLayout -->
+      <StatusBar />
     </div>
   </div>
 </template>

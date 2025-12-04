@@ -1,0 +1,38 @@
+id: "2-3"
+title: "State Machine (XState)"
+status: pending
+outcome: pending
+branch: "subtask/2-3-state-machine-xstate"
+dependencies: ["2-1"]
+relevantFiles:
+  - "backend/src/services/orchestrator.js"
+  - "backend/src/machines/subtaskMachine.js"
+requiredActions:
+  - "States: pending, in_progress, red, green, refactor, integration_red, integration_green, verification, completed, blocked, failed"
+  - "Transitions: Define all valid state changes"
+  - "Guards: Rules for each transition (e.g., tests must exist before green)"
+  - "Actions: Side effects on transition (notify agent, log event)"
+  - "Persistence: Save state to DB on every transition"
+  - "Service: OrchestratorService wraps XState machine"
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Red → Green)"
+  - "[ ] [TDD] Final verification and coverage > 80%"
+  - "[ ] All states defined"
+  - "[ ] Invalid transitions rejected"
+  - "[ ] State persists across restarts"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes:
+  - "XState v5 recommended. This is the core TDD workflow logic."
+lastUpdated: 2025-12-04T23:00:00Z
+updatedBy: orchestrator
+

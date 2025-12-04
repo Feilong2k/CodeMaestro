@@ -1,0 +1,39 @@
+id: "2-1"
+title: "Backend Scaffold"
+status: pending
+outcome: pending
+branch: "subtask/2-1-backend-scaffold"
+dependencies: []
+relevantFiles:
+  - "backend/package.json"
+  - "backend/src/index.js"
+  - "backend/src/routes/"
+  - "backend/src/services/"
+requiredActions:
+  - "Setup: Node.js + Express server in /backend"
+  - "Structure: Routes, services, middleware folders"
+  - "Config: Environment variables (.env), dotenv setup"
+  - "Health Check: GET /api/health returns { status: 'ok' }"
+  - "Scripts: npm run dev (nodemon), npm run start"
+  - "Tests: Jest setup for backend"
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Red → Green)"
+  - "[ ] [TDD] Final verification and coverage > 80%"
+  - "[ ] Server starts without errors"
+  - "[ ] Health endpoint responds correctly"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes:
+  - "This is the foundation subtask - unlocks all other Phase 2 work."
+lastUpdated: 2025-12-04T23:00:00Z
+updatedBy: orchestrator
+

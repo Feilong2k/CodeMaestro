@@ -1,0 +1,38 @@
+id: "2-9"
+title: "WebSocket Events"
+status: pending
+outcome: pending
+branch: "subtask/2-9-websocket-events"
+dependencies: ["2-1"]
+relevantFiles:
+  - "backend/src/socket/index.js"
+  - "frontend/src/composables/useSocket.js"
+  - "frontend/src/components/ActivityLog.vue"
+requiredActions:
+  - "Setup: Socket.io on backend"
+  - "Events: state_change, agent_action, log_entry, error"
+  - "Broadcast: Push events to all connected clients"
+  - "Frontend: Wire Activity Log to WebSocket feed"
+  - "Status Bar: Update traffic light based on events"
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Red → Green)"
+  - "[ ] [TDD] Final verification and coverage > 80%"
+  - "[ ] WebSocket connects successfully"
+  - "[ ] Events broadcast to clients"
+  - "[ ] Activity Log updates in real-time"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes:
+  - "This provides real-time visibility into backend operations."
+lastUpdated: 2025-12-04T23:00:00Z
+updatedBy: orchestrator
+

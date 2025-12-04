@@ -1,0 +1,39 @@
+id: "2-4"
+title: "Agent Framework"
+status: pending
+outcome: pending
+branch: "subtask/2-4-agent-framework"
+dependencies: ["2-1"]
+relevantFiles:
+  - "backend/src/agents/BaseAgent.js"
+  - "backend/src/agents/contextBuilder.js"
+  - "backend/src/agents/responseParser.js"
+  - ".prompts/"
+requiredActions:
+  - "Base Class: Agent with execute(context) method"
+  - "Prompt Loader: Read from .prompts/ folder"
+  - "Context Builder: Port scripts/context.js to service"
+  - "Response Parser: Extract actions from LLM output (file writes, status updates, questions)"
+  - "Retry Logic: Handle API failures gracefully"
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Red → Green)"
+  - "[ ] [TDD] Final verification and coverage > 80%"
+  - "[ ] Prompts load correctly"
+  - "[ ] Context builds with all required fields"
+  - "[ ] Response parser extracts actions"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes:
+  - "This is the abstraction layer that all agents inherit from."
+lastUpdated: 2025-12-04T23:00:00Z
+updatedBy: orchestrator
+
