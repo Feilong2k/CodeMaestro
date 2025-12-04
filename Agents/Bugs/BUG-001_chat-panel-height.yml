@@ -1,0 +1,40 @@
+id: "BUG-001"
+title: "Chat Panel Not Stretching to Bottom"
+status: open
+priority: low
+reported: 2025-12-04
+reporter: user
+relatedSubtask: "1-4"
+
+description: |
+  The chat panel should stretch from just below the header to just above the status bar.
+  Devon attempted to fix this with the following metrics:
+  - Header: 3.5rem (approx 56px)
+  - StatusBar: 2.5rem (approx 40px)
+  - Chat panel height: 100vh - 6rem (fills remaining viewport)
+  
+  However, the chat panel still doesn't visually extend all the way to the status bar.
+  There may be a gap or the calculation isn't being applied correctly.
+
+affectedFiles:
+  - "frontend/src/components/ChatPanel.vue"
+  - "frontend/src/components/MainLayout.vue"
+  - "frontend/src/App.vue"
+
+expectedBehavior: |
+  Chat panel should fill the vertical space between Header and StatusBar with no gap.
+  The input area should be permanently visible at the bottom, just above the status bar.
+
+actualBehavior: |
+  There appears to be a gap or the chat panel doesn't reach the status bar.
+
+suggestedFix: |
+  - Check if MainLayout has padding/margin affecting the height
+  - Verify the calc(100vh - 6rem) is applied to the correct element
+  - Check if flexbox or grid is overriding the height
+  - Inspect with DevTools to see actual computed height
+
+notes:
+  - "Deferred to focus on Phase 2 backend work."
+  - "Low priority - cosmetic issue, doesn't affect functionality."
+

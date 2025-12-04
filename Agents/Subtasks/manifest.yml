@@ -17,7 +17,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/1-3.yml"
   - id: "1-4"
     title: "Activity Log Shell"
-    status: in_progress
+    status: completed
     branch: "subtask/1-4-activity-log-shell"
     log: "Agents/Subtasks/Logs/1-4.yml"
   - id: "1-5"

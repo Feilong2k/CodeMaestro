@@ -1,7 +1,7 @@
 id: "1-4"
 title: "Activity Log Shell"
 status: completed
-outcome: completed
+outcome: success
 branch: "subtask/1-4-activity-log-shell"
 dependencies: []
 relevantFiles:
@@ -41,5 +41,5 @@ notes:
   - "INTEGRATION TESTS GREEN: After integrating ActivityLog into App.vue (left slot), all 6 integration tests pass (Green)."
   - "UI REFINEMENT REQUEST (from Orion): 1) Move Activity Log to RIGHT side of Chat panel (swap slots in App.vue). 2) Make Chat panel narrower, Activity Log wider (adjust grid cols in MainLayout.vue — text is squashed). 3) Extend Chat panel all the way down to touch the Status Bar (no gap). [DEFERRED: Resizable panels — future enhancement]"
   - "UI REFINEMENT IMPLEMENTED: ActivityLog moved to right slot (App.vue), grid columns adjusted (MainLayout.vue: left slot lg:col-span-2, main lg:col-span-5, right lg:col-span-5), Chat panel extended to bottom (pb-0, flex-col, flex-1). All integration tests pass (Green)."
-lastUpdated: 2025-12-04T23:08:00Z
-updatedBy: developer
+lastUpdated: 2025-12-04T23:30:08.253Z
+updatedBy: orchestrator
