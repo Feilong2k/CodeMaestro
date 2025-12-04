@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import TheHeader from './components/TheHeader.vue'
 import MatrixBackground from './components/MatrixBackground.vue'
+import MainLayout from './components/MainLayout.vue'
 
 const healthStatus = ref('Checking backend...')
 const error = ref(null)
@@ -32,8 +33,9 @@ onMounted(checkHealth)
     <MatrixBackground mode="matrixAmbient" :enabled="true" :density="0.5" :speed="0.6" />
     <div class="relative z-10">
       <TheHeader />
-      <main class="pt-24 pb-12 px-6">
-        <div class="max-w-4xl mx-auto">
+      <MainLayout>
+        <!-- Default slot (main content) -->
+        <template #default>
           <div class="bg-bg-elevated border border-line-base rounded-xl p-8 shadow-matrix-glow">
             <h1 class="text-3xl font-bold mb-6 text-center text-text-primary">
               CodeMaestro Dashboard
@@ -82,8 +84,33 @@ onMounted(checkHealth)
               </ul>
             </div>
           </div>
-        </div>
-      </main>
+        </template>
+
+        <!-- Left slot (for activity log) -->
+        <template #left>
+          <div class="bg-bg-layer border border-line-base rounded-lg p-4 text-text-secondary text-sm">
+            <h3 class="font-matrix-sans font-semibold text-text-primary mb-2">Activity Log</h3>
+            <p class="font-matrix-mono text-xs">Placeholder for activity log (subtask 1-4).</p>
+            <ul class="mt-2 space-y-1">
+              <li class="text-xs">● Matrix theme integrated</li>
+              <li class="text-xs">● Layout grid implemented</li>
+              <li class="text-xs">○ Chat interface pending</li>
+            </ul>
+          </div>
+        </template>
+
+        <!-- Right slot (for status bar) -->
+        <template #right>
+          <div class="bg-bg-layer border border-line-base rounded-lg p-4 text-text-secondary text-sm">
+            <h3 class="font-matrix-sans font-semibold text-text-primary mb-2">Status</h3>
+            <p class="font-matrix-mono text-xs">Placeholder for status bar (subtask 1-5).</p>
+            <div class="mt-2 flex items-center">
+              <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+              <span class="text-xs">System Idle</span>
+            </div>
+          </div>
+        </template>
+      </MainLayout>
     </div>
   </div>
 </template>
