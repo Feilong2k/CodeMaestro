@@ -3,13 +3,79 @@
 @tailwind utilities;
 
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Surfaces */
+  --bg-base: #0C0F12;
+  --bg-layer: #12161C;
+  --bg-elevated: #151A21;
+  --bg-subtle: #0F1318;
 
+  /* Text */
+  --text-primary: #E6F1FF;
+  --text-secondary: #A3B3C5;
+  --text-muted: #7A8898;
+  --text-inverse: #0C0F12;
+
+  /* Accents */
+  --accent-primary: #00E5FF;
+  --accent-secondary: #7C4DFF;
+  --success: #22D3A0;
+  --warning: #FFB020;
+  --danger: #FF5A6E;
+  --info: #5AC8FA;
+
+  /* Lines */
+  --line-base: #1E2630;
+  --line-circuit: rgba(0,229,255,0.12);
+
+  /* Typography */
+  --font-sans: Inter, "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "Roboto Mono", Consolas, monospace;
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-md: 16px;
+  --fs-lg: 20px;
+  --fs-xl: 24px;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --lh-tight: 1.25;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.65;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Effects */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 6px 18px rgba(0,0,0,0.35);
+  --glow-cyan: 0 0 0 1px rgba(0,229,255,0.15), 0 0 12px rgba(0,229,255,0.1);
+  --focus-ring: 0 0 0 2px #00E5FF;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 80ms;
+  --dur-normal: 140ms;
+  --dur-slow: 220ms;
+
+  /* Base styles */
+  font-family: var(--font-sans);
+  line-height: var(--lh-normal);
+  font-weight: var(--fw-regular);
   color-scheme: dark;
-  color: #E6F1FF;
-  background-color: #0C0F12;
+  color: var(--text-primary);
+  background-color: var(--bg-base);
 
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -19,7 +85,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #0C0F12;
+  background-color: var(--bg-base);
 }
 
 #app {

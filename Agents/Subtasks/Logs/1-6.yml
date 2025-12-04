@@ -1,0 +1,63 @@
+id: "1-6"
+title: "Matrix Theme Integration"
+status: completed
+outcome: success
+branch: "subtask/1-6-matrix-theme"
+dependencies: ["1-1"]
+relevantFiles:
+  - "frontend/tailwind.config.js"
+  - "frontend/src/style.css"
+  - "frontend/src/components/TheHeader.vue"
+  - "frontend/src/components/MatrixBackground.vue"
+  - "frontend/src/App.vue"
+requiredActions:
+  - "Import Matrix Theme Tokens: Colors, fonts, and spacing from Old_Archive"
+  - "Update Tailwind Config: Define 'matrix' color palette (black/green/grey)"
+  - "Global Styles: Apply Matrix font and background"
+  - "Component Update: Refine TheHeader to match Matrix aesthetic (borders, glow)"
+  - "UX Refinement: Remove the dedicated 'New Project' button (redundant with dropdown)."
+  - "Integrate MatrixBackground into App.vue with falling matrix effect"
+verificationChecklist:
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[x] [TDD] Failing Integration Tests created (Red)"
+  - "[x] [TDD] Implementation satisfies Integration Tests (Green)"
+  - "[x] [TDD] Final verification and coverage > 80%"
+  - "[x] Colors match Matrix palette (Black #0C0F12, Green Accents)"
+  - "[x] Fonts match Matrix spec (Monospace/Sans hybrid)"
+  - "[x] Header looks like the archived design"
+  - "[x] MatrixBackground integrated and visible with falling matrix effect"
+prChecklist:
+  developer:
+    - "[x] Implementation matches design"
+    - "[x] Refactor pass completed (no dead code)"
+    - "[x] Linter clean"
+  tester:
+    - "[x] Sad path tests included"
+    - "[x] No flaky tests"
+    - "[x] Mocks are explicit and localized"
+prChecklistStatus:
+  developer: completed
+  tester: completed
+  orchestrator: verified
+openQuestions:
+  - key: canvas-mocking
+    status: closed
+    notes: "Resolved: Installed vitest-canvas-mock, configured in vite.config.js, and added matchMedia mock. Integration tests now pass."
+notes:
+  - "Reference path: C:/Coding/CodeMaestro/Old_Archive/frontend"
+  - "Tester has started the testing process. Failing unit tests created (Red)."
+  - "Matrix theme unit tests created in src/__tests__/matrixTheme/MatrixTheme.spec.js"
+  - "CHANGE REQUEST IMPLEMENTED: Removed standalone 'New Project' button; only dropdown option remains."
+  - "Matrix theme integration completed: Tailwind config updated with matrix palette, global CSS variables defined, TheHeader refined with matrix aesthetic (glow, fonts, borders)."
+  - "MatrixBackground component integrated into App.vue with mode='matrixAmbient'. The falling matrix effect is now visible in the background."
+  - "Enhanced visibility: increased glyph opacity (0.12), density (0.5), speed (0.6), and stack size for a more pronounced matrix effect."
+  - "Header visual adjustments: background set to transparent, project switcher moved to left (smaller than logo) with reduced size and opacity."
+  - "TESTER VERIFICATION: Unit tests now pass (Green). All four matrix theme integration tests successful."
+  - "Integration tests for matrix theme created in src/__tests__/integration/MatrixTheme.integration.spec.js (Red)."
+  - "Integration tests initially failed due to missing jsdom environment and canvas API. Installed jsdom and configured vitest environment. Tests still failing due to canvas API requirements - need additional mocking."
+  - "TEST FIX REQUEST: Install `vitest-canvas-mock` via npm. Update `frontend/vite.config.js` or `frontend/src/__tests__/setup.js` to include the mock. Ensure integration tests pass."
+  - "DEVELOPER FIX: Installed vitest-canvas-mock, updated vite.config.js with setupFiles, added window.matchMedia mock. Integration tests now pass (Green) as of 2025-12-04T19:20:00Z."
+lastUpdated: 2025-12-04T19:35:00Z
+updatedBy: orchestrator

@@ -1,9 +1,14 @@
 subtasks:
   - id: "1-1"
     title: "Header & Navigation"
-    status: pending
+    status: completed
     branch: "subtask/1-1-header-navigation"
     log: "Agents/Subtasks/Logs/1-1.yml"
+  - id: "1-6"
+    title: "Matrix Theme Integration"
+    status: in_progress
+    branch: "subtask/1-6-matrix-theme"
+    log: "Agents/Subtasks/Logs/1-6.yml"
   - id: "1-2"
     title: "Layout Grid"
     status: pending
@@ -26,7 +31,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/1-5.yml"
 
 sequence:
-  - "1-1"
+  - "1-6"
   - "1-2"
   - "1-3"
   - "1-4"

@@ -4,6 +4,12 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Matrix theme colors
+        matrix: {
+          black: '#0C0F12',
+          green: '#00E5FF',
+          grey: '#1E2630',
+        },
         bg: {
           base: '#0C0F12',
           layer: '#12161C',
@@ -28,6 +34,13 @@ export default {
           base: '#1E2630',
           circuit: 'rgba(0,229,255,0.12)',
         },
+      },
+      boxShadow: {
+        'matrix-glow': '0 0 0 1px rgba(0,229,255,0.15), 0 0 12px rgba(0,229,255,0.1)',
+      },
+      fontFamily: {
+        'matrix-sans': ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
+        'matrix-mono': ['JetBrains Mono', 'Roboto Mono', 'Consolas', 'monospace'],
       },
     },
   },
