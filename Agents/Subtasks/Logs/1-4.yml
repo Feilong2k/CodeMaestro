@@ -1,0 +1,29 @@
+id: "1-4"
+title: "Activity Log Shell"
+status: pending
+outcome: pending
+branch: "subtask/1-4-activity-log-shell"
+dependencies: []
+relevantFiles: []
+requiredActions:
+  - "Component: ActivityLog"
+  - "List View: Rows for Agent actions"
+  - "Mock Data: Static rows ('Orion: Planning', 'Tara: Pending')"
+verificationChecklist:
+  - "[TDD] Failing Unit Tests created (Red)"
+  - "[TDD] Implementation satisfies Unit Tests (Green)"
+  - "[TDD] Refactor pass (Cleanup)"
+  - "[TDD] Failing Integration Tests created (Red)"
+  - "[TDD] Implementation satisfies Integration Tests (Green)"
+  - "[TDD] Coverage > 80%"
+  - "Activity log renders"
+  - "Mock rows are visible"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes: []

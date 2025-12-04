@@ -1,0 +1,31 @@
+id: "1-3"
+title: "Chat Interface Shell"
+status: pending
+outcome: pending
+branch: "subtask/1-3-chat-interface-shell"
+dependencies: []
+relevantFiles: []
+requiredActions:
+  - "Component: ChatPanel"
+  - "Message List: Area to scroll through messages"
+  - "Input Area: Text box for user input"
+  - "Mock Message: One 'Welcome' message from Orion"
+verificationChecklist:
+  - "[TDD] Failing Unit Tests created (Red)"
+  - "[TDD] Implementation satisfies Unit Tests (Green)"
+  - "[TDD] Refactor pass (Cleanup)"
+  - "[TDD] Failing Integration Tests created (Red)"
+  - "[TDD] Implementation satisfies Integration Tests (Green)"
+  - "[TDD] Coverage > 80%"
+  - "Chat panel renders"
+  - "Mock message is visible"
+  - "Input area is editable"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes: []

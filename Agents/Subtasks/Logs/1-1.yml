@@ -1,0 +1,35 @@
+id: "1-1"
+title: "Header & Navigation"
+status: pending
+outcome: pending
+branch: "subtask/1-1-header-navigation"
+dependencies: []
+relevantFiles: []
+requiredActions:
+  - "Component: TheHeader"
+  - "Project Context Switcher: Dropdown showing current project (mock data)"
+  - "New Project Button: Visual button (no logic yet)"
+  - "Plan/Act Toggle: Segmented control or switch (Visual only: Plan/Act)"
+  - "Theme: Dark mode styling (Slate-800 bg, Cyan accents)"
+  - "State: Define a simple Pinia store (useAppStore) to hold the 'Current View' state (Plan vs Act)"
+verificationChecklist:
+  - "[TDD] Failing Unit Tests created (Red)"
+  - "[TDD] Implementation satisfies Unit Tests (Green)"
+  - "[TDD] Refactor pass (Cleanup)"
+  - "[TDD] Failing Integration Tests created (Red)"
+  - "[TDD] Implementation satisfies Integration Tests (Green)"
+  - "[TDD] Coverage > 80%"
+  - "Header renders on top"
+  - "Project switcher displays mock project"
+  - "New Project button is visible"
+  - "Plan/Act toggle switches visual state"
+  - "Dark theme colors match spec"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes: []

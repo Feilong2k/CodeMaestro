@@ -1,0 +1,29 @@
+id: "1-2"
+title: "Layout Grid"
+status: pending
+outcome: pending
+branch: "subtask/1-2-layout-grid"
+dependencies: []
+relevantFiles: []
+requiredActions:
+  - "Component: MainLayout"
+  - "Grid Structure: 3-column or 2-column layout (Chat vs Activity)"
+  - "Responsive: Adjusts for screen size"
+verificationChecklist:
+  - "[TDD] Failing Unit Tests created (Red)"
+  - "[TDD] Implementation satisfies Unit Tests (Green)"
+  - "[TDD] Refactor pass (Cleanup)"
+  - "[TDD] Failing Integration Tests created (Red)"
+  - "[TDD] Implementation satisfies Integration Tests (Green)"
+  - "[TDD] Coverage > 80%"
+  - "Layout renders with correct columns"
+  - "Responsive behavior verified on resize"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes: []

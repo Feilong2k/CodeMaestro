@@ -1,0 +1,52 @@
+# Subtask Log (Template)
+# Usage: Copy to Agents/Subtasks/Logs/<id>.yml
+
+id: "1-1" # Format: X-X
+title: "Subtask Title"
+status: pending # pending | in_progress | ready-for-review | completed | blocked
+outcome: pending # One-sentence summary of what "done" looks like
+branch: "subtask/<id>-<slug>" # e.g. subtask/1-1-header-nav
+
+# Execution Order & Context
+dependencies: [] # e.g. ["1-0"]
+relevantFiles: [] # e.g. ["src/components/Header.vue"]
+
+# Key Actions & Requirements derived from Tasklist/Manifest
+requiredActions:
+  - "Component: <Name>"
+  - "Feature: <Description>"
+  - "Constraint: <Description>"
+
+# TDD & Verification Gates (The Canonical Loop)
+verificationChecklist:
+  - "[TDD] Failing Unit Tests created (Red)"
+  - "[TDD] Implementation satisfies Unit Tests (Green)"
+  - "[TDD] Refactor pass (Cleanup)"
+  - "[TDD] Failing Integration Tests created (Red)"
+  - "[TDD] Implementation satisfies Integration Tests (Green)"
+  - "[TDD] Coverage > 80%"
+  - "Visual/Manual verification of features"
+
+# PR Gating (filled during execution)
+prChecklist:
+  developer:
+    - "Implementation matches design"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "Sad path tests included"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending # pending | in_progress | complete
+  tester: pending # pending | in_progress | complete
+  orchestrator: pending # pending | verified
+
+openQuestions: []
+#  - key: "question-slug"
+#    status: open # open | answered
+#    question: "..."
+#    answer: "..."
+
+notes: []

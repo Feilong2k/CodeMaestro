@@ -1,0 +1,35 @@
+# CodeMaestro — Central Manifest (Template)
+# Usage: Copy to Agents/Subtasks/manifest.yml for new phases/projects
+
+version: 1.0
+lastUpdated: "YYYY-MM-DD"
+updatedBy: Orion
+
+subtasks:
+  - id: "1-1"
+    title: "Example Subtask"
+    status: pending # pending | in_progress | ready-for-review | completed | blocked
+    branch: "subtask/1-1-slug"
+    log: "Agents/Subtasks/Logs/1-1.yml"
+    
+  - id: "1-2"
+    title: "Next Subtask"
+    status: pending
+    branch: "subtask/1-2-slug"
+    log: "Agents/Subtasks/Logs/1-2.yml"
+
+# Execution Sequence (Priority Order)
+sequence:
+  - "1-1"
+  - "1-2"
+
+# Global Policies & Pointers
+policies:
+  ssot: "Agents/Subtasks/manifest.yml"
+  logsDir: "Agents/Subtasks/Logs"
+  rulesDir: ".clinerules/"
+  
+# Agents usage:
+# - Read this manifest to know subtask statuses, branches, and log paths.
+# - Update `status` as work progresses.
+# - detailed state is kept in the linked `log` file, not here.

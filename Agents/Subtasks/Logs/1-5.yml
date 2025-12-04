@@ -1,0 +1,30 @@
+id: "1-5"
+title: "Status Bar"
+status: pending
+outcome: pending
+branch: "subtask/1-5-status-bar"
+dependencies: []
+relevantFiles: []
+requiredActions:
+  - "Component: StatusBar"
+  - "Traffic Light: Visual indicator (Green/Yellow/Red)"
+  - "Current State Text: e.g., 'System Idle'"
+verificationChecklist:
+  - "[TDD] Failing Unit Tests created (Red)"
+  - "[TDD] Implementation satisfies Unit Tests (Green)"
+  - "[TDD] Refactor pass (Cleanup)"
+  - "[TDD] Failing Integration Tests created (Red)"
+  - "[TDD] Implementation satisfies Integration Tests (Green)"
+  - "[TDD] Coverage > 80%"
+  - "Status bar renders at bottom/location"
+  - "Traffic light shows color"
+  - "State text is visible"
+prChecklist:
+  developer: []
+  tester: []
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+openQuestions: []
+notes: []

@@ -1,0 +1,29 @@
+# CodeMaestro — Central Manifest (Template)
+# Usage: Copy to Agents/manifest.yml for new projects
+
+version: 1.0
+lastUpdated: "YYYY-MM-DD"
+updatedBy: Orion
+
+subtasks:
+  - id: "1-1-1"
+    title: "Example Subtask"
+    outcome: "Clear description of what 'Done' looks like."
+    status: pending # pending | in_progress | ready-for-review | completed | blocked
+    branch: "1-1-1-example-slug"
+    log: "Agents/logs/1-1-1.yml"
+    implRequirements:
+      dev: "Implementation/1-1-1-Reqs_Dev.md"
+      tester: "Implementation/1-1-1-Reqs_Tara.md"
+    checklists:
+      pr: "backend/PR_Checklist_1-1-1.md"
+
+sequence:
+  - "1-1-1"
+
+policies:
+  ssot: "Agents/manifest.yml"
+  logsDir: "Agents/logs"
+  rulesDir: ".clinerules/"
+
+

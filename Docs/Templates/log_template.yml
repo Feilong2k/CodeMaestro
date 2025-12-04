@@ -1,0 +1,33 @@
+# Subtask Log (Template)
+# Usage: Copy to Agents/logs/<id>.yml
+
+id: "1-1-1"
+status: pending
+history:
+  - ts: "YYYY-MM-DDTHH:mm:ssZ"
+    role: Orion
+    action: PLAN_DRAFTED
+    message: "Initial plan drafted based on requirements."
+  
+  - ts: "YYYY-MM-DDTHH:mm:ssZ"
+    role: Tara
+    action: TEST_GENERATED
+    message: "Unit tests created for X component."
+    context:
+      testFile: "src/__tests__/Component.spec.ts"
+
+checklists:
+  developer:
+    - [ ] Implement Feature X
+    - [ ] Refactor Code
+  tester:
+    - [ ] Write Sad Path Tests
+    - [ ] Verify Coverage > 80%
+
+openQuestions:
+  - key: "q1"
+    question: "Should we support mobile layout?"
+    answer: "Yes, use Tailwind md: prefix."
+    status: answered
+
+
