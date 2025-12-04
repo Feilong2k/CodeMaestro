@@ -34,7 +34,7 @@ subtasks:
   # Phase 2: Backend + State Machine + Agents
   - id: "2-1"
     title: "Backend Scaffold"
-    status: pending
+    status: in_progress
     branch: "subtask/2-1-backend-scaffold"
     log: "Agents/Subtasks/Logs/2-1.yml"
   - id: "2-2"

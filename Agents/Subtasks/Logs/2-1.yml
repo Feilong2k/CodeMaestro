@@ -1,6 +1,6 @@
 id: "2-1"
 title: "Backend Scaffold"
-status: pending
+status: in_progress
 outcome: pending
 branch: "subtask/2-1-backend-scaffold"
 dependencies: []
@@ -9,6 +9,7 @@ relevantFiles:
   - "backend/src/index.js"
   - "backend/src/routes/"
   - "backend/src/services/"
+  - "backend/.env"
 requiredActions:
   - "Setup: Node.js + Express server in /backend"
   - "Structure: Routes, services, middleware folders"
@@ -16,6 +17,7 @@ requiredActions:
   - "Health Check: GET /api/health returns { status: 'ok' }"
   - "Scripts: npm run dev (nodemon), npm run start"
   - "Tests: Jest setup for backend"
+  - "CORS: Enable cross-origin requests from frontend (port 5173)"
 verificationChecklist:
   - "[ ] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
@@ -24,6 +26,7 @@ verificationChecklist:
   - "[ ] [TDD] Final verification and coverage > 80%"
   - "[ ] Server starts without errors"
   - "[ ] Health endpoint responds correctly"
+  - "[ ] CORS headers present in response"
 prChecklist:
   developer: []
   tester: []
@@ -34,6 +37,12 @@ prChecklistStatus:
 openQuestions: []
 notes:
   - "This is the foundation subtask - unlocks all other Phase 2 work."
-lastUpdated: 2025-12-04T23:00:00Z
+  - "SPECIFICATIONS (from user):"
+  - "  - Language: JavaScript (no TypeScript) - fast prototyping priority"
+  - "  - Port: 4000 (already configured)"
+  - "  - CORS: Required (frontend on 5173, backend on 4000)"
+  - "  - PostgreSQL: Online free server, credentials in .env"
+  - "  - Deepseek API key: In .env"
+  - "  - .env file: Copy from .OLD_ARCHIVE for credentials"
+lastUpdated: 2025-12-04T23:35:00Z
 updatedBy: orchestrator
-
