@@ -26,6 +26,7 @@ Transform CodeMaestro from a **human-coordinated** multi-agent system into a **l
 
 **Capabilities:**
 - Workflow Orchestration Service (event-driven handoffs)
+- Ready Queue / dependency resolver using `Agents/Subtasks/manifest.yml` + logs
 - State machine with validated transitions
 - Role separation enforcement at system level
 - Automatic retry loops on failure
@@ -473,6 +474,7 @@ Enable true parallel agent execution with shared state
 
 - System Analysis: `Docs/Development/CodeMaestro_System_Analysis_and_Recommendations.md`
 - MVP Spec: `Docs/CodeMaestro_MVP_Consolidated.md`
+- Workflow Improvements (Phase 1): `Docs/Workflow_Improvements_Phase1.md`
 - RFCs:
   - `Docs/Architecture/RFCs/RFC-0001_Auth_Tenancy.md`
   - `Docs/Architecture/RFCs/RFC-0002_BYOK_Secrets_and_Metering.md`
