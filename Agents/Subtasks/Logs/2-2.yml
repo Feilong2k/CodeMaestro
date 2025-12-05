@@ -37,6 +37,8 @@ openQuestions:
     notes: "User has online PostgreSQL server. Credentials will be in backend/.env"
 notes:
   - "PostgreSQL: Online free server (credentials in backend/.env)"
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/2-2-postgresql-database"
+  - "   If not on correct branch, run: git checkout subtask/2-2-postgresql-database"
   - "TARA INSTRUCTIONS:"
   - "  - Create tests in backend/__tests__/db.test.js"
   - "  - Test: Connection pool initialization"
