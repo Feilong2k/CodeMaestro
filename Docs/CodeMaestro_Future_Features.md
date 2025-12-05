@@ -1505,6 +1505,216 @@ async function getNextTask(agent) {
 
 **Agent stays productive:** Pulls from global pool if own queue empty. Only idles when truly nothing to do.
 
+### Defense in Depth: Multiple Safety Layers
+
+Command line operations are unreliable. Things go wrong. We need **multiple layers of protection**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              DEFENSE IN DEPTH - COMMAND SAFETY               │
+│                                                              │
+│  Layer 1: OUTPUT MONITORING (30s silence = warning)         │
+│           └── Detects hung commands early                    │
+│           └── Kills process → triggers exit callback         │
+│                                                              │
+│  Layer 2: HANG DETECTION (60s silence = kill)               │
+│           └── Force kills unresponsive process               │
+│           └── Should trigger exit callback                   │
+│                                                              │
+│  Layer 3: EXIT CALLBACK                                      │
+│           └── Normal path: adds result to queue              │
+│           └── If this fires, we're good                      │
+│                                                              │
+│  Layer 4: ABSOLUTE SAFETY NET (5 min max)                   │
+│           └── Runs regardless of other layers                │
+│           └── If callback NEVER fired, force cleanup         │
+│           └── Manually adds error task to queue              │
+│           └── Escalates to Orion                             │
+│                                                              │
+│  Layer 5: PERIODIC HEALTH CHECK (every 60s)                 │
+│           └── Scans ALL tracked background commands          │
+│           └── Flags orphaned or stuck processes              │
+│           └── Catches anything that slipped through          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Full Implementation with All Safety Layers
+
+```javascript
+class CommandExecutor {
+  constructor() {
+    this.activeCommands = new Map();
+    
+    // Layer 5: Periodic health check
+    setInterval(() => this.healthCheck(), 60000);
+  }
+  
+  async execute(cmd, agent, subtaskId) {
+    const id = generateId();
+    const startTime = Date.now();
+    let callbackFired = false;
+    let lastOutputTime = Date.now();
+    let output = '';
+    
+    const process = spawn(cmd);
+    
+    // Track it
+    this.activeCommands.set(id, {
+      cmd, agent, subtaskId, process, startTime, lastOutputTime
+    });
+    
+    // Capture output
+    process.stdout.on('data', (data) => {
+      lastOutputTime = Date.now();
+      output += data;
+      this.activeCommands.get(id).lastOutputTime = lastOutputTime;
+    });
+    
+    process.stderr.on('data', (data) => {
+      lastOutputTime = Date.now();
+      output += data;
+      this.activeCommands.get(id).lastOutputTime = lastOutputTime;
+    });
+    
+    // Layer 1 & 2: Output monitoring
+    const outputMonitor = setInterval(() => {
+      const silent = Date.now() - this.activeCommands.get(id)?.lastOutputTime;
+      
+      if (silent > 60000) {
+        // Layer 2: Kill after 60s silence
+        console.log(`Killing hung command: ${cmd}`);
+        try { process.kill('SIGKILL'); } catch(e) {}
+        clearInterval(outputMonitor);
+      } else if (silent > 30000) {
+        // Layer 1: Warn after 30s silence
+        broadcast({ type: 'command_warning', cmd, silent });
+      }
+    }, 5000);
+    
+    // Layer 3: Exit callback
+    process.on('exit', (code) => {
+      callbackFired = true;
+      clearInterval(outputMonitor);
+      clearTimeout(safetyNet);
+      this.activeCommands.delete(id);
+      
+      agentQueue.push(agent.id, {
+        type: 'check_command_result',
+        subtaskId,
+        success: code === 0,
+        output: output.slice(-2000),
+        duration: Date.now() - startTime,
+        priority: 'high'
+      });
+    });
+    
+    // Layer 4: Absolute safety net
+    const ABSOLUTE_MAX = 300000; // 5 minutes
+    const safetyNet = setTimeout(() => {
+      if (!callbackFired) {
+        console.error(`SAFETY NET: ${cmd} exceeded ${ABSOLUTE_MAX}ms`);
+        clearInterval(outputMonitor);
+        
+        // Force kill
+        try { process.kill('SIGKILL'); } catch(e) {}
+        
+        // Clean up tracking
+        this.activeCommands.delete(id);
+        
+        // Manually add error to queue
+        agentQueue.push(agent.id, {
+          type: 'check_command_result',
+          subtaskId,
+          success: false,
+          error: 'SAFETY_NET_TRIGGERED',
+          output: output.slice(-2000),
+          duration: ABSOLUTE_MAX,
+          priority: 'high'
+        });
+        
+        // Escalate
+        escalateToOrion({
+          type: 'safety_net_triggered',
+          cmd, agent: agent.id, subtaskId,
+          message: 'Command exceeded max time, callback never fired'
+        });
+      }
+    }, ABSOLUTE_MAX);
+    
+    return { id, status: 'backgrounded' };
+  }
+  
+  // Layer 5: Periodic health check
+  healthCheck() {
+    const now = Date.now();
+    
+    for (const [id, cmd] of this.activeCommands) {
+      const runtime = now - cmd.startTime;
+      const silent = now - cmd.lastOutputTime;
+      
+      // Flag anything running > 4 min (before safety net)
+      if (runtime > 240000) {
+        broadcast({
+          type: 'command_long_running',
+          cmd: cmd.cmd,
+          runtime,
+          silent,
+          message: 'Command approaching safety net limit'
+        });
+      }
+      
+      // Flag orphaned commands (no process)
+      if (!cmd.process || cmd.process.killed) {
+        console.error(`Orphaned command found: ${id}`);
+        this.activeCommands.delete(id);
+        
+        // Add error to queue
+        agentQueue.push(cmd.agent.id, {
+          type: 'check_command_result',
+          subtaskId: cmd.subtaskId,
+          success: false,
+          error: 'ORPHANED_COMMAND',
+          priority: 'high'
+        });
+      }
+    }
+  }
+}
+```
+
+### Why This Matters
+
+| What Can Go Wrong | Which Layer Catches It |
+|-------------------|------------------------|
+| Command hangs (no output) | Layer 1 & 2 |
+| Process becomes zombie | Layer 4 (safety net) |
+| Exit callback never fires | Layer 4 (safety net) |
+| Process orphaned | Layer 5 (health check) |
+| Multiple things go wrong | All layers work together |
+
+### Activity Log Example: Everything Goes Wrong
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Activity Log                                                │
+├─────────────────────────────────────────────────────────────┤
+│  [10:00:00] Devon: npm test backgrounded (cmd-123)          │
+│  [10:00:30] System: ⚠️ cmd-123 silent for 30s               │
+│  [10:01:00] System: 🛑 cmd-123 silent 60s, killing          │
+│  [10:01:01] System: Kill sent, waiting for exit callback... │
+│  [10:02:00] System: ⚠️ cmd-123 still tracked, no callback   │
+│  [10:04:00] System: ⚠️ cmd-123 approaching safety net       │
+│  [10:05:00] System: 🚨 SAFETY NET TRIGGERED                 │
+│  [10:05:01] System: Force cleanup, manual queue task added  │
+│  [10:05:02] System: Escalating to Orion                     │
+│  [10:05:03] Orion: Received safety net alert for cmd-123    │
+│  [10:05:04] DevonQueue: Error task added (SAFETY_NET)       │
+│  [10:05:10] Devon: Processing error, will retry or escalate │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**No matter what goes wrong, the system recovers.** Commands can't get permanently stuck.
+
 ---
 
 ## 22. Queue Infrastructure (Phase 4)
