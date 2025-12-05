@@ -149,6 +149,42 @@ git worktree list
 git worktree remove ../CM-tara
 ```
 
+### Troubleshooting Worktrees
+
+**Problem: "fatal: not a git repository" in worktree**
+
+This happens when:
+- Worktree removal was interrupted
+- Worktree became corrupted
+- `.git` file in worktree is broken
+
+**Solution:**
+
+```powershell
+# Step 1: From MAIN repo, check worktree status
+cd C:\Coding\CM
+git worktree list
+
+# Step 2: If worktree shows "prunable", clean it up
+git worktree prune
+
+# Step 3: Close any VSCode/editors using the broken worktree folder
+
+# Step 4: Delete the broken worktree folder
+Remove-Item -Recurse -Force C:\Coding\CM-devon
+
+# Step 5: Recreate the worktree on the correct branch
+git worktree add ../CM-devon subtask/3-2-websocket-client
+
+# Step 6: Agent can now open VSCode in the new worktree
+```
+
+**⚠️ IMPORTANT FOR AGENTS:**
+- If `git status` fails with "not a git repository" — **STOP**
+- Do NOT try to fix it yourself (no `git init`, no random commands)
+- Report to Orion: "Worktree broken, need recreation"
+- Orion will fix from main repo
+
 ### Rules
 
 | Rule | Description |
