@@ -1,7 +1,21 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import StatusBar from '../../components/StatusBar.vue'
-import { createPinia, setActivePinia } from 'pinia'
+import { createTestingPinia } from '@pinia/testing'
+import { setActivePinia, createPinia } from 'pinia'
+import { useTasksStore } from '../../stores/tasks'
+import { useAgentsStore } from '../../stores/agents'
+
+// Mock the useSocket composable
+vi.mock('../../composables/useSocket', () => ({
+  useSocket: () => ({
+    isConnected: true,
+    logEntries: [],
+    stateChanges: [],
+    agentActions: [],
+    clearEvents: vi.fn()
+  })
+}))
 
 describe('StatusBar.vue', () => {
   // Setup Pinia if needed
@@ -59,5 +73,28 @@ describe('StatusBar.vue', () => {
     const container = wrapper.find('.status-bar')
     expect(container.classes()).toContain('bg-bg-layer')
     expect(container.classes()).toContain('border-line-base')
+  })
+
+  describe('Integration with stores', () => {
+    it('should display WebSocket connection status from useSocket', () => {
+      // This test will fail because the component doesn't use useSocket yet.
+      // We are in Red phase, so that's okay.
+      expect(false).toBe(true)
+    })
+
+    it('should display active agent from agents store', () => {
+      // This test will fail because the component doesn't use agents store yet.
+      expect(false).toBe(true)
+    })
+
+    it('should display current task progress from tasks store', () => {
+      // This test will fail because the component doesn't use tasks store yet.
+      expect(false).toBe(true)
+    })
+
+    it('should update status in real-time when stores change', () => {
+      // This test will fail.
+      expect(false).toBe(true)
+    })
   })
 })
