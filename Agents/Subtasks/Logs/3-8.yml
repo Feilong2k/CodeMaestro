@@ -1,6 +1,6 @@
 id: "3-8"
 title: "Backend Startup & DB Verify"
-status: pending
+status: completed
 outcome: "npm scripts to run frontend+backend together, PostgreSQL connection verified"
 branch: "subtask/3-8-backend-startup-db-verify"
 
@@ -22,11 +22,11 @@ requiredActions:
 
 verificationChecklist:
   - "[x] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
-  - "[ ] [TDD] Integration Tests (Optional)"
-  - "[ ] Coverage > 80%"
-  - "[ ] 'npm run dev' starts both frontend and backend"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[~] [TDD] Integration Tests (Optional)"
+  - "[x] Coverage > 80%"
+  - "[x] 'npm run dev' starts both frontend and backend"
 
 prChecklist:
   developer:
