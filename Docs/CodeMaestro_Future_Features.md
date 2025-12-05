@@ -1240,7 +1240,119 @@ Phase 7d: Cost Optimization
 
 ---
 
-## 21. Queue Infrastructure (Phase 4)
+## 21. Command Executor Safety (Phase 4)
+
+### Problem
+
+Commands can hang for various reasons:
+- Database connections not closing
+- Async operations never resolving
+- Tests timing out
+- Network requests waiting forever
+- Commands expecting user input
+
+### Solution: Output-Based Hang Detection
+
+Instead of arbitrary timeouts, monitor command output:
+
+| Pattern | Action |
+|---------|--------|
+| Continuous output | Working — let it run |
+| Output every few seconds | Working — let it run |
+| **No output for 30s** | Suspected hang — warn |
+| **No output for 60s** | Definitely hung — kill + escalate |
+
+### Implementation
+
+```javascript
+async function runCommandSafe(cmd, options = {}) {
+  const silenceThreshold = options.silenceThreshold || 30000; // 30s
+  const killThreshold = options.killThreshold || 60000; // 60s
+  const maxRuntime = options.maxRuntime || 300000; // 5 min absolute max
+  
+  let lastOutputTime = Date.now();
+  let output = '';
+  
+  const process = spawn(cmd);
+  
+  // Reset timer on any output
+  process.stdout.on('data', (data) => {
+    lastOutputTime = Date.now();
+    output += data;
+    broadcast({ type: 'command_output', cmd, data });
+  });
+  
+  process.stderr.on('data', (data) => {
+    lastOutputTime = Date.now();
+    output += data;
+  });
+  
+  // Monitor for silence
+  const monitor = setInterval(() => {
+    const silentFor = Date.now() - lastOutputTime;
+    
+    if (silentFor > killThreshold) {
+      clearInterval(monitor);
+      process.kill();
+      escalate('Command hung', { cmd, silentFor, lastOutput: output.slice(-500) });
+    } else if (silentFor > silenceThreshold) {
+      broadcast({ type: 'command_warning', cmd, message: `Silent for ${silentFor/1000}s` });
+    }
+  }, 5000);
+  
+  // Absolute safety net
+  const absoluteTimeout = setTimeout(() => {
+    clearInterval(monitor);
+    process.kill();
+    escalate('Max runtime exceeded', { cmd, runtime: maxRuntime });
+  }, maxRuntime);
+  
+  process.on('exit', () => {
+    clearInterval(monitor);
+    clearTimeout(absoluteTimeout);
+  });
+  
+  return process;
+}
+```
+
+### Preventive Measures Built-In
+
+| Command Type | Safety Flag |
+|--------------|-------------|
+| Jest tests | `--forceExit --detectOpenHandles` |
+| npm install | `--no-optional --prefer-offline` |
+| Git operations | Timeout via config |
+| Any interactive | `--yes`, `--no-input`, `-y` |
+
+### Activity Log Integration
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Activity Log                                                │
+├─────────────────────────────────────────────────────────────┤
+│  [10:00:00] Devon: Running npm test...                       │
+│  [10:00:05] System: ✓ Output received                        │
+│  [10:00:10] System: ✓ Output received                        │
+│  [10:00:15] System: ✓ Output received                        │
+│  [10:00:45] System: ⚠️ No output for 30s - monitoring        │
+│  [10:01:15] System: 🛑 Command hung (60s silent) - killing   │
+│  [10:01:16] System: Escalating to Orion...                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Escalation on Hang
+
+When a hang is detected:
+1. Kill the process
+2. Capture last 500 chars of output (for debugging)
+3. Log the hang with context
+4. Notify Orion
+5. Orion decides: retry, skip, or escalate to human
+
+---
+
+## 22. Queue Infrastructure (Phase 4)
 
 ### Vision
 
