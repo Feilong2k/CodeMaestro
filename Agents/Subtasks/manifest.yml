@@ -91,7 +91,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/3-1.yml"
   - id: "3-2"
     title: "WebSocket Client"
-    status: pending
+    status: completed
     branch: "subtask/3-2-websocket-client"
     log: "Agents/Subtasks/Logs/3-2.yml"
   - id: "3-3"
