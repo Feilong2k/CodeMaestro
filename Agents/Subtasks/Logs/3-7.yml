@@ -1,6 +1,6 @@
 id: "3-7"
 title: "Status Bar Integration"
-status: pending
+status: completed
 outcome: "Status bar shows connection status, active agent, and task progress"
 branch: "subtask/3-7-status-bar-integration"
 
@@ -21,11 +21,11 @@ requiredActions:
 
 verificationChecklist:
   - "[x] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
-  - "[ ] [TDD] Integration Tests (Optional)"
-  - "[ ] Coverage > 80%"
-  - "[ ] Status bar reflects real-time state"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[x] [TDD] Integration Tests (Optional)"
+  - "[x] Coverage > 80%"
+  - "[x] Status bar reflects real-time state"
 
 prChecklist:
   developer:
@@ -62,5 +62,5 @@ notes:
   - "Depends on 3-3 (Tasks store) and 3-4 (Agents store)"
   - "StatusBar.vue already exists from Phase 1"
 
-lastUpdated: "2025-12-05T19:40:00Z"
+lastUpdated: "2025-12-05T20:10:00Z"
 updatedBy: "orchestrator"
