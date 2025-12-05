@@ -64,7 +64,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/2-6.yml"
   - id: "2-7"
     title: "Tara Agent"
-    status: pending
+    status: in_progress
     branch: "subtask/2-7-tara-agent"
     log: "Agents/Subtasks/Logs/2-7.yml"
   - id: "2-8"
