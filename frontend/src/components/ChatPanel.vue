@@ -12,6 +12,8 @@
         :message="msg.content"
         :typing-effect="msg.typingEffect || false"
         :typing-speed="20"
+        :alignment="getAlignment(msg.sender)"
+        :compact="compactMode"
       />
       
       <!-- Typing indicator when waiting for response -->
@@ -21,6 +23,48 @@
         <div class="w-2 h-2 bg-accent-primary rounded-full animate-pulse animation-delay-400"></div>
         <span class="text-text-muted text-sm ml-2">Orion is typing...</span>
       </div>
+    </div>
+
+    <!-- Control area above input -->
+    <div class="flex items-center justify-between mb-4">
+      <!-- Plan/Act Toggle -->
+      <div class="flex items-center bg-bg-layer/60 rounded-md p-1 border border-line-base/60">
+        <button
+          @click="setView('plan')"
+          :class="[
+            'px-4 py-1.5 rounded-sm text-sm font-medium transition-colors duration-fast font-matrix-sans',
+            currentView === 'plan'
+              ? 'bg-accent-primary text-bg-base shadow-matrix-glow'
+              : 'text-text-secondary hover:text-text-primary hover:shadow-matrix-glow'
+          ]"
+        >
+          Plan
+        </button>
+        <button
+          @click="setView('act')"
+          :class="[
+            'px-4 py-1.5 rounded-sm text-sm font-medium transition-colors duration-fast font-matrix-sans',
+            currentView === 'act'
+              ? 'bg-accent-primary text-bg-base shadow-matrix-glow'
+              : 'text-text-secondary hover:text-text-primary hover:shadow-matrix-glow'
+          ]"
+        >
+          Act
+        </button>
+      </div>
+
+      <!-- Compact mode toggle -->
+      <button
+        @click="compactMode = !compactMode"
+        :class="[
+          'px-4 py-1.5 rounded-md text-sm font-medium transition-colors duration-fast font-matrix-sans border',
+          compactMode
+            ? 'bg-accent-secondary text-bg-base border-accent-secondary shadow-matrix-glow'
+            : 'bg-bg-layer/60 text-text-secondary border-line-base/60 hover:text-text-primary hover:shadow-matrix-glow'
+        ]"
+      >
+        {{ compactMode ? 'Normal' : 'Compact' }}
+      </button>
     </div>
 
     <!-- Input area - fixed at bottom -->
@@ -57,11 +101,18 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useChatStore } from '../stores/chat'
+import { useAppStore } from '../stores/appStore'
+import { storeToRefs } from 'pinia'
 import MessageItem from './MessageItem.vue'
 
 const inputEl = ref(null)
 const messageListEl = ref(null)
 const chatStore = useChatStore()
+const appStore = useAppStore()
+const { currentView } = storeToRefs(appStore)
+const { setCurrentView } = appStore
+
+const compactMode = ref(false)
 
 const sendMessage = async () => {
   const text = inputEl.value?.innerText?.trim()
@@ -73,6 +124,14 @@ const sendMessage = async () => {
   nextTick(() => {
     inputEl.value.focus()
   })
+}
+
+const getAlignment = (sender) => {
+  return sender === 'user' ? 'right' : 'left'
+}
+
+const setView = (view) => {
+  setCurrentView(view)
 }
 
 const getAvatarBg = (sender) => {

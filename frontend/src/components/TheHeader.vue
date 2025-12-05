@@ -61,34 +61,8 @@
         </div>
       </div>
 
-      <!-- Right: Plan/Act Toggle and User Menu -->
+      <!-- Right: User Menu -->
       <div class="flex items-center space-x-4">
-        <!-- Plan/Act Toggle -->
-        <div class="flex items-center bg-bg-layer/60 rounded-md p-1 border border-line-base/60">
-          <button
-            @click="setView('plan')"
-            :class="[
-              'px-4 py-1.5 rounded-sm text-sm font-medium transition-colors duration-fast font-matrix-sans',
-              currentView === 'plan'
-                ? 'bg-accent-primary text-bg-base shadow-matrix-glow'
-                : 'text-text-secondary hover:text-text-primary hover:shadow-matrix-glow'
-            ]"
-          >
-            Plan
-          </button>
-          <button
-            @click="setView('act')"
-            :class="[
-              'px-4 py-1.5 rounded-sm text-sm font-medium transition-colors duration-fast font-matrix-sans',
-              currentView === 'act'
-                ? 'bg-accent-primary text-bg-base shadow-matrix-glow'
-                : 'text-text-secondary hover:text-text-primary hover:shadow-matrix-glow'
-            ]"
-          >
-            Act
-          </button>
-        </div>
-
         <!-- User Avatar (placeholder) -->
         <div class="w-8 h-8 rounded-full bg-bg-layer/60 border border-line-base/60 shadow-matrix-glow"></div>
       </div>

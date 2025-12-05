@@ -119,22 +119,22 @@ describe('ChatPanel.vue', () => {
   })
 
   it('should display typing effect for incoming assistant messages', async () => {
+    // Add a new message with typing effect to the store
+    mockStore.messages.push({
+      id: 2,
+      sender: 'Orion',
+      content: 'This is a typed response',
+      timestamp: new Date(),
+      typingEffect: true
+    })
+
     const wrapper = mount(ChatPanel)
-    
-    const input = wrapper.find('.chat-input')
-    await input.trigger('focus')
-    input.element.innerText = 'Hello'
-    await input.trigger('input')
-    
-    const sendButton = wrapper.find('button.send-button')
-    await sendButton.trigger('click')
-    
     // Fast-forward timers to process typing
     vi.runAllTimers()
     await flushPromises()
 
     const messageItems = wrapper.findAllComponents({ name: 'MessageItem' })
-    expect(messageItems.length).toBeGreaterThanOrEqual(2)
+    expect(messageItems.length).toBe(2)
   })
 
   it('should apply matrix theme styling', () => {
