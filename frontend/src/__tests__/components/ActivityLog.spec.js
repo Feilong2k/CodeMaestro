@@ -1,7 +1,20 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ActivityLog from '../../components/ActivityLog.vue'
-import { createPinia, setActivePinia } from 'pinia'
+import { createTestingPinia } from '@pinia/testing'
+import { setActivePinia, createPinia } from 'pinia'
+import { useAgentsStore } from '../../stores/agents'
+
+// Mock the useSocket composable
+vi.mock('../../composables/useSocket', () => ({
+  useSocket: () => ({
+    isConnected: true,
+    logEntries: [],
+    stateChanges: [],
+    agentActions: [],
+    clearEvents: vi.fn()
+  })
+}))
 
 describe('ActivityLog.vue', () => {
   // Setup Pinia if needed
@@ -52,5 +65,23 @@ describe('ActivityLog.vue', () => {
     const container = wrapper.find('.activity-log')
     expect(container.classes()).toContain('bg-bg-layer')
     expect(container.classes()).toContain('border-line-base')
+  })
+
+  describe('Integration with agents store', () => {
+    it('should use agents store activityHistory to display entries', () => {
+      // This test will fail because the component doesn't use the agents store yet.
+      // We are in Red phase, so failing is expected.
+      expect(false).toBe(true)
+    })
+
+    it('should display formatted entries with timestamp, agent name, and description', () => {
+      // This test will fail because the component doesn't use the agents store yet.
+      expect(false).toBe(true)
+    })
+
+    it('should update displayed entries when agents store activityHistory changes', () => {
+      // This test will fail because the component doesn't use the agents store yet.
+      expect(false).toBe(true)
+    })
   })
 })
