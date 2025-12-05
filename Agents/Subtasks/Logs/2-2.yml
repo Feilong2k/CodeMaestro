@@ -1,6 +1,6 @@
 id: "2-2"
 title: "PostgreSQL Database"
-status: pending
+status: in_progress
 outcome: pending
 branch: "subtask/2-2-postgresql-database"
 dependencies: ["2-1"]
@@ -31,9 +31,20 @@ prChecklistStatus:
   developer: pending
   tester: pending
   orchestrator: pending
-openQuestions: []
+openQuestions:
+  - key: "pg-connection-string"
+    status: "answered"
+    notes: "User has online PostgreSQL server. Credentials will be in backend/.env"
 notes:
-  - "PostgreSQL should be running locally or via Docker."
-lastUpdated: 2025-12-04T23:00:00Z
-updatedBy: orchestrator
+  - "PostgreSQL: Online free server (credentials in backend/.env)"
+  - "TARA INSTRUCTIONS:"
+  - "  - Create tests in backend/__tests__/db.test.js"
+  - "  - Test: Connection pool initialization"
+  - "  - Test: Health check query (SELECT 1)"
+  - "  - Test: CRUD operations for subtasks table"
+  - "  - Test: Migration runner"
+  - "  - Mock pg if needed for unit tests, use real DB for integration"
+  - "PARALLEL TASKS: When done with 2-2, you can also work on 2-3, 2-4, 2-9"
+lastUpdated: 2025-12-05T00:45:00Z
+updatedBy: orion
 

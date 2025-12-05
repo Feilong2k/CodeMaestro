@@ -39,7 +39,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/2-1.yml"
   - id: "2-2"
     title: "PostgreSQL Database"
-    status: pending
+    status: in_progress
     branch: "subtask/2-2-postgresql-database"
     log: "Agents/Subtasks/Logs/2-2.yml"
   - id: "2-3"
