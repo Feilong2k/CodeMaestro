@@ -16,7 +16,7 @@ requiredActions:
   - "Seed Data: Import existing YAML subtasks/logs"
   - "Queries: Basic CRUD helpers"
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Integration Tests (Red → Green)"
@@ -64,6 +64,7 @@ notes:
   - "  - Test: CRUD operations for subtasks table"
   - "  - Test: Migration runner"
   - "  - Mock pg if needed for unit tests, use real DB for integration"
+  - "UNIT TESTS CREATED: backend/__tests__/unit/db.test.js and backend/__tests__/__mocks__/pg.js"
   - "PARALLEL TASKS: When done with 2-2, you can also work on 2-3, 2-4, 2-9"
-lastUpdated: 2025-12-05T01:30:00Z
-updatedBy: orion
+lastUpdated: 2025-12-05T01:37:00Z
+updatedBy: tester
