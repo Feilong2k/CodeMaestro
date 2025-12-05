@@ -185,6 +185,20 @@ git worktree add ../CM-devon subtask/3-2-websocket-client
 - Report to Orion: "Worktree broken, need recreation"
 - Orion will fix from main repo
 
+### Syncing Worktree with Master
+
+If agent's worktree is missing files from master (e.g., new logs):
+
+**Agent reports:** "Missing Phase 3 logs in my worktree"
+
+**Orion runs:**
+```powershell
+cd C:\Coding\CM-<agent>
+git merge master -m "merge: sync with master"
+```
+
+Agents should NOT run merge commands themselves — Orion handles all git syncs.
+
 ### Rules
 
 | Rule | Description |
