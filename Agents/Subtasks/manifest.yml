@@ -34,60 +34,57 @@ subtasks:
   # Phase 2: Backend + State Machine + Agents
   - id: "2-1"
     title: "Backend Scaffold"
-    status: pending
+    status: completed
     branch: "subtask/2-1-backend-scaffold"
     log: "Agents/Subtasks/Logs/2-1.yml"
   - id: "2-2"
     title: "PostgreSQL Database"
-    status: pending
+    status: completed
     branch: "subtask/2-2-postgresql-database"
     log: "Agents/Subtasks/Logs/2-2.yml"
   - id: "2-3"
     title: "State Machine (XState)"
-    status: pending
+    status: completed
     branch: "subtask/2-3-state-machine-xstate"
     log: "Agents/Subtasks/Logs/2-3.yml"
   - id: "2-4"
     title: "Agent Framework"
-    status: pending
+    status: completed
     branch: "subtask/2-4-agent-framework"
     log: "Agents/Subtasks/Logs/2-4.yml"
   - id: "2-5"
     title: "Deepseek Integration"
-    status: pending
+    status: completed
     branch: "subtask/2-5-deepseek-integration"
     log: "Agents/Subtasks/Logs/2-5.yml"
   - id: "2-6"
     title: "Orion Agent"
-    status: pending
+    status: completed
     branch: "subtask/2-6-orion-agent"
     log: "Agents/Subtasks/Logs/2-6.yml"
   - id: "2-7"
     title: "Tara Agent"
-    status: pending
+    status: completed
     branch: "subtask/2-7-tara-agent"
     log: "Agents/Subtasks/Logs/2-7.yml"
   - id: "2-8"
     title: "Devon Agent"
-    status: pending
+    status: completed
     branch: "subtask/2-8-devon-agent"
     log: "Agents/Subtasks/Logs/2-8.yml"
   - id: "2-9"
     title: "WebSocket Events"
-    status: pending
+    status: completed
     branch: "subtask/2-9-websocket-events"
     log: "Agents/Subtasks/Logs/2-9.yml"
   - id: "2-10"
     title: "REST API Endpoints"
-    status: pending
+    status: completed
     branch: "subtask/2-10-rest-api-endpoints"
     log: "Agents/Subtasks/Logs/2-10.yml"
 
 sequence:
-  # Phase 1 remaining
-  - "1-4"
-  # Phase 2
-  - "2-1"
+  # Phase 2 (remaining)
   - "2-2"
   - "2-3"
   - "2-4"

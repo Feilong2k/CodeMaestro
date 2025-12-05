@@ -1,0 +1,42 @@
+id: "FEAT-001"
+title: "Resizable Chat and Activity Panels"
+status: backlog
+priority: medium
+requested: 2025-12-04
+requestedBy: user
+relatedSubtask: "1-4"
+
+description: |
+  Allow users to drag and resize the width of the Chat panel and Activity Log panel.
+  Currently the widths are fixed in the grid layout.
+
+userStory: |
+  As a user, I want to resize the Chat and Activity panels so I can allocate more 
+  screen space to whichever panel I'm actively using.
+
+acceptanceCriteria:
+  - "[ ] Drag handle visible between Chat and Activity panels"
+  - "[ ] Dragging the handle resizes both panels proportionally"
+  - "[ ] Minimum width enforced (panels can't collapse to zero)"
+  - "[ ] Resize state persists across page refresh (localStorage)"
+  - "[ ] Works on desktop; hidden/disabled on mobile"
+
+suggestedImplementation: |
+  Options:
+  1. Use a library like `splitpanes` (Vue-compatible)
+  2. Custom drag handle with mouse events + CSS resize
+  3. CSS `resize` property (limited browser support)
+  
+  Recommended: `splitpanes` for reliability and touch support.
+
+affectedFiles:
+  - "frontend/src/components/MainLayout.vue"
+  - "frontend/src/App.vue"
+
+dependencies:
+  - "1-4 (Activity Log Shell) - completed"
+
+notes:
+  - "Deferred from 1-4 to focus on Phase 2 backend work."
+  - "Can be picked up as a polish item after Phase 2."
+

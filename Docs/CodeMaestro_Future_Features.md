@@ -470,6 +470,372 @@ Enable true parallel agent execution with shared state
 
 ---
 
+## 16. Agent Team Scaling (Phase 5)
+
+### Vision
+Scale from single-agent-per-role to **multi-agent teams** for true parallel development.
+
+### Proposed Team Structure
+
+| Role | Count | Scope | Territory (File Ownership) |
+|------|-------|-------|---------------------------|
+| **Orion** | 1 | Orchestration, status, PRs, coordination | `Agents/`, manifests, logs |
+| **Tara-FE** | 1 | Frontend tests (Vitest) | `frontend/__tests__/`, `*.spec.ts` |
+| **Tara-BE** | 1 | Backend tests (Jest) | `backend/__tests__/`, `*.test.js` |
+| **Devon-FE** | 1 | Vue components, stores, composables | `frontend/src/` |
+| **Devon-BE** | 1 | Express routes, services, DB | `backend/src/` |
+
+### Why Single Orion?
+- **Single source of truth** for task status
+- Prevents conflicting assignments
+- Coordinates merge order to avoid git conflicts
+- Human escalation point
+
+### Why Split Tara/Devon?
+- **No file conflicts** — each agent has a dedicated territory
+- **True parallelism** — FE and BE work can happen simultaneously
+- **Specialized context** — agents maintain domain expertise
+- **Faster throughput** — multiple subtasks progress at once
+
+### Rate Limit Considerations
+
+| Scenario | Agents Active | Est. RPM Needed | Deepseek Tier |
+|----------|---------------|-----------------|---------------|
+| Sequential | 1 | ~10 | Free tier OK |
+| Light parallel | 2-3 | ~30 | Free tier OK |
+| Full team | 5 | ~50 | Paid tier recommended |
+
+### Architecture Requirements
+
+1. **Task Queue System**
+   - Orion pulls unblocked tasks from dependency graph
+   - Assigns to idle agents based on territory
+   - Tracks agent availability (idle/busy/blocked)
+
+2. **Territory Enforcement**
+   - Hard rule: Agents can only edit files in their territory
+   - Prevents merge conflicts
+   - Enforced at orchestration level
+
+3. **Agent Status Tracking**
+   ```yaml
+   agents:
+     orion:
+       status: idle
+       current_task: null
+     tara-fe:
+       status: busy
+       current_task: "2-3"
+     devon-be:
+       status: busy  
+       current_task: "2-2"
+   ```
+
+4. **Merge Coordination**
+   - Orion sequences PRs to avoid conflicts
+   - FE merges don't block BE merges (different files)
+   - Only block when dependencies exist
+
+### Workflow Example
+
+```
+Time 0:  Orion assigns 2-2 (BE) to Devon-BE
+         Orion assigns 2-3 (FE) to Tara-FE
+Time 1:  Devon-BE working, Tara-FE working (parallel)
+Time 2:  Tara-FE done → Orion assigns 2-3 to Devon-FE
+         Devon-BE still working
+Time 3:  Devon-FE working, Devon-BE done
+         Orion assigns 2-2 tests to Tara-BE
+Time 4:  All 4 agents working in parallel (peak throughput)
+```
+
+### Cost Projection
+
+| Team Size | Tasks/Hour | API Calls/Hour | Est. Daily Cost |
+|-----------|------------|----------------|-----------------|
+| 1 (current) | 1-2 | ~100 | ~$0.50 |
+| 3 (light) | 3-5 | ~300 | ~$1.50 |
+| 5 (full) | 5-8 | ~500 | ~$2.50 |
+
+*Based on Deepseek pricing (~$0.001/1K tokens)*
+
+### Implementation Phases
+
+1. **Phase 5a:** Add second Tara (FE/BE split)
+2. **Phase 5b:** Add second Devon (FE/BE split)  
+3. **Phase 5c:** Task queue and agent status tracking
+4. **Phase 5d:** Territory enforcement and conflict prevention
+
+### Success Metrics
+
+- **Throughput:** 3-4x improvement in tasks/day
+- **Parallelism:** Average 2-3 agents active simultaneously
+- **Conflicts:** Zero git merge conflicts from agent work
+- **Quality:** No regression in test pass rate
+
+---
+
+## 17. Distribution & Business Models
+
+### BYOK (Bring Your Own Key) — Recommended Launch Strategy
+
+**Why BYOK first:**
+- Zero API cost to you
+- No enterprise deals needed — ship immediately
+- Privacy selling point ("Your keys, your data")
+- Open source friendly
+
+**Who does BYOK:**
+- Cline, Continue.dev, Aider, LM Studio
+- Cursor (originally, before subscription)
+
+### Business Model Options
+
+| Model | How It Works | When to Use |
+|-------|--------------|-------------|
+| **BYOK Only** | Users provide their own keys | MVP, open source |
+| **Usage-Based** | Route through your backend, charge margin | After traction |
+| **Subscription** | Flat fee, you pay providers | After enterprise deals |
+| **Hybrid** | Free = BYOK, Pro = bundled | Growth phase |
+| **Enterprise** | Teams, RBAC, SLA, support | B2B sales |
+
+### Cline's Playbook (Reference)
+
+1. **Open source extension** → Massive adoption (free)
+2. **Optional managed routing** → Usage-based fees
+3. **Cline Teams** → Enterprise features (free through 2025, paid 2026+)
+4. **Land grab strategy** → Grow first, monetize later
+
+### CodeMaestro Revenue Path
+
+```
+Phase 1-5: Free / Open Source (BYOK)
+           └── Build product, prove value
+           
+Phase 6:   Usage-Based Option
+           └── "Easy Mode" — we manage keys, small markup
+           └── Revenue: API margin (~10-20%)
+           
+Phase 7:   Pro Tier
+           └── Advanced dashboard, priority support
+           └── Revenue: $20-50/mo subscription
+           
+Phase 8:   Enterprise / Teams
+           └── Centralized billing, RBAC, audit logs
+           └── SSO, SLA, dedicated support
+           └── Revenue: $X/seat/month
+```
+
+---
+
+## 18. IDE Extension Strategy (Phase 6+)
+
+### Why Extensions Win
+
+1. **Zero friction** — Users stay in their IDE
+2. **File access** — Direct read/write to workspace
+3. **Terminal integration** — Run commands natively
+4. **Git integration** — Branch/commit from extension
+5. **Marketplace distribution** — One-click install (30M+ VSCode users)
+
+### Target Platforms
+
+| Platform | Type | Priority | Notes |
+|----------|------|----------|-------|
+| **VSCode** | Extension | P0 | Largest market, also works in Cursor/Windsurf |
+| **JetBrains** | Plugin | P1 | IntelliJ, WebStorm, PyCharm — enterprise |
+| **Neovim** | Plugin | P2 | Power users, CLI-native |
+| **GitHub Codespaces** | Extension | P1 | Cloud IDE, enterprise |
+| **Gitpod** | Extension | P2 | Cloud IDE |
+
+### Extension Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    VSCode Extension                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │  Sidebar     │  │  Commands    │  │  Status Bar  │  │
+│  │  (Webview)   │  │  Palette     │  │  Agent Info  │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  │
+│         └─────────────────┼─────────────────┘          │
+│                           │                             │
+│              ┌────────────▼────────────┐               │
+│              │   Extension Host        │               │
+│              │   • File operations     │               │
+│              │   • Terminal commands   │               │
+│              │   • Git operations      │               │
+│              └────────────┬────────────┘               │
+└───────────────────────────┼─────────────────────────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │  CodeMaestro Core   │
+                 │  (Embedded/Local)   │
+                 │  • Agent Framework  │
+                 │  • State Machine    │
+                 │  • LLM Integration  │
+                 └─────────────────────┘
+```
+
+### Extension Features
+
+**Sidebar Panel (Webview):**
+- Task list with status
+- Agent activity log
+- Chat interface for commands
+- Current task details
+
+**Command Palette:**
+- `CodeMaestro: Start Task`
+- `CodeMaestro: Check Status`
+- `CodeMaestro: Assign to Tara/Devon`
+- `CodeMaestro: Approve PR`
+- `CodeMaestro: View Dependencies`
+
+**Status Bar:**
+- Current agent working
+- Task progress (e.g., "2-2: 3/5 checks")
+- Quick actions
+
+**Output Channel:**
+- Real-time agent logs
+- Test results
+- Git operations
+
+### Implementation Phases
+
+```
+Phase 6a: Basic Extension Shell
+          └── Webview with existing dashboard
+          └── Command palette basics
+          
+Phase 6b: Native IDE Integration
+          └── File operations via Extension API
+          └── Terminal integration
+          └── Git via Extension API
+          
+Phase 6c: Polish & Publish
+          └── Marketplace listing
+          └── Documentation
+          └── Onboarding flow
+          
+Phase 6d: Multi-IDE
+          └── JetBrains plugin
+          └── Neovim plugin
+```
+
+### Competitive Positioning
+
+| Tool | Model | Strength | CodeMaestro Differentiator |
+|------|-------|----------|---------------------------|
+| **Copilot** | Bundled | Autocomplete | We do orchestration, not autocomplete |
+| **Cline** | BYOK | Full autonomy | We have structured TDD workflow |
+| **Continue** | BYOK | Customizable | We have multi-agent roles |
+| **Cursor** | Standalone | Full control | We're an extension, not a fork |
+| **Aider** | CLI | Git-native | We have GUI + process governance |
+
+**CodeMaestro's unique value:** Not just "AI writes code" but **"AI team follows your process"** — TDD workflow, role separation, quality gates.
+
+---
+
+## 19. Auto-Generated Task Checklists
+
+### Inspiration
+Cline automatically generates step-by-step checklists for complex tasks, giving visibility into progress. CodeMaestro should do the same.
+
+### Concept
+
+```
+┌─────────────────────────────────────────────────────┐
+│  2-5 Deepseek Integration                    [3/7]  │
+├─────────────────────────────────────────────────────┤
+│  [x] Create DeepseekClient class                    │
+│  [x] Implement chat() method                        │
+│  [x] Add API key config from .env                   │
+│  [ ] Implement rate limit handling                  │
+│  [ ] Add timeout handling                           │
+│  [ ] Implement token tracking                       │
+│  [ ] Create ModelAdapter interface                  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Generation Approaches
+
+| Approach | Source | Complexity | Accuracy |
+|----------|--------|------------|----------|
+| **From Log** | Parse `requiredActions` from task log | Low | High (pre-defined) |
+| **LLM-generated** | Agent analyzes task → creates steps | Medium | Variable |
+| **Hybrid** | Start with log, agent adds sub-steps | Medium | Best of both |
+
+### Implementation
+
+**Backend:**
+```javascript
+// Auto-parse requiredActions into checklist
+function generateChecklist(taskLog) {
+  return taskLog.requiredActions.map((action, idx) => ({
+    id: `step-${idx}`,
+    text: action,
+    completed: false,
+    completedAt: null,
+    completedBy: null
+  }));
+}
+```
+
+**Frontend Display Locations:**
+
+| Location | Display | Purpose |
+|----------|---------|---------|
+| **Activity Log** | Collapsible checklist per task | Detailed progress |
+| **Status Bar** | Progress indicator "2-5: 3/7" | Quick glance |
+| **Task Panel** | Full checklist with timestamps | Task management |
+| **Chat Panel** | Agent reports step completion | Real-time updates |
+
+### Agent Integration
+
+When an agent completes a step, it updates the checklist:
+```javascript
+// Agent marks step complete
+await orchestrator.completeStep(taskId, stepId, {
+  completedBy: 'devon',
+  notes: 'Implemented with retry logic'
+});
+
+// WebSocket broadcasts to UI
+socket.emit('step_complete', { taskId, stepId, progress: '4/7' });
+```
+
+### LLM-Assisted Breakdown
+
+For complex tasks, the agent can request breakdown:
+```
+Agent: "This task is complex. Breaking into sub-steps..."
+
+LLM Response:
+1. Research Deepseek API documentation
+2. Create client class with constructor
+3. Implement authentication header
+4. Add chat completion method
+5. Handle streaming responses
+6. Implement error handling
+7. Add rate limit retry logic
+8. Write usage tracking
+9. Create adapter interface
+```
+
+### Benefits
+
+- **Visibility** — See exactly where an agent is in a task
+- **Resumability** — If agent times out, new session knows what's done
+- **Estimation** — Track average time per step for ETAs
+- **Debugging** — Know which step failed
+
+### Phase
+
+Add to **Phase B (Pro Dashboard)** — enhances visibility and task management.
+
+---
+
 ## References
 
 - System Analysis: `Docs/Development/CodeMaestro_System_Analysis_and_Recommendations.md`

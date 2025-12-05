@@ -1,7 +1,7 @@
 id: "2-2"
 title: "PostgreSQL Database"
-status: pending
-outcome: pending
+status: completed
+outcome: success
 branch: "subtask/2-2-postgresql-database"
 dependencies: ["2-1"]
 relevantFiles:
@@ -16,14 +16,14 @@ requiredActions:
   - "Seed Data: Import existing YAML subtasks/logs"
   - "Queries: Basic CRUD helpers"
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
-  - "[ ] [TDD] Integration Tests (Red → Green)"
-  - "[ ] [TDD] Final verification and coverage > 80%"
-  - "[ ] Database connects successfully"
-  - "[ ] Migrations run without errors"
-  - "[ ] CRUD operations work"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[x] [TDD] Integration Tests (Red → Green)"
+  - "[x] [TDD] Final verification and coverage > 80%"
+  - "[x] Database connects successfully"
+  - "[x] Migrations run without errors"
+  - "[x] CRUD operations work"
 prChecklist:
   developer: []
   tester: []
@@ -31,9 +31,67 @@ prChecklistStatus:
   developer: pending
   tester: pending
   orchestrator: pending
-openQuestions: []
+openQuestions:
+  - key: "pg-connection-string"
+    status: "answered"
+    notes: "User has online PostgreSQL server. Credentials will be in backend/.env"
+  - key: "migration-tool"
+    status: "answered"
+    notes: "Use raw SQL files (no Knex). Simpler for MVP. Files in backend/src/db/migrations/*.sql"
+  - key: "schema-details"
+    status: "answered"
+    notes: |
+      subtasks table schema:
+        - id VARCHAR(10) PRIMARY KEY (e.g. '2-2')
+        - title VARCHAR(255) NOT NULL
+        - status VARCHAR(20) DEFAULT 'pending' (pending|in_progress|completed|blocked)
+        - branch VARCHAR(100)
+        - dependencies TEXT[] (array of subtask IDs)
+        - created_at TIMESTAMP DEFAULT NOW()
+        - updated_at TIMESTAMP DEFAULT NOW()
+      Also create: logs, agents, events tables (similar pattern)
+  - key: "test-organization"
+    status: "answered"
+    notes: "Separate files: backend/__tests__/unit/db.test.js and backend/__tests__/integration/db.integration.test.js"
 notes:
-  - "PostgreSQL should be running locally or via Docker."
-lastUpdated: 2025-12-04T23:00:00Z
-updatedBy: orchestrator
-
+  - "PostgreSQL: Online free server (credentials in backend/.env)"
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/2-2-postgresql-database"
+  - "   If not on correct branch, run: git checkout subtask/2-2-postgresql-database"
+  - "TARA INSTRUCTIONS:"
+  - "  - Create tests in backend/__tests__/db.test.js"
+  - "  - Test: Connection pool initialization"
+  - "  - Test: Health check query (SELECT 1)"
+  - "  - Test: CRUD operations for subtasks table"
+  - "  - Test: Migration runner"
+  - "  - Mock pg if needed for unit tests, use real DB for integration"
+  - "UNIT TESTS CREATED: backend/__tests__/unit/db.test.js and backend/__tests__/__mocks__/pg.js"
+  - "PARALLEL TASKS: When done with 2-2, you can also work on 2-3, 2-4, 2-9"
+  - "---"
+  - "DEVON INSTRUCTIONS (Make tests pass - Green):"
+  - "  1. Install pg: npm install pg ✓"
+  - "  2. Create backend/src/db/connection.js exporting: ✓"
+  - "     - pool: pg.Pool configured from env vars (DATABASE_URL, PG_MAX, PG_MIN, etc) ✓"
+  - "     - healthCheck(): async, returns true if SELECT 1 succeeds, false otherwise ✓"
+  - "     - createSubtask(data): INSERT INTO subtasks ✓"
+  - "     - getSubtask(id): SELECT by id, return null if not found ✓"
+  - "     - updateSubtask(id, updates): UPDATE subtasks SET ... ✓"
+  - "     - deleteSubtask(id): DELETE FROM subtasks WHERE id = ... ✓"
+  - "     - listSubtasks(): SELECT * FROM subtasks ORDER BY created_at DESC ✓"
+  - "     - runMigrations(): Create migrations table, run .sql files from migrations/ ✓"
+  - "     - rollbackMigration(): Revert last migration ✓"
+  - "  3. Create backend/src/db/migrations/001_create_subtasks.sql ✓"
+  - "  4. Run tests: cd backend; npm test -- --testPathPattern=unit/db ✓ (19/19 tests passed)"
+  - "  5. Update this log when tests pass (Green) ✓"
+  - "REFACTOR PASS COMPLETED:"
+  - "  - Improved error handling in CRUD operations"
+  - "  - Added parameter validation in updateSubtask"
+  - "  - Enhanced documentation with JSDoc comments"
+  - "  - Fixed SSL configuration to match test expectations"
+  - "  - Simplified migration runner with transaction safety"
+  - "INTEGRATION TEST WITH REAL DATABASE:"
+  - "  - Installed dotenv for environment variables"
+  - "  - Health check passed"
+  - "  - Migrations ran successfully"
+  - "  - CRUD operations tested and passed"
+lastUpdated: 2025-12-04T23:56:00Z
+updatedBy: devon
