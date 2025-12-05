@@ -737,6 +737,105 @@ Phase 6d: Multi-IDE
 
 ---
 
+## 19. Auto-Generated Task Checklists
+
+### Inspiration
+Cline automatically generates step-by-step checklists for complex tasks, giving visibility into progress. CodeMaestro should do the same.
+
+### Concept
+
+```
+┌─────────────────────────────────────────────────────┐
+│  2-5 Deepseek Integration                    [3/7]  │
+├─────────────────────────────────────────────────────┤
+│  [x] Create DeepseekClient class                    │
+│  [x] Implement chat() method                        │
+│  [x] Add API key config from .env                   │
+│  [ ] Implement rate limit handling                  │
+│  [ ] Add timeout handling                           │
+│  [ ] Implement token tracking                       │
+│  [ ] Create ModelAdapter interface                  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Generation Approaches
+
+| Approach | Source | Complexity | Accuracy |
+|----------|--------|------------|----------|
+| **From Log** | Parse `requiredActions` from task log | Low | High (pre-defined) |
+| **LLM-generated** | Agent analyzes task → creates steps | Medium | Variable |
+| **Hybrid** | Start with log, agent adds sub-steps | Medium | Best of both |
+
+### Implementation
+
+**Backend:**
+```javascript
+// Auto-parse requiredActions into checklist
+function generateChecklist(taskLog) {
+  return taskLog.requiredActions.map((action, idx) => ({
+    id: `step-${idx}`,
+    text: action,
+    completed: false,
+    completedAt: null,
+    completedBy: null
+  }));
+}
+```
+
+**Frontend Display Locations:**
+
+| Location | Display | Purpose |
+|----------|---------|---------|
+| **Activity Log** | Collapsible checklist per task | Detailed progress |
+| **Status Bar** | Progress indicator "2-5: 3/7" | Quick glance |
+| **Task Panel** | Full checklist with timestamps | Task management |
+| **Chat Panel** | Agent reports step completion | Real-time updates |
+
+### Agent Integration
+
+When an agent completes a step, it updates the checklist:
+```javascript
+// Agent marks step complete
+await orchestrator.completeStep(taskId, stepId, {
+  completedBy: 'devon',
+  notes: 'Implemented with retry logic'
+});
+
+// WebSocket broadcasts to UI
+socket.emit('step_complete', { taskId, stepId, progress: '4/7' });
+```
+
+### LLM-Assisted Breakdown
+
+For complex tasks, the agent can request breakdown:
+```
+Agent: "This task is complex. Breaking into sub-steps..."
+
+LLM Response:
+1. Research Deepseek API documentation
+2. Create client class with constructor
+3. Implement authentication header
+4. Add chat completion method
+5. Handle streaming responses
+6. Implement error handling
+7. Add rate limit retry logic
+8. Write usage tracking
+9. Create adapter interface
+```
+
+### Benefits
+
+- **Visibility** — See exactly where an agent is in a task
+- **Resumability** — If agent times out, new session knows what's done
+- **Estimation** — Track average time per step for ETAs
+- **Debugging** — Know which step failed
+
+### Phase
+
+Add to **Phase B (Pro Dashboard)** — enhances visibility and task management.
+
+---
+
 ## References
 
 - System Analysis: `Docs/Development/CodeMaestro_System_Analysis_and_Recommendations.md`
