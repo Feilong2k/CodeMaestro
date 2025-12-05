@@ -49,4 +49,10 @@ openQuestions: []
 #    question: "..."
 #    answer: "..."
 
-notes: []
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * <branch-name>"
+  - "   If not on correct branch, run: git checkout <branch-name>"
+
+# Metadata (updated by agents)
+lastUpdated: "" # ISO-8601 timestamp
+updatedBy: "" # orchestrator | developer | tester
