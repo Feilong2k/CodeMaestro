@@ -1,0 +1,55 @@
+{
+  "agent": "Tara",
+  "role": "Tester",
+  "subtaskId": "3-5",
+  "title": "Activity Log Integration",
+  "branch": "subtask/3-5-activity-log-integration",
+  "goal": "Write failing tests (Red) for Activity Log component integration",
+  "currentPhase": "Red (Write failing tests)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Tara_Tester_v2.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "testing": ".clinerules/workflows/Test_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "templates": {
+    "subtaskLog": ".clinerules/workflows/templates/Subtask_Log_Template.yml"
+  },
+  
+  "techStack": {
+    "frontend": "Vue 3 + Vite",
+    "testing": "Vitest + Vue Test Utils",
+    "store": "Pinia (agents store)"
+  },
+  
+  "requiredTests": [
+    "ActivityLog component renders entries from store",
+    "New entries auto-scroll to bottom",
+    "Entries show correct timestamp and agent name",
+    "Clicking entry expands details",
+    "Color coding per agent (Orion=purple, etc.)"
+  ],
+  
+  "testFileLocations": [
+    "frontend/src/__tests__/components/ActivityLog.spec.js"
+  ],
+  
+  "logFile": "Agents/Subtasks/Logs/3-5.yml",
+  
+  "instructions": [
+    "1. Checkout branch: subtask/3-5-activity-log-integration",
+    "2. Mock the agents store (since it might not be implemented yet)",
+    "3. Write tests for ActivityLog.vue using the store",
+    "4. Run tests to confirm they fail (Red)",
+    "5. Update log 3-5.yml"
+  ],
+  
+  "branchCheck": "⚠️ Run 'git branch' first - must show * subtask/3-5-activity-log-integration"
+}
+

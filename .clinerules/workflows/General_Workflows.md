@@ -13,7 +13,7 @@ Use this canonical loop for every subtask:
 
 1. **Test (Tara)**: Write failing unit tests (scope: module/composable/service).
    - **Sad Path Mandate**: Must include at least one error/failure case.
-   - **HANDOFF**: Tara commits → notifies Orion → Orion merges to `main`.
+   - **HANDOFF**: Tara commits → `git checkout main` (release branch) → notifies Orion → Orion merges to `main`.
 
 2. **Implement (Devon)**: Pull `main` (get tests) → Implement to green.
 
@@ -21,7 +21,7 @@ Use this canonical loop for every subtask:
    - **Mandatory Step**: Pause to evaluate structure.
 
 4. **Integration (Tara)**: Write failing integration tests (scope: endpoint/flow).
-   - **HANDOFF**: Tara commits → notifies Orion → Orion merges to `main`.
+   - **HANDOFF**: Tara commits → `git checkout main` (release branch) → notifies Orion → Orion merges to `main`.
 
 5. **Implement (Devon)**: Pull `main` → Adjust implementation to pass integration tests.
 
