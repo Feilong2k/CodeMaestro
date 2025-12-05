@@ -1,6 +1,6 @@
 id: "2-5"
 title: "Deepseek Integration"
-status: pending
+status: in_progress
 outcome: pending
 branch: "subtask/2-5-deepseek-integration"
 dependencies: ["2-4"]
@@ -34,6 +34,17 @@ prChecklistStatus:
 openQuestions: []
 notes:
   - "Deepseek API is OpenAI-compatible. Use deepseek-coder or deepseek-chat model."
-lastUpdated: 2025-12-04T23:00:00Z
-updatedBy: orchestrator
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/2-5-deepseek-integration"
+  - "TARA INSTRUCTIONS (Create failing tests - Red):"
+  - "  - Create backend/__tests__/unit/deepseek.test.js"
+  - "  - Test: DeepseekClient class initialization with API key"
+  - "  - Test: chat() method sends request and returns response"
+  - "  - Test: Rate limit handling (429 response → retry with backoff)"
+  - "  - Test: Auth error handling (401 response)"
+  - "  - Test: Timeout handling"
+  - "  - Test: Token usage tracking"
+  - "  - Test: ModelAdapter interface (abstract class)"
+  - "  - Mock HTTP calls - do NOT hit real API"
+lastUpdated: 2025-12-05T03:00:00Z
+updatedBy: orion
 

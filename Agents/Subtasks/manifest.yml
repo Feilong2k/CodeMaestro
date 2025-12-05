@@ -54,7 +54,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/2-4.yml"
   - id: "2-5"
     title: "Deepseek Integration"
-    status: pending
+    status: in_progress
     branch: "subtask/2-5-deepseek-integration"
     log: "Agents/Subtasks/Logs/2-5.yml"
   - id: "2-6"
