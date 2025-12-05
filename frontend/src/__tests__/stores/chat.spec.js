@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useChatStore } from '../../stores/chat'
+import * as agentsApi from '../../api/agents'
 
-// Mock the API client for Orion chat
-vi.mock('../../api/agents', () => ({
-  sendMessageToOrion: vi.fn()
-}))
+vi.mock('../../api/agents')
 
 describe('chat store', () => {
   beforeEach(() => {
@@ -63,19 +61,72 @@ describe('chat store', () => {
 
   describe('sendMessage integration', () => {
     it('should call API with user message and add Orion response to messages', async () => {
-      // This test will fail because the implementation doesn't exist yet.
-      // We are in Red phase, so that's okay.
-      expect(true).toBe(false)
+      const mockResponse = { data: { response: 'I am Orion, your assistant.' } }
+      agentsApi.chat.mockResolvedValue(mockResponse)
+
+      const store = useChatStore()
+      const userMessage = 'Hello, Orion'
+      await store.sendMessage(userMessage)
+
+      // Check that API was called with the user message
+      expect(agentsApi.chat).toHaveBeenCalledWith(userMessage)
+      // Check that the user message was added to the store
+      expect(store.messages).toContainEqual(expect.objectContaining({
+        sender: 'user',
+        content: userMessage
+      }))
+      // Check that the Orion response was added
+      expect(store.messages).toContainEqual(expect.objectContaining({
+        sender: 'Orion',
+        content: mockResponse.data.response
+      }))
+      // Sending flag should be false after
+      expect(store.sending).toBe(false)
     })
 
     it('should set sending flag to true while waiting for response', async () => {
-      // This test will also fail.
-      expect(true).toBe(false)
+      // Create a promise that we can resolve later
+      let resolvePromise
+      const promise = new Promise(resolve => {
+        resolvePromise = () => resolve({ data: { response: 'test' } })
+      })
+      agentsApi.chat.mockReturnValue(promise)
+
+      const store = useChatStore()
+      const userMessage = 'test'
+      const sendPromise = store.sendMessage(userMessage)
+
+      // Check that sending is true while the request is in flight
+      expect(store.sending).toBe(true)
+
+      // Resolve the promise
+      resolvePromise()
+      await sendPromise
+
+      // Now sending should be false
+      expect(store.sending).toBe(false)
     })
 
     it('should handle API errors gracefully', async () => {
-      // This test will also fail.
-      expect(true).toBe(false)
+      const error = new Error('Network error')
+      agentsApi.chat.mockRejectedValue(error)
+
+      const store = useChatStore()
+      const userMessage = 'Hello'
+      await store.sendMessage(userMessage)
+
+      // Error should be set in state
+      expect(store.error).toBe('Failed to send message: Network error')
+      // Sending flag should be false
+      expect(store.sending).toBe(false)
+      // User message should still be added, but no Orion response
+      expect(store.messages).toContainEqual(expect.objectContaining({
+        sender: 'user',
+        content: userMessage
+      }))
+      // No Orion message added
+      const orionMessages = store.messages.filter(m => m.sender === 'Orion')
+      expect(orionMessages.length).toBe(1) // only the initial welcome message
     })
   })
 })

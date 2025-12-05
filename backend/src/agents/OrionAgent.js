@@ -1,4 +1,5 @@
 const BaseAgent = require('./BaseAgent');
+const DeepseekClient = require('../llm/DeepseekClient');
 
 /**
  * OrionAgent - orchestrator agent that coordinates tasks and state transitions.
@@ -7,6 +8,7 @@ class OrionAgent extends BaseAgent {
   constructor() {
     super('orion');
     this.prompt = this.loadPrompt('Orion_Orchestrator_v2');
+    this.deepseek = new DeepseekClient();
   }
 
   /**
@@ -65,6 +67,38 @@ class OrionAgent extends BaseAgent {
     return { actions };
   }
 
+  /**
+   * Chat with Orion using Deepseek.
+   * @param {string} message - The user message.
+   * @returns {Promise<{response: string}>}
+   */
+  async chat(message) {
+    const messages = [
+      {
+        role: 'system',
+        content: `You are Orion, an AI development assistant in the CodeMaestro system.
+        You help users with planning, building, and testing software.
+        You are part of a multi-agent system that includes Tara (tester) and Devon (developer).
+        Keep your responses concise and helpful.`
+      },
+      {
+        role: 'user',
+        content: message
+      }
+    ];
+
+    try {
+      const result = await this.deepseek.chat(messages, {
+        temperature: 0.7,
+        max_tokens: 1000
+      });
+      return { response: result.content };
+    } catch (error) {
+      console.error('Deepseek chat error:', error);
+      throw new Error(`Failed to get response from Orion: ${error.message}`);
+    }
+  }
+
   assignTask(subtaskId, agents) {
     if (!agents) return null;
     const agent = Array.isArray(agents) ? agents[0] : agents;
@@ -111,4 +145,3 @@ class OrionAgent extends BaseAgent {
 }
 
 module.exports = OrionAgent;
-
