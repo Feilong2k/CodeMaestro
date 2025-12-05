@@ -3,8 +3,8 @@
     <!-- Desktop: 2-column grid (no left bar), Mobile: single column -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 w-full max-w-7xl mx-auto px-4 lg:px-6 pt-4 lg:pt-6 pb-0 h-full">
       <!-- Main content slot - now takes more space because left bar is removed -->
-      <main class="lg:col-span-7 xl:col-span-8 order-1 lg:order-1 flex flex-col h-full">
-        <div class="w-full max-w-4xl mx-auto flex-1">
+      <main class="lg:col-span-7 xl:col-span-8 order-1 lg:order-1 flex flex-col h-full min-h-0">
+        <div class="w-full max-w-4xl mx-auto flex-1 h-full min-h-0 flex flex-col">
           <slot>
             <!-- Default slot content (placeholder) -->
             <div class="bg-bg-elevated border border-line-base rounded-xl p-6 shadow-matrix-glow h-full">
