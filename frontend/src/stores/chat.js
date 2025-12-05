@@ -1,19 +1,72 @@
 import { defineStore } from 'pinia'
 import { chat } from '../api/agents'
 
+// LocalStorage key for persistence
+const CHAT_STORAGE_KEY = 'codemaestro_chat'
+
+// Helper to save chat state to localStorage
+function saveToStorage(state) {
+  try {
+    const serialized = JSON.stringify({
+      messages: state.messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString()
+      })),
+      isPlanApproved: state.isPlanApproved
+    })
+    localStorage.setItem(CHAT_STORAGE_KEY, serialized)
+  } catch (error) {
+    console.error('Failed to save chat to localStorage:', error)
+  }
+}
+
+// Helper to load chat state from localStorage
+function loadFromStorage() {
+  try {
+    const serialized = localStorage.getItem(CHAT_STORAGE_KEY)
+    if (!serialized) return null
+
+    const data = JSON.parse(serialized)
+    return {
+      messages: data.messages.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      })),
+      isPlanApproved: data.isPlanApproved || false
+    }
+  } catch (error) {
+    console.error('Failed to load chat from localStorage:', error)
+    return null
+  }
+}
+
 export const useChatStore = defineStore('chat', {
-  state: () => ({
-    messages: [
-      {
-        id: 1,
-        sender: 'Orion',
-        content: "Welcome to CodeMaestro. I'm Orion, your AI development assistant. Ready to help you plan, build, and test.",
-        timestamp: new Date()
-      }
-    ],
-    sending: false,
-    error: null
-  }),
+  state: () => {
+    // Try to load from localStorage first
+    const saved = loadFromStorage()
+    
+    return {
+      messages: saved?.messages || [
+        {
+          id: 1,
+          sender: 'Orion',
+          content: "Welcome to CodeMaestro. I'm Orion, your AI development assistant. Ready to help you plan, build, and test.",
+          timestamp: new Date()
+        }
+      ],
+      sending: false,
+      error: null,
+      isPlanApproved: saved?.isPlanApproved || false
+    }
+  },
+
+  getters: {
+    // Check if Act button should be disabled
+    isActDisabled: (state) => !state.isPlanApproved,
+    
+    // Get the last message for typing effect
+    lastMessage: (state) => state.messages.length > 0 ? state.messages[state.messages.length - 1] : null
+  },
 
   actions: {
     async sendMessage(content) {
@@ -48,10 +101,16 @@ export const useChatStore = defineStore('chat', {
 
     addMessage(message) {
       const id = this.messages.length + 1
-      this.messages.push({
+      const newMessage = {
         id,
         ...message
-      })
+      }
+      this.messages.push(newMessage)
+      
+      // Auto-save to localStorage
+      this.saveState()
+      
+      return newMessage
     },
 
     clearHistory() {
@@ -60,6 +119,49 @@ export const useChatStore = defineStore('chat', {
       this.messages = welcomeMessage ? [welcomeMessage] : []
       this.error = null
       this.sending = false
+      
+      // Save cleared state
+      this.saveState()
+    },
+
+    // Save current state to localStorage
+    saveState() {
+      saveToStorage({
+        messages: this.messages,
+        isPlanApproved: this.isPlanApproved
+      })
+    },
+
+    // Toggle plan approval (for Act blocking)
+    approvePlan() {
+      this.isPlanApproved = true
+      this.saveState()
+    },
+
+    rejectPlan() {
+      this.isPlanApproved = false
+      this.saveState()
+    },
+
+    // Clear all data including localStorage
+    clearAll() {
+      this.messages = [
+        {
+          id: 1,
+          sender: 'Orion',
+          content: "Welcome to CodeMaestro. I'm Orion, your AI development assistant. Ready to help you plan, build, and test.",
+          timestamp: new Date()
+        }
+      ]
+      this.sending = false
+      this.error = null
+      this.isPlanApproved = false
+      
+      try {
+        localStorage.removeItem(CHAT_STORAGE_KEY)
+      } catch (error) {
+        console.error('Failed to clear localStorage:', error)
+      }
     }
   }
 })

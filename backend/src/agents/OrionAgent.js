@@ -1,5 +1,6 @@
 const BaseAgent = require('./BaseAgent');
 const DeepseekClient = require('../llm/DeepseekClient');
+const { broadcastToSubtask } = require('../socket/index');
 
 /**
  * OrionAgent - orchestrator agent that coordinates tasks and state transitions.
@@ -103,6 +104,17 @@ class OrionAgent extends BaseAgent {
     if (!agents) return null;
     const agent = Array.isArray(agents) ? agents[0] : agents;
     if (!agent) return null;
+
+    // Emit log entry via socket
+    try {
+      broadcastToSubtask(subtaskId, 'log_entry', {
+        level: 'info',
+        message: `Assigned subtask ${subtaskId} to agent ${agent}`
+      });
+    } catch (error) {
+      console.error('Failed to emit log entry for assignTask:', error);
+    }
+
     return {
       type: 'assignTask',
       subtaskId,
@@ -111,6 +123,16 @@ class OrionAgent extends BaseAgent {
   }
 
   approveCompletion(subtaskId) {
+    // Emit log entry via socket
+    try {
+      broadcastToSubtask(subtaskId, 'log_entry', {
+        level: 'info',
+        message: `Approved completion of subtask ${subtaskId}`
+      });
+    } catch (error) {
+      console.error('Failed to emit log entry for approveCompletion:', error);
+    }
+
     return {
       type: 'approveCompletion',
       subtaskId
@@ -118,6 +140,16 @@ class OrionAgent extends BaseAgent {
   }
 
   rejectCompletion(subtaskId, reason = 'Unspecified issue') {
+    // Emit log entry via socket
+    try {
+      broadcastToSubtask(subtaskId, 'log_entry', {
+        level: 'warn',
+        message: `Rejected completion of subtask ${subtaskId}: ${reason}`
+      });
+    } catch (error) {
+      console.error('Failed to emit log entry for rejectCompletion:', error);
+    }
+
     return {
       type: 'rejectCompletion',
       subtaskId,
@@ -126,6 +158,16 @@ class OrionAgent extends BaseAgent {
   }
 
   escalateBlocker(subtaskId, issue, duration) {
+    // Emit log entry via socket
+    try {
+      broadcastToSubtask(subtaskId, 'log_entry', {
+        level: 'error',
+        message: `Subtask ${subtaskId} blocked: ${issue} (duration: ${duration || 'unknown'})`
+      });
+    } catch (error) {
+      console.error('Failed to emit log entry for escalateBlocker:', error);
+    }
+
     return {
       type: 'escalateBlocker',
       subtaskId,
@@ -135,6 +177,16 @@ class OrionAgent extends BaseAgent {
   }
 
   triggerTransition(subtaskId, from, to) {
+    // Emit log entry via socket
+    try {
+      broadcastToSubtask(subtaskId, 'log_entry', {
+        level: 'info',
+        message: `Transitioned subtask ${subtaskId} from ${from} to ${to}`
+      });
+    } catch (error) {
+      console.error('Failed to emit log entry for triggerTransition:', error);
+    }
+
     return {
       type: 'triggerTransition',
       subtaskId,
