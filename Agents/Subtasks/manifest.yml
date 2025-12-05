@@ -44,7 +44,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/2-2.yml"
   - id: "2-3"
     title: "State Machine (XState)"
-    status: in_progress
+    status: completed
     branch: "subtask/2-3-state-machine-xstate"
     log: "Agents/Subtasks/Logs/2-3.yml"
   - id: "2-4"
