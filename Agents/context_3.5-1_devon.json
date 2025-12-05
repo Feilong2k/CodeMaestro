@@ -1,0 +1,56 @@
+{
+  "agent": "Devon",
+  "role": "Developer",
+  "subtaskId": "3.5-1",
+  "title": "Chat UI Polish & Layout",
+  "branch": "subtask/3.5-1-chat-ui-polish",
+  "goal": "Polish chat interface: bubbles alignment, font size, scrollbar, Act button location",
+  "currentPhase": "Red (Write failing tests)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Devon_Developer.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "filesToModify": [
+    "frontend/src/components/ChatPanel.vue",
+    "frontend/src/components/MessageItem.vue",
+    "frontend/src/components/TheHeader.vue",
+    "frontend/src/App.vue"
+  ],
+  
+  "implementation": {
+    "bubbles": [
+      "User: 'justify-end', bg-accent-primary (Blue), text-white",
+      "Orion: 'justify-start', bg-bg-elevated (Gray/Dark), text-secondary"
+    ],
+    "compact": [
+      "Reduce padding (p-4 -> p-2)",
+      "Reduce font size (text-base -> text-sm)",
+      "Remove 'Welcome' taking full screen if needed"
+    ],
+    "layout": [
+      "Move Plan/Act toggle from Header to ChatPanel (above input)",
+      "Remove Theme Toggle from Header",
+      "Ensure MessageList scrolls independently (overflow-y-auto)"
+    ]
+  },
+  
+  "logFile": "Agents/Subtasks/Logs/3.5-1.yml",
+  "worktreePath": "C:\\Coding\\CM-devon",
+  
+  "instructions": [
+    "1. Checkout branch: subtask/3.5-1-chat-ui-polish",
+    "2. Merge master",
+    "3. Modify MessageItem.vue for alignment props (user=right, orion=left)",
+    "4. Modify ChatPanel.vue to move Plan/Act button",
+    "5. Modify TheHeader.vue to remove Theme Toggle",
+    "6. Verify visual changes (run dev server if needed)"
+  ]
+}
+

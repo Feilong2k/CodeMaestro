@@ -1,0 +1,57 @@
+{
+  "agent": "Devon",
+  "role": "Developer",
+  "subtaskId": "3.5-2",
+  "title": "Logic & Persistence Fixes",
+  "branch": "subtask/3.5-2-logic-persistence",
+  "goal": "Fix Activity Log updates, Typewriter prop passing, Chat persistence, Act blocking",
+  "currentPhase": "Red (Write failing tests)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Devon_Developer.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "filesToModify": [
+    "backend/src/agents/OrionAgent.js",
+    "backend/src/socket/index.js",
+    "frontend/src/stores/chat.js",
+    "frontend/src/components/ChatPanel.vue"
+  ],
+  
+  "implementation": {
+    "activityLog": [
+      "Backend: OrionAgent must emit 'log_entry' via socket when taking actions",
+      "Ensure socketService.init was called (fixed in index.js, check OrionAgent)"
+    ],
+    "persistence": [
+      "Frontend: Use localStorage in Chat Store (Pinia persist plugin or manual)",
+      "Load messages on mount"
+    ],
+    "actBlock": [
+      "Frontend: Add 'isPlanApproved' state to Chat Store",
+      "Disable 'Act' button if !isPlanApproved"
+    ],
+    "typewriter": [
+      "Debug: Ensure 'typingEffect' prop is passed correctly in ChatPanel v-for"
+    ]
+  },
+  
+  "logFile": "Agents/Subtasks/Logs/3.5-2.yml",
+  "worktreePath": "C:\\Coding\\CM-tara",
+  
+  "instructions": [
+    "1. Checkout branch: subtask/3.5-2-logic-persistence",
+    "2. Merge master",
+    "3. Implement persistence in stores/chat.js",
+    "4. Update OrionAgent.js to emit socket events",
+    "5. Verify Act Blocking logic",
+    "6. Run tests: npm test"
+  ]
+}
+
