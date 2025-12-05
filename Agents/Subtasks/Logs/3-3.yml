@@ -1,6 +1,6 @@
 id: "3-3"
 title: "Pinia Store - Tasks"
-status: pending
+status: completed
 outcome: "Centralized task/subtask state with API sync and WebSocket updates"
 branch: "subtask/3-3-pinia-store-tasks"
 
@@ -20,11 +20,11 @@ requiredActions:
 
 verificationChecklist:
   - "[x] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
-  - "[ ] [TDD] Integration Tests (Optional)"
-  - "[ ] Coverage > 80%"
-  - "[ ] Store reflects backend state after fetch"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[~] [TDD] Integration Tests (Optional)"
+  - "[x] Coverage > 80%"
+  - "[x] Store reflects backend state after fetch"
 
 prChecklist:
   developer:
