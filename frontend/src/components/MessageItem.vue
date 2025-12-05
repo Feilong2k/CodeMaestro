@@ -1,19 +1,31 @@
 <template>
-  <div class="message bg-bg-elevated border border-line-base rounded-lg p-4">
-    <div class="flex items-start space-x-3">
+  <div 
+    class="message rounded-lg p-4"
+    :class="[
+      compact ? 'p-2' : 'p-4',
+      alignment === 'right' ? 'user-message' : 'orion-message'
+    ]"
+  >
+    <div class="flex items-start space-x-3" :class="{ 'flex-row-reverse space-x-reverse': alignment === 'right' }">
       <div
-        class="w-8 h-8 rounded-full flex items-center justify-center shadow-matrix-glow"
+        class="w-8 h-8 rounded-full flex items-center justify-center shadow-matrix-glow shrink-0"
         :class="avatarBg"
       >
-        <span class="text-bg-base font-bold text-sm">{{ avatarText }}</span>
+        <span class="text-bg-base font-bold" :class="compact ? 'text-xs' : 'text-sm'">{{ avatarText }}</span>
       </div>
-      <div class="flex-1">
-        <div class="flex items-center justify-between mb-1">
-          <span class="font-semibold text-text-primary font-matrix-sans">{{ sender }}</span>
+      <div class="flex-1" :class="{ 'text-right': alignment === 'right' }">
+        <div class="flex items-center justify-between mb-1" :class="{ 'flex-row-reverse': alignment === 'right' }">
+          <span class="font-semibold text-text-primary font-matrix-sans" :class="compact ? 'text-sm' : ''">{{ sender }}</span>
           <span class="text-xs text-text-muted font-matrix-mono">{{ time }}</span>
         </div>
         <div 
-          class="message-content text-text-secondary font-matrix-sans whitespace-pre-wrap"
+          class="message-content font-matrix-sans whitespace-pre-wrap rounded-lg px-3 py-2 max-w-[80%]"
+          :class="[
+            compact ? 'text-sm' : 'text-text-secondary',
+            alignment === 'right' 
+              ? 'bg-accent-secondary text-bg-base ml-auto' 
+              : 'bg-bg-elevated text-text-secondary border border-line-base'
+          ]"
           v-html="renderedMessage"
           ref="messageContent"
         />
@@ -55,6 +67,15 @@ const props = defineProps({
   typingSpeed: {
     type: Number,
     default: 20 // ms per character
+  },
+  compact: {
+    type: Boolean,
+    default: false
+  },
+  alignment: {
+    type: String,
+    default: 'left', // 'left' or 'right'
+    validator: (value) => ['left', 'right'].includes(value)
   }
 })
 

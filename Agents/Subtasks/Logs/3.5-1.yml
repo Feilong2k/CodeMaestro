@@ -1,7 +1,7 @@
 id: "3.5-1"
 title: "Chat UI Polish & Layout"
-status: pending
-outcome: "Chat interface is polished, responsive, and matches UX requirements"
+status: completed
+outcome: "Chat interface is polished, responsive, and matches UX requirements. Input delay bug fixed during merge."
 branch: "subtask/3.5-1-chat-ui-polish"
 
 dependencies: ["3-10"]
@@ -21,13 +21,13 @@ requiredActions:
   - "BUG FIX: Clear input immediately on send (don't wait for API response)"
 
 verificationChecklist:
-  - "[ ] [TDD] Visual/Unit Tests updated"
-  - "[ ] [TDD] Implementation (Green)"
-  - "[ ] User messages aligned Right"
-  - "[ ] Orion messages aligned Left"
-  - "[ ] Scrollbar appears only in chat list"
-  - "[ ] Plan/Act toggle visible in Chat Panel"
-  - "[ ] Input clears instantly"
+  - "[x] [TDD] Visual/Unit Tests updated"
+  - "[x] [TDD] Implementation (Green)"
+  - "[x] User messages aligned Right"
+  - "[x] Orion messages aligned Left"
+  - "[x] Scrollbar appears only in chat list"
+  - "[x] Plan/Act toggle visible in Chat Panel"
+  - "[x] Input clears instantly"
 
 prChecklist:
   developer:
@@ -38,15 +38,17 @@ prChecklist:
     - "Verified scrolling behavior"
 
 prChecklistStatus:
-  developer: pending
+  developer: completed
   tester: pending
-  orchestrator: pending
+  orchestrator: completed
 
 openQuestions: []
 
 notes:
-  - "⚠️ BRANCH CHECK: Run 'git checkout -b subtask/3.5-1-chat-ui-polish'"
-  - "Focus on CSS/Tailwind classes and Component structure"
+  - "✅ BRANCH CHECK: Branch 'subtask/3.5-1-chat-ui-polish' created and checked out."
+  - "✅ All required actions implemented."
+  - "✅ Tests updated and passing."
+  - "✅ Input clearing bug fixed by Orchestrator during merge."
 
-lastUpdated: "2025-12-05T21:40:00Z"
+lastUpdated: "2025-12-05T21:55:00Z"
 updatedBy: "orchestrator"
