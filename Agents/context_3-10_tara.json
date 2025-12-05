@@ -1,0 +1,57 @@
+{
+  "agent": "Tara",
+  "role": "Tester",
+  "subtaskId": "3-10",
+  "title": "Chat UX Enhancements",
+  "branch": "subtask/3-10-chat-ux-enhancements",
+  "goal": "Write failing tests (Red) for Markdown rendering and typing effect",
+  "currentPhase": "Red (Write failing tests)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Tara_Tester_v2.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "testing": ".clinerules/workflows/Test_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "templates": {
+    "subtaskLog": ".clinerules/workflows/templates/Subtask_Log_Template.yml"
+  },
+  
+  "techStack": {
+    "frontend": "Vue 3 + Vite",
+    "testing": "Vitest + Vue Test Utils",
+    "markdown": "markdown-it"
+  },
+  
+  "requiredTests": [
+    "ChatPanel renders Markdown (bold, code, lists)",
+    "HTML tags in message are escaped/sanitized",
+    "Typing effect reveals text incrementally",
+    "isTyping state is true during effect",
+    "Effect completes immediately if new message arrives or user cancels"
+  ],
+  
+  "testFileLocations": [
+    "frontend/src/__tests__/components/ChatPanelUX.spec.js"
+  ],
+  
+  "logFile": "Agents/Subtasks/Logs/3-10.yml",
+  
+  "instructions": [
+    "1. Checkout branch: subtask/3-10-chat-ux-enhancements",
+    "2. Mock markdown-it",
+    "3. Write tests for ChatPanel rendering logic",
+    "4. Write tests for typing animation logic",
+    "5. Run tests to confirm they fail (Red)",
+    "6. Update log 3-10.yml",
+    "7. Commit and release branch"
+  ],
+  
+  "branchCheck": "⚠️ Run 'git branch' first - must show * subtask/3-10-chat-ux-enhancements"
+}
+

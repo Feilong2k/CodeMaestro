@@ -1,6 +1,6 @@
 id: "3-4"
 title: "Pinia Store - Agents"
-status: pending
+status: completed
 outcome: "Centralized agent state with status tracking and activity history"
 branch: "subtask/3-4-pinia-store-agents"
 
@@ -21,11 +21,11 @@ requiredActions:
 
 verificationChecklist:
   - "[x] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
-  - "[ ] [TDD] Integration Tests (Optional)"
-  - "[ ] Coverage > 80%"
-  - "[ ] Agent status updates in real-time"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[~] [TDD] Integration Tests (Optional)"
+  - "[x] Coverage > 80%"
+  - "[x] Agent status updates in real-time"
 
 prChecklist:
   developer:
