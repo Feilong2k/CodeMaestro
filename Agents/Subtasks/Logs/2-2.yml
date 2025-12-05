@@ -19,11 +19,11 @@ verificationChecklist:
   - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[x] [TDD] Refactor pass (Cleanup)"
-  - "[ ] [TDD] Integration Tests (Red → Green)"
-  - "[ ] [TDD] Final verification and coverage > 80%"
-  - "[ ] Database connects successfully"
-  - "[ ] Migrations run without errors"
-  - "[ ] CRUD operations work"
+  - "[x] [TDD] Integration Tests (Red → Green)"
+  - "[x] [TDD] Final verification and coverage > 80%"
+  - "[x] Database connects successfully"
+  - "[x] Migrations run without errors"
+  - "[x] CRUD operations work"
 prChecklist:
   developer: []
   tester: []

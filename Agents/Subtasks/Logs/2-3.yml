@@ -33,5 +33,14 @@ prChecklistStatus:
 openQuestions: []
 notes:
   - "XState v5 recommended. This is the core TDD workflow logic."
-lastUpdated: 2025-12-04T23:00:00Z
-updatedBy: orchestrator
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/2-3-state-machine-xstate"
+  - "UNIT TESTS CREATED: backend/__tests__/unit/orchestrator.test.js"
+  - "---"
+  - "DEVON INSTRUCTIONS (Make tests pass - Green):"
+  - "  1. Install xstate: npm install xstate"
+  - "  2. Create backend/src/machines/subtaskMachine.js with all TDD states"
+  - "  3. Create backend/src/services/orchestrator.js with OrchestratorService"
+  - "  4. Implement transition methods and state persistence"
+  - "  5. Run tests: cd backend; npm test -- --testPathPattern=orchestrator"
+lastUpdated: 2025-12-05T02:30:00Z
+updatedBy: orion
