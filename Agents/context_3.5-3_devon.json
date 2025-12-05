@@ -1,0 +1,66 @@
+{
+  "agent": "Devon",
+  "role": "Developer",
+  "subtaskId": "3.5-3",
+  "title": "Project Management System",
+  "branch": "subtask/3.5-3-project-management",
+  "goal": "Implement multi-project support: DB schema, API, and Frontend Selector",
+  "currentPhase": "Red (Write failing tests)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Devon_Developer.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "filesToCreate": [
+    "backend/src/db/migrations/002_create_projects.sql",
+    "backend/src/routes/projects.js",
+    "frontend/src/stores/project.js",
+    "frontend/src/components/ProjectSelector.vue",
+    "frontend/src/components/NewProjectModal.vue"
+  ],
+  
+  "filesToModify": [
+    "backend/index.js",
+    "backend/src/routes/subtasks.js",
+    "frontend/src/components/TheHeader.vue",
+    "frontend/src/App.vue"
+  ],
+  
+  "implementation": {
+    "database": [
+      "Create table 'projects' (id SERIAL PK, name VARCHAR, path VARCHAR, created_at)",
+      "Alter table 'subtasks' add column 'project_id' INT REFERENCES projects(id)",
+      "Run migration"
+    ],
+    "api": [
+      "GET /api/projects (list)",
+      "POST /api/projects (create)",
+      "GET /api/projects/:id (details)",
+      "Update GET /api/subtasks to accept ?projectId=X"
+    ],
+    "frontend": [
+      "Pinia Store: project.js (currentProject, projects list)",
+      "Header: Dropdown to switch projects",
+      "Modal: Input for Project Name & Path",
+      "Persistence: Save lastProjectId in localStorage"
+    ]
+  },
+  
+  "logFile": "Agents/Subtasks/Logs/3.5-3.yml",
+  
+  "instructions": [
+    "1. Checkout branch: subtask/3.5-3-project-management",
+    "2. Merge master",
+    "3. Create DB migration 002",
+    "4. Implement Backend API",
+    "5. Implement Frontend Store & Components",
+    "6. Run tests: npm test"
+  ]
+}
+
