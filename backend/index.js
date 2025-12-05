@@ -8,6 +8,8 @@ const PORT = process.env.PORT || 4000;
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 app.use(express.json());
@@ -17,6 +19,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is reachable' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend listening on http://localhost:${PORT}`);
-});
+// Only start the server if this file is run directly (not in tests)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Backend listening on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
