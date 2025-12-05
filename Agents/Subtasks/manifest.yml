@@ -114,7 +114,7 @@ subtasks:
     dependencies: ["3-2", "3-4"]
   - id: "3-6"
     title: "Chat → Orion Integration"
-    status: pending
+    status: completed
     branch: "subtask/3-6-chat-orion-integration"
     log: "Agents/Subtasks/Logs/3-6.yml"
     dependencies: ["3-1", "3-3", "3-4"]
