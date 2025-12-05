@@ -86,7 +86,7 @@ subtasks:
   # Phase 3: Frontend ↔ Backend Integration (The Brain)
   - id: "3-1"
     title: "API Client Setup"
-    status: pending
+    status: completed
     branch: "subtask/3-1-api-client-setup"
     log: "Agents/Subtasks/Logs/3-1.yml"
   - id: "3-2"
