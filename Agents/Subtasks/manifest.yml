@@ -126,7 +126,7 @@ subtasks:
     dependencies: ["3-3", "3-4"]
   - id: "3-8"
     title: "Backend Startup & DB Verify"
-    status: pending
+    status: completed
     branch: "subtask/3-8-backend-startup-db-verify"
     log: "Agents/Subtasks/Logs/3-8.yml"
   - id: "3-9"

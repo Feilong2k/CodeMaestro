@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const subtasksRouter = require('./src/routes/subtasks');
 const agentsRouter = require('./src/routes/agents');
 const eventsRouter = require('./src/routes/events');
+const { healthCheck } = require('./src/db/connection');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -26,11 +28,6 @@ app.use((req, res, next) =>
   })
 );
 
-// Simple health-check endpoint the frontend can call
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Backend is reachable' });
-});
-
 // Routes
 app.use('/api/subtasks', subtasksRouter);
 app.use('/api/agents', agentsRouter);
@@ -45,10 +42,61 @@ app.use((err, req, res, next) => {
   return next();
 });
 
+/**
+ * Check database connection and log status
+ */
+async function checkDatabaseConnection() {
+  console.log('Checking database connection...');
+  try {
+    const isHealthy = await healthCheck();
+    if (isHealthy) {
+      console.log('✅ Database connection successful');
+    } else {
+      console.warn('⚠️ Database connection check returned false');
+    }
+    return isHealthy;
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    return false;
+  }
+}
+
+// Enhanced health endpoint with DB status
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbHealthy = await healthCheck();
+    res.json({
+      status: 'ok',
+      message: 'Backend is reachable',
+      database: dbHealthy ? 'connected' : 'disconnected'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Health check failed',
+      database: 'error',
+      error: error.message
+    });
+  }
+});
+
 // Only start the server if this file is run directly (not in tests)
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Backend listening on http://localhost:${PORT}`);
+  // Check database connection on startup
+  checkDatabaseConnection().then(dbHealthy => {
+    if (!dbHealthy) {
+      console.warn('⚠️ Starting server with database connection issues');
+    }
+    
+    app.listen(PORT, () => {
+      console.log(`Backend listening on http://localhost:${PORT}`);
+    });
+  }).catch(error => {
+    console.error('Failed to check database connection:', error);
+    // Still start the server even if DB check fails
+    app.listen(PORT, () => {
+      console.log(`Backend listening on http://localhost:${PORT} (database check failed)`);
+    });
   });
 }
 
