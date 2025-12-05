@@ -1,13 +1,18 @@
 <template>
   <div class="chat-panel bg-bg-layer border border-line-base rounded-xl p-6 shadow-matrix-glow h-full flex flex-col">
     <!-- Message list area - takes available space -->
-    <div class="message-list flex-1 space-y-4 mb-6 overflow-y-auto pr-2">
+    <div class="message-list flex-1 space-y-4 mb-6 overflow-y-auto pr-2" ref="messageList">
       <MessageItem
-        avatar-bg="bg-accent-primary"
-        avatar-text="O"
-        sender="Orion"
-        time="Just now"
-        message="Welcome to CodeMaestro. I'm Orion, your AI development assistant. Ready to help you plan, build, and test."
+        v-for="(msg, index) in messages"
+        :key="index"
+        :avatar-bg="msg.avatarBg"
+        :avatar-text="msg.avatarText"
+        :sender="msg.sender"
+        :time="msg.time"
+        :message="msg.text"
+        :typing-effect="msg.typingEffect"
+        :typing-speed="msg.typingSpeed"
+        @typing-complete="onTypingComplete(index)"
       />
     </div>
 
@@ -35,18 +40,75 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import MessageItem from './MessageItem.vue'
 
 const inputEl = ref(null)
+const messageList = ref(null)
+
+// Messages array
+const messages = ref([
+  {
+    avatarBg: 'bg-accent-primary',
+    avatarText: 'O',
+    sender: 'Orion',
+    time: 'Just now',
+    text: 'Welcome to CodeMaestro. I\'m Orion, your AI development assistant. Ready to help you plan, build, and test.',
+    typingEffect: false,
+    typingSpeed: 20
+  }
+])
+
+const onTypingComplete = (index) => {
+  // Optionally handle when typing is complete for a message
+  console.log(`Typing complete for message ${index}`)
+}
 
 const sendMessage = () => {
   const text = inputEl.value?.innerText?.trim()
   if (!text) return
-  // In a real app, you would emit an event or call an API here.
-  console.log('Sending message:', text)
+
+  // Add user message
+  messages.value.push({
+    avatarBg: 'bg-accent-secondary',
+    avatarText: 'U',
+    sender: 'You',
+    time: 'Now',
+    text: text,
+    typingEffect: false
+  })
+
+  // Clear input
   inputEl.value.innerText = ''
+
+  // Simulate a response from Orion with typing effect
+  setTimeout(() => {
+    const response = `I received your message: "${text}". Here's a **bold** example and a \`code snippet\`.`
+    messages.value.push({
+      avatarBg: 'bg-accent-primary',
+      avatarText: 'O',
+      sender: 'Orion',
+      time: 'Just now',
+      text: response,
+      typingEffect: true,
+      typingSpeed: 20
+    })
+    
+    // Scroll to bottom after adding new message
+    nextTick(() => {
+      if (messageList.value) {
+        messageList.value.scrollTop = messageList.value.scrollHeight
+      }
+    })
+  }, 500)
 }
+
+// Auto-scroll to bottom when messages change
+onMounted(() => {
+  if (messageList.value) {
+    messageList.value.scrollTop = messageList.value.scrollHeight
+  }
+})
 </script>
 
 <style scoped>
