@@ -160,6 +160,15 @@ class SocketServer {
   }
 
   /**
+   * Broadcast event to all connected clients
+   * @param {string} event - Event name
+   * @param {Object} payload - Event payload
+   */
+  broadcastToAll(event, payload) {
+    this.io.emit(event, payload);
+  }
+
+  /**
    * Get all connected clients
    * @returns {Array} List of client information
    */
@@ -179,6 +188,7 @@ module.exports = {
   init: (httpServer) => socketServer.init(httpServer),
   getIO: () => socketServer.io,
   broadcastToSubtask: (subtaskId, event, payload) => socketServer.broadcastToSubtask(subtaskId, event, payload),
+  broadcastToAll: (event, payload) => socketServer.broadcastToAll(event, payload),
   getConnectedClients: () => socketServer.getConnectedClients(),
   SocketServer // for testing
 };

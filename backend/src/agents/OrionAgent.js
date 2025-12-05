@@ -1,6 +1,6 @@
 const BaseAgent = require('./BaseAgent');
 const DeepseekClient = require('../llm/DeepseekClient');
-const { broadcastToSubtask } = require('../socket/index');
+const { broadcastToSubtask, broadcastToAll } = require('../socket/index');
 
 /**
  * OrionAgent - orchestrator agent that coordinates tasks and state transitions.
@@ -89,10 +89,25 @@ class OrionAgent extends BaseAgent {
     ];
 
     try {
+      broadcastToAll('agent_action', {
+        agent: 'Orion',
+        action: 'processing message',
+        status: 'thinking',
+        timestamp: new Date()
+      });
+
       const result = await this.deepseek.chat(messages, {
         temperature: 0.7,
         max_tokens: 1000
       });
+
+      broadcastToAll('agent_action', {
+        agent: 'Orion',
+        action: 'replied',
+        status: 'idle',
+        timestamp: new Date()
+      });
+
       return { response: result.content };
     } catch (error) {
       console.error('Deepseek chat error:', error);
@@ -107,9 +122,12 @@ class OrionAgent extends BaseAgent {
 
     // Emit log entry via socket
     try {
-      broadcastToSubtask(subtaskId, 'log_entry', {
-        level: 'info',
-        message: `Assigned subtask ${subtaskId} to agent ${agent}`
+      broadcastToAll('agent_action', {
+        agent: 'Orion',
+        action: 'assigned task',
+        taskId: subtaskId,
+        status: 'active',
+        timestamp: new Date()
       });
     } catch (error) {
       console.error('Failed to emit log entry for assignTask:', error);
