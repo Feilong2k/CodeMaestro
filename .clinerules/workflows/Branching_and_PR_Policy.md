@@ -35,6 +35,25 @@ Use folders for organization: `subtask/<id>-<slug>`
 - **Tara**: Commits test artifacts.
 - **Orion**: Does NOT commit code (only merge commits).
 
+### Commit After Each Phase (REQUIRED)
+
+Agents MUST commit after completing each TDD phase so changes are visible across worktrees:
+
+| Phase | Who | Commit Message |
+|-------|-----|----------------|
+| Red (tests written) | Tara | `test: add failing tests for <subtask>` |
+| Green (tests pass) | Devon | `feat: implement <subtask>` |
+| Refactor | Devon | `refactor: cleanup <subtask>` |
+| Verify | Tara | `test: verify <subtask> complete` |
+
+**Example:**
+```bash
+git add .
+git commit -m "feat: implement 3-1 API client"
+```
+
+**Why?** Worktrees share the repo but NOT uncommitted changes. Orion can only see committed updates.
+
 ---
 
 ## 3) PR & Merge Workflow
@@ -61,8 +80,10 @@ Use folders for organization: `subtask/<id>-<slug>`
     git merge --squash subtask/<id>-<slug>
     git commit -m "feat: complete subtask <id> (<slug>)"
     git push origin main
+    git branch -d subtask/<id>-<slug>
     ```
   - *Why Squash?* Keeps `main` history clean (one commit per subtask).
+  - *Why Delete Branch?* Keeps `git branch` output clean. Commits are preserved in main.
 
 ---
 
@@ -72,5 +93,81 @@ Use folders for organization: `subtask/<id>-<slug>`
 
 ---
 
-## 5) Templates
+## 5) Git Worktrees (Multi-Agent Parallel Work)
+
+### Why Worktrees?
+
+When multiple agents (Tara, Devon) work in parallel, they need **separate working directories** but share the **same repository**. Git worktrees solve this:
+
+- **Problem**: Git branches are repo-wide. If Tara switches to branch 3-2, Devon is also on 3-2.
+- **Solution**: Each agent gets their own folder (worktree), each on a different branch.
+
+### Architecture
+
+```
+C:\Coding\CM\              ← Main repo (Orion uses this, contains .git)
+C:\Coding\CM-tara\         ← Worktree for Tara
+C:\Coding\CM-devon\        ← Worktree for Devon
+```
+
+All worktrees share the same `.git` — commits from any folder go to the same repo.
+
+### Setup Commands
+
+**Create worktree for Tara:**
+```powershell
+cd C:\Coding\CM
+git worktree add ../CM-tara subtask/3-2-websocket-client
+```
+
+**Create worktree for Devon:**
+```powershell
+cd C:\Coding\CM
+git worktree add ../CM-devon subtask/3-1-api-client-setup
+```
+
+### Switching Branches in a Worktree
+
+```powershell
+cd C:\Coding\CM-tara
+git checkout subtask/3-3-pinia-store-tasks
+```
+
+### Listing Worktrees
+
+```powershell
+git worktree list
+# Output:
+# C:/Coding/CM        abc1234 [master]
+# C:/Coding/CM-tara   def5678 [subtask/3-2-websocket-client]
+# C:/Coding/CM-devon  ghi9012 [subtask/3-1-api-client-setup]
+```
+
+### Removing a Worktree (When Agent Done)
+
+```powershell
+git worktree remove ../CM-tara
+```
+
+### Rules
+
+| Rule | Description |
+|------|-------------|
+| **One branch per worktree** | A branch can only be checked out in ONE worktree at a time |
+| **Main repo = Orion** | Orion uses the main folder for merges and orchestration |
+| **Agent folders** | Each agent (Tara, Devon) gets their own worktree folder |
+| **Merges in main** | All merges happen in the main repo folder |
+
+### Space Efficiency
+
+| Setup | Space Used |
+|-------|------------|
+| 6 full clones | ~3 GB |
+| 1 repo + 5 worktrees | ~750 MB |
+
+Worktrees only duplicate working files, NOT the `.git` history.
+
+---
+
+## 6) Templates
 - **Merge Request**: `.clinerules/workflows/templates/Merge_Request_Orion.md`

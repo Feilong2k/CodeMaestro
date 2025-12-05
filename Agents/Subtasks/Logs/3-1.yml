@@ -1,0 +1,62 @@
+id: "3-1"
+title: "API Client Setup"
+status: pending
+outcome: "Frontend can call all backend REST endpoints with proper error handling"
+branch: "subtask/3-1-api-client-setup"
+
+dependencies: []
+relevantFiles:
+  - "frontend/src/api/client.js"
+  - "frontend/src/api/subtasks.js"
+  - "frontend/src/api/agents.js"
+  - "frontend/src/api/events.js"
+
+requiredActions:
+  - "Create axios instance with baseURL http://localhost:4000/api"
+  - "Add request/response interceptors for error handling"
+  - "Create subtasks API module (list, get, update)"
+  - "Create agents API module (getStatus, chat)"
+  - "Create events API module (list)"
+  - "Export unified API object"
+
+verificationChecklist:
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[~] [TDD] Integration Tests (SKIPPED - Orion override, MVP scope, covered by 3-9 E2E)"
+  - "[ ] Coverage > 80%"
+  - "[ ] API client can reach /api/health endpoint"
+
+prChecklist:
+  developer:
+    - "Implementation handles network errors gracefully"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "Error scenarios tested (timeout, 404, 500)"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending
+  tester: in progress
+  orchestrator: pending
+
+openQuestions:
+  - key: "test-file-location-naming"
+    status: "answered"
+    question: "The test context specifies 'frontend/__tests__/unit/api/client.test.js' but the existing frontend tests are in 'frontend/src/__tests__/' and use .spec.js extension. Should we create a unit directory under src/__tests__/unit/ and use .test.js, or follow the existing pattern (src/__tests__/integration/api.spec.js) and use .spec.js?"
+    answer: "Follow existing pattern. Create tests at frontend/src/__tests__/api/*.spec.js (client.spec.js, subtasks.spec.js, agents.spec.js). Consistency with existing codebase is priority."
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-1-api-client-setup"
+  - "   If not on correct branch, run: git checkout -b subtask/3-1-api-client-setup"
+  - "Backend is on port 4000, frontend dev server on 5173"
+  - "CORS is already configured in backend/index.js"
+  - "Created failing unit tests for API client in frontend/src/__tests__/api/ (client.spec.js, subtasks.spec.js, agents.spec.js)"
+  - "---"
+  - "⚠️ ORION OVERRIDE: Skipping integration tests (reason: MVP scope, will be covered by 3-9 E2E test)"
+  - "READY FOR: Tara final verification (run tests, check coverage)"
+
+lastUpdated: "2025-12-05T10:15:00Z"
+updatedBy: "orchestrator"

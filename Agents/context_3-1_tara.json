@@ -1,0 +1,67 @@
+{
+  "agent": "Tara",
+  "role": "Tester",
+  "subtaskId": "3-1",
+  "title": "API Client Setup",
+  "branch": "subtask/3-1-api-client-setup",
+  "goal": "Write failing unit tests (Red) for the frontend API client module",
+  "currentPhase": "Red (Write failing tests)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Tara_Tester_v2.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "testing": ".clinerules/workflows/Test_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "templates": {
+    "testReport": ".clinerules/workflows/templates/TestReport_Tara.md",
+    "subtaskLog": ".clinerules/workflows/templates/Subtask_Log_Template.yml"
+  },
+  
+  "techStack": {
+    "frontend": "Vue 3 + Vite",
+    "testing": "Vitest",
+    "httpClient": "axios",
+    "backendPort": 4000,
+    "frontendPort": 5173
+  },
+  
+  "requiredTests": [
+    "API client creates axios instance with correct baseURL",
+    "API client has request interceptor for error handling",
+    "API client has response interceptor for error handling",
+    "subtasks.list() calls GET /api/subtasks",
+    "subtasks.get(id) calls GET /api/subtasks/:id",
+    "subtasks.update(id, data) calls PUT /api/subtasks/:id",
+    "agents.getStatus() calls GET /api/agents/status",
+    "agents.chat(message) calls POST /api/agents/orion/chat",
+    "Network errors are handled gracefully",
+    "Timeout errors are handled gracefully"
+  ],
+  
+  "testFileLocations": [
+    "frontend/src/__tests__/api/client.spec.js",
+    "frontend/src/__tests__/api/subtasks.spec.js",
+    "frontend/src/__tests__/api/agents.spec.js"
+  ],
+  
+  "logFile": "Agents/Subtasks/Logs/3-1.yml",
+  
+  "instructions": [
+    "1. Read your agent prompt: .prompts/Tara_Tester_v2.md",
+    "2. Run: git checkout subtask/3-1-api-client-setup",
+    "3. Create test files in frontend/src/__tests__/api/",
+    "4. Write tests that WILL FAIL (implementation doesn't exist yet)",
+    "5. Use vi.mock('axios') to mock axios in tests",
+    "6. Run tests to confirm they fail: cd frontend && npm test",
+    "7. Update log Agents/Subtasks/Logs/3-1.yml with test status",
+    "8. Mark verificationChecklist [TDD] Red as [x]"
+  ],
+  
+  "branchCheck": "⚠️ Run 'git branch' first - must show * subtask/3-1-api-client-setup"
+}

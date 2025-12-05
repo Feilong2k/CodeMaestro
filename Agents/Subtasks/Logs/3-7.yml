@@ -1,0 +1,55 @@
+id: "3-7"
+title: "Status Bar Integration"
+status: pending
+outcome: "Status bar shows connection status, active agent, and task progress"
+branch: "subtask/3-7-status-bar-integration"
+
+dependencies: ["3-3", "3-4"]
+relevantFiles:
+  - "frontend/src/components/StatusBar.vue"
+  - "frontend/src/stores/tasks.js"
+  - "frontend/src/stores/agents.js"
+  - "frontend/src/socket/client.js"
+
+requiredActions:
+  - "Connect StatusBar.vue to tasks and agents stores"
+  - "Display WebSocket connection status (connected/disconnected)"
+  - "Display currently active agent (if any)"
+  - "Display current task progress (e.g., '3-1: In Progress')"
+  - "Add visual indicator for connection health"
+  - "Update in real-time as state changes"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Optional)"
+  - "[ ] Coverage > 80%"
+  - "[ ] Status bar reflects real-time state"
+
+prChecklist:
+  developer:
+    - "Status bar is readable and informative"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "Connection state changes tested"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-7-status-bar-integration"
+  - "   If not on correct branch, run: git checkout -b subtask/3-7-status-bar-integration"
+  - "Depends on 3-3 (Tasks store) and 3-4 (Agents store)"
+  - "StatusBar.vue already exists from Phase 1"
+
+lastUpdated: "2025-12-05T09:00:00Z"
+updatedBy: "orchestrator"
+

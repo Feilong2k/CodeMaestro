@@ -1,0 +1,56 @@
+id: "3-8"
+title: "Backend Startup & DB Verify"
+status: pending
+outcome: "npm scripts to run frontend+backend together, PostgreSQL connection verified"
+branch: "subtask/3-8-backend-startup-db-verify"
+
+dependencies: []
+relevantFiles:
+  - "package.json"
+  - "backend/package.json"
+  - "frontend/package.json"
+  - "backend/src/db/connection.js"
+  - "backend/.env"
+
+requiredActions:
+  - "Add npm script in root: 'dev' to run frontend + backend concurrently"
+  - "Add npm script: 'dev:backend' to run backend with nodemon"
+  - "Add npm script: 'dev:frontend' to run frontend vite dev server"
+  - "Verify PostgreSQL connection on backend startup"
+  - "Log connection status (success/failure) on startup"
+  - "Graceful error if DB unavailable (don't crash)"
+
+verificationChecklist:
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Optional)"
+  - "[ ] Coverage > 80%"
+  - "[ ] 'npm run dev' starts both frontend and backend"
+
+prChecklist:
+  developer:
+    - "Scripts work on Windows (PowerShell)"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "Startup with/without DB tested"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-8-backend-startup-db-verify"
+  - "   If not on correct branch, run: git checkout -b subtask/3-8-backend-startup-db-verify"
+  - "No dependencies - can start immediately"
+  - "Consider using 'concurrently' npm package for running both servers"
+  - "PostgreSQL is hosted (external service)"
+
+lastUpdated: "2025-12-05T15:42:00Z"
+updatedBy: "tester"

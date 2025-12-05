@@ -83,14 +83,71 @@ subtasks:
     branch: "subtask/2-10-rest-api-endpoints"
     log: "Agents/Subtasks/Logs/2-10.yml"
 
+  # Phase 3: Frontend ↔ Backend Integration (The Brain)
+  - id: "3-1"
+    title: "API Client Setup"
+    status: pending
+    branch: "subtask/3-1-api-client-setup"
+    log: "Agents/Subtasks/Logs/3-1.yml"
+  - id: "3-2"
+    title: "WebSocket Client"
+    status: pending
+    branch: "subtask/3-2-websocket-client"
+    log: "Agents/Subtasks/Logs/3-2.yml"
+  - id: "3-3"
+    title: "Pinia Store - Tasks"
+    status: pending
+    branch: "subtask/3-3-pinia-store-tasks"
+    log: "Agents/Subtasks/Logs/3-3.yml"
+    dependencies: ["3-1", "3-2"]
+  - id: "3-4"
+    title: "Pinia Store - Agents"
+    status: pending
+    branch: "subtask/3-4-pinia-store-agents"
+    log: "Agents/Subtasks/Logs/3-4.yml"
+    dependencies: ["3-1", "3-2"]
+  - id: "3-5"
+    title: "Activity Log Integration"
+    status: pending
+    branch: "subtask/3-5-activity-log-integration"
+    log: "Agents/Subtasks/Logs/3-5.yml"
+    dependencies: ["3-2", "3-4"]
+  - id: "3-6"
+    title: "Chat → Orion Integration"
+    status: pending
+    branch: "subtask/3-6-chat-orion-integration"
+    log: "Agents/Subtasks/Logs/3-6.yml"
+    dependencies: ["3-1", "3-3", "3-4"]
+  - id: "3-7"
+    title: "Status Bar Integration"
+    status: pending
+    branch: "subtask/3-7-status-bar-integration"
+    log: "Agents/Subtasks/Logs/3-7.yml"
+    dependencies: ["3-3", "3-4"]
+  - id: "3-8"
+    title: "Backend Startup & DB Verify"
+    status: pending
+    branch: "subtask/3-8-backend-startup-db-verify"
+    log: "Agents/Subtasks/Logs/3-8.yml"
+  - id: "3-9"
+    title: "End-to-End Flow Test"
+    status: pending
+    branch: "subtask/3-9-e2e-flow-test"
+    log: "Agents/Subtasks/Logs/3-9.yml"
+    dependencies: ["3-5", "3-6", "3-7"]
+
 sequence:
-  # Phase 2 (remaining)
-  - "2-2"
-  - "2-3"
-  - "2-4"
-  - "2-5"
-  - "2-6"
-  - "2-7"
-  - "2-8"
-  - "2-9"
-  - "2-10"
+  # Phase 3: Frontend ↔ Backend Integration
+  # No dependencies (can start in parallel):
+  - "3-1"  # API Client Setup
+  - "3-2"  # WebSocket Client
+  - "3-8"  # Backend Startup & DB Verify
+  # After 3-1 and 3-2:
+  - "3-3"  # Pinia Store - Tasks
+  - "3-4"  # Pinia Store - Agents
+  # After stores:
+  - "3-5"  # Activity Log Integration
+  - "3-6"  # Chat → Orion Integration
+  - "3-7"  # Status Bar Integration
+  # Final:
+  - "3-9"  # End-to-End Flow Test

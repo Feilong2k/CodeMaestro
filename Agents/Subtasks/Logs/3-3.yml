@@ -1,0 +1,53 @@
+id: "3-3"
+title: "Pinia Store - Tasks"
+status: pending
+outcome: "Centralized task/subtask state with API sync and WebSocket updates"
+branch: "subtask/3-3-pinia-store-tasks"
+
+dependencies: ["3-1", "3-2"]
+relevantFiles:
+  - "frontend/src/stores/tasks.js"
+  - "frontend/src/api/subtasks.js"
+  - "frontend/src/socket/client.js"
+
+requiredActions:
+  - "Create Pinia store for tasks/subtasks"
+  - "State: subtasks array, loading flag, error state"
+  - "Actions: fetchSubtasks, updateSubtask, setSubtaskStatus"
+  - "Getters: getSubtaskById, getSubtasksByStatus, blockedSubtasks"
+  - "Subscribe to WebSocket state_change events"
+  - "Auto-update state when WebSocket events arrive"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Optional)"
+  - "[ ] Coverage > 80%"
+  - "[ ] Store reflects backend state after fetch"
+
+prChecklist:
+  developer:
+    - "Store handles API errors gracefully"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "WebSocket update scenarios tested"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-3-pinia-store-tasks"
+  - "   If not on correct branch, run: git checkout -b subtask/3-3-pinia-store-tasks"
+  - "Depends on 3-1 (API client) and 3-2 (WebSocket client)"
+
+lastUpdated: "2025-12-05T09:00:00Z"
+updatedBy: "orchestrator"
+

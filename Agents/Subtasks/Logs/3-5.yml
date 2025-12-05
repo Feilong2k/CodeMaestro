@@ -1,0 +1,54 @@
+id: "3-5"
+title: "Activity Log Integration"
+status: pending
+outcome: "Activity Log component displays real-time agent actions from WebSocket"
+branch: "subtask/3-5-activity-log-integration"
+
+dependencies: ["3-2", "3-4"]
+relevantFiles:
+  - "frontend/src/components/ActivityLog.vue"
+  - "frontend/src/stores/agents.js"
+  - "frontend/src/socket/client.js"
+
+requiredActions:
+  - "Connect ActivityLog.vue to agents store activityHistory"
+  - "Display real-time log entries as they arrive"
+  - "Format entries: timestamp, agent name, action description"
+  - "Auto-scroll to newest entry"
+  - "Add visual indicators for agent (color-coded)"
+  - "Make entries clickable to expand details"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Optional)"
+  - "[ ] Coverage > 80%"
+  - "[ ] Activity Log shows real-time updates"
+
+prChecklist:
+  developer:
+    - "Log entries are readable and well-formatted"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "Rapid event scenarios tested"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-5-activity-log-integration"
+  - "   If not on correct branch, run: git checkout -b subtask/3-5-activity-log-integration"
+  - "Depends on 3-2 (WebSocket) and 3-4 (Agents store)"
+  - "ActivityLog.vue already exists from Phase 1"
+
+lastUpdated: "2025-12-05T09:00:00Z"
+updatedBy: "orchestrator"
+

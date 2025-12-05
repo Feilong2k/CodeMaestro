@@ -1,0 +1,57 @@
+id: "3-9"
+title: "End-to-End Flow Test"
+status: pending
+outcome: "Full flow works: User message → Orion → Deepseek → Response → Activity Log"
+branch: "subtask/3-9-e2e-flow-test"
+
+dependencies: ["3-5", "3-6", "3-7"]
+relevantFiles:
+  - "frontend/src/components/ChatPanel.vue"
+  - "frontend/src/components/ActivityLog.vue"
+  - "frontend/src/components/StatusBar.vue"
+  - "backend/src/agents/OrionAgent.js"
+
+requiredActions:
+  - "Write integration test: user sends message via chat"
+  - "Verify: message reaches backend"
+  - "Verify: OrionAgent calls Deepseek API"
+  - "Verify: response appears in chat"
+  - "Verify: Activity Log shows agent action"
+  - "Verify: Status Bar updates"
+  - "Manual verification: full flow works visually"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests - REQUIRED for this task"
+  - "[ ] Coverage > 80%"
+  - "[ ] Manual test: type message, see response, see activity log"
+
+prChecklist:
+  developer:
+    - "Full flow works without errors"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "Happy path and error paths tested"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-9-e2e-flow-test"
+  - "   If not on correct branch, run: git checkout -b subtask/3-9-e2e-flow-test"
+  - "This is the FINAL task of Phase 3 - proves everything works together"
+  - "Depends on 3-5, 3-6, 3-7 (all UI integrations)"
+  - "REAL Deepseek API will be called"
+
+lastUpdated: "2025-12-05T09:00:00Z"
+updatedBy: "orchestrator"
+

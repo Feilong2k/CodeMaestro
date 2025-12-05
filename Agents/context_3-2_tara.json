@@ -1,0 +1,64 @@
+{
+  "agent": "Tara",
+  "role": "Tester",
+  "subtaskId": "3-2",
+  "title": "WebSocket Client",
+  "branch": "subtask/3-2-websocket-client",
+  "goal": "Write failing unit tests (Red) for the frontend WebSocket client",
+  "currentPhase": "Red (Write failing tests)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Tara_Tester_v2.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "testing": ".clinerules/workflows/Test_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "templates": {
+    "testReport": ".clinerules/workflows/templates/TestReport_Tara.md",
+    "subtaskLog": ".clinerules/workflows/templates/Subtask_Log_Template.yml"
+  },
+  
+  "techStack": {
+    "frontend": "Vue 3 + Vite",
+    "testing": "Vitest",
+    "websocket": "socket.io-client",
+    "backendPort": 4000
+  },
+  
+  "requiredTests": [
+    "Socket client connects to localhost:4000",
+    "Socket client exports connection status (connected/disconnected)",
+    "Socket client handles disconnection",
+    "Socket client attempts reconnection on disconnect",
+    "Socket client listens for 'state_change' events",
+    "Socket client listens for 'agent_action' events",
+    "Socket client listens for 'log_entry' events",
+    "Socket client listens for 'error' events",
+    "subscribe() method adds event listener",
+    "unsubscribe() method removes event listener"
+  ],
+  
+  "testFileLocations": [
+    "frontend/src/__tests__/socket/client.spec.js"
+  ],
+  
+  "logFile": "Agents/Subtasks/Logs/3-2.yml",
+  
+  "instructions": [
+    "1. Read your agent prompt: .prompts/Tara_Tester_v2.md",
+    "2. Run: git checkout subtask/3-2-websocket-client",
+    "3. Create test file at frontend/src/__tests__/socket/client.spec.js",
+    "4. Write tests that WILL FAIL (implementation doesn't exist yet)",
+    "5. Mock socket.io-client in tests",
+    "6. Run tests to confirm they fail: cd frontend && npm test",
+    "7. Update log Agents/Subtasks/Logs/3-2.yml with test status",
+    "8. Mark verificationChecklist [TDD] Red as [x]"
+  ],
+  
+  "branchCheck": "⚠️ Run 'git branch' first - must show * subtask/3-2-websocket-client"
+}

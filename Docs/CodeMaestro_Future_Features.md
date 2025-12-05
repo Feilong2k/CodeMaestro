@@ -575,6 +575,170 @@ Time 4:  All 4 agents working in parallel (peak throughput)
 
 ---
 
+## 16b. Elastic Agent Scaling (Auto-Scale)
+
+### Vision
+
+Automatically spawn or retire agents based on queue depth — like cloud auto-scaling but for AI workers.
+
+### Auto-Scale Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ORION MONITOR                             │
+│          (watches queue depths every 30 seconds)             │
+└───────────────────────────────┬─────────────────────────────┘
+                                │
+             Queue depth vs threshold?
+                                │
+              ┌─────────────────┴─────────────────┐
+              │                                   │
+              ▼                                   ▼
+       ┌─────────────┐                     ┌─────────────┐
+       │  SCALE UP   │                     │ SCALE DOWN  │
+       │ Spawn agent │                     │Retire agent │
+       └─────────────┘                     └─────────────┘
+```
+
+### Scaling Rules Configuration
+
+```yaml
+scaling:
+  tara:
+    min: 1                      # Always have at least 1 Tara
+    max: 3                      # Never more than 3 Taras
+    scaleUpThreshold: 5         # Queue > 5 for 2 min → add Tara
+    scaleDownThreshold: 0       # Queue empty for 5 min → remove extra
+    cooldownSeconds: 120        # Wait between scale actions
+    
+  devon:
+    min: 1
+    max: 3
+    scaleUpThreshold: 3         # Devon tasks take longer, lower threshold
+    scaleDownThreshold: 0
+    cooldownSeconds: 120
+```
+
+### Agent Registry
+
+```javascript
+const agentRegistry = {
+  orion: { 
+    id: 'orion', 
+    status: 'active', 
+    permanent: true    // Never scale down
+  },
+  
+  tara: [
+    { id: 'tara-1', status: 'active', permanent: true },   // Always on
+    { id: 'tara-2', status: 'idle', permanent: false },    // Can retire
+    { id: 'tara-3', status: 'offline', permanent: false }, // Spawnable
+  ],
+  
+  devon: [
+    { id: 'devon-1', status: 'active', permanent: true },
+    { id: 'devon-2', status: 'offline', permanent: false },
+    { id: 'devon-3', status: 'offline', permanent: false },
+  ]
+};
+```
+
+### Scale Up Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Activity Log                                                │
+├─────────────────────────────────────────────────────────────┤
+│  [10:00:00] System: TaraQueue depth: 6 items                │
+│  [10:02:00] System: TaraQueue depth: 7 items (2 min)        │
+│                                                              │
+│  🚀 [10:02:01] ORION: Scaling up - spawning Tara-2          │
+│     (reason: queue > 5 for 2 minutes)                        │
+│                                                              │
+│  [10:02:02] Tara-2: Online, pulling from TaraQueue          │
+│  [10:02:03] Tara-1: Working on 3-3                           │
+│  [10:02:03] Tara-2: Working on 3-4                           │  ← Parallel!
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Scale Down Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Activity Log                                                │
+├─────────────────────────────────────────────────────────────┤
+│  [10:30:00] Tara-2: Completed 3-8                            │
+│  [10:30:01] System: TaraQueue depth: 0 items                │
+│  [10:35:01] System: TaraQueue empty for 5 minutes           │
+│                                                              │
+│  💤 [10:35:02] ORION: Scaling down - retiring Tara-2        │
+│     (reason: queue empty for 5 minutes)                      │
+│                                                              │
+│  [10:35:03] Tara-2: Offline (graceful shutdown)             │
+│  [10:35:04] System: Active agents: Orion, Tara-1, Devon-1   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Scaling Safeguards
+
+| Safeguard | Description |
+|-----------|-------------|
+| **Cooldown** | Min 2 minutes between scale actions (prevent thrashing) |
+| **Graceful Shutdown** | Agent finishes current task before retiring |
+| **Min Agents** | Always keep at least 1 Tara, 1 Devon |
+| **Max Agents** | Cap to prevent runaway scaling |
+| **Rate Limit Awareness** | Pause scaling if API rate limit approaching |
+| **Budget Cap** | Pause scaling if daily token budget exceeded |
+
+### Cost-Aware Scaling
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Activity Log                                                │
+├─────────────────────────────────────────────────────────────┤
+│  ⚠️ [11:00:00] ORION: Scale-up blocked                      │
+│     (reason: API rate limit at 80%)                          │
+│                                                              │
+│  💰 [11:00:01] ORION: Daily budget: $2.50 / $5.00           │
+│     (scaling paused until budget resets or increased)        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Scaling Metrics
+
+| Metric | Target | Description |
+|--------|--------|-------------|
+| **Avg Queue Depth** | < 3 | Healthy flow, no backlog |
+| **Scale Events/Day** | < 10 | Stable, not thrashing |
+| **Agent Utilization** | > 70% | Agents are working, not idle |
+| **Time to Scale** | < 5 sec | Fast response to demand |
+
+### Implementation Phases
+
+```
+Phase 5e: Basic Elastic Scaling
+          └── Queue depth monitoring
+          └── Manual scale up/down commands
+          └── Broadcast all scale events
+          
+Phase 5f: Auto-Scale Rules
+          └── Threshold-based triggers
+          └── Cooldown enforcement
+          └── Graceful agent shutdown
+          
+Phase 5g: Cost-Aware Scaling
+          └── Rate limit awareness
+          └── Budget cap integration
+          └── Cost per agent tracking
+          
+Phase 5h: Predictive Scaling (Future)
+          └── Learn queue patterns
+          └── Pre-scale before rush
+          └── Optimize for cost vs speed
+```
+
+---
+
 ## 17. Distribution & Business Models
 
 ### BYOK (Bring Your Own Key) — Recommended Launch Strategy
@@ -833,6 +997,444 @@ LLM Response:
 ### Phase
 
 Add to **Phase B (Pro Dashboard)** — enhances visibility and task management.
+
+---
+
+## 20. Multi-Model AI Council (Escalation System)
+
+### Inspiration
+
+Real-world observation: Different LLMs have different blind spots and strengths. When DeepSeek Reasoner gets stuck on a Lua problem, Gemini 3.0 might have the answer. When Gemini gets stuck, GPT 5.1 might solve it. **No single model knows everything.**
+
+### Concept
+
+When an agent gets stuck after multiple retries, escalate to a "council" of different AI models that collaborate to solve the problem.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     ESCALATION TIERS                         │
+├──────────┬─────────────────────┬────────────────────────────┤
+│  Tier 0  │  Normal Operation   │  Agent solves independently │
+│  Tier 1  │  Retry Loop         │  Same agent, 2-3 attempts   │
+│  Tier 2  │  Orion Escalation   │  Orchestrator reviews       │
+│  Tier 3  │  AI Council         │  Multiple LLMs consulted    │
+│  Tier 4  │  Human Escalation   │  User intervention          │
+└──────────┴─────────────────────┴────────────────────────────┘
+```
+
+### AI Council Architecture
+
+```
+              ┌─────────────────────┐
+              │   Problem Context   │
+              │   (Code + Error +   │
+              │    Prior Attempts)  │
+              └──────────┬──────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+         ▼               ▼               ▼
+    ┌─────────┐    ┌─────────┐    ┌─────────┐
+    │DeepSeek │    │ Gemini  │    │   GPT   │    ← Parallel queries
+    │Reasoner │    │  3.0    │    │  5.1    │
+    └────┬────┘    └────┬────┘    └────┬────┘
+         │               │               │
+         └───────────────┼───────────────┘
+                         ▼
+              ┌─────────────────────┐
+              │   Judge / Arbiter   │    ← Evaluates solutions
+              │   (Claude/Orion)    │
+              └──────────┬──────────┘
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │   Winning Solution  │    → Back to original agent
+              └─────────────────────┘
+```
+
+### Model Strengths (Observed)
+
+| Model | Strengths | Best For |
+|-------|-----------|----------|
+| **DeepSeek Reasoner** | Cost-effective, good reasoning | Standard coding, logic |
+| **Gemini 3.0** | Multimodal, broad knowledge | Obscure APIs, visual debugging |
+| **GPT 5.1** | Deep coding knowledge, large context | Complex architecture, edge cases |
+| **Claude** | Careful analysis, safety-aware | Code review, security, refactoring |
+| **Codestral/Qwen** | Fast, specialized for code | Quick fixes, syntax issues |
+
+### Council Workflow
+
+```javascript
+async function conveneCouncil(problem) {
+  // 1. Prepare problem context
+  const context = {
+    code: problem.relevantCode,
+    error: problem.errorMessage,
+    priorAttempts: problem.failedSolutions,
+    constraints: problem.requirements
+  };
+
+  // 2. Query council members in parallel
+  const [deepseekResponse, geminiResponse, gptResponse] = await Promise.all([
+    queryDeepSeek(context),
+    queryGemini(context),
+    queryGPT(context)
+  ]);
+
+  // 3. Collect solutions
+  const solutions = [
+    { model: 'deepseek', solution: deepseekResponse },
+    { model: 'gemini', solution: geminiResponse },
+    { model: 'gpt', solution: gptResponse }
+  ];
+
+  // 4. Judge evaluates solutions
+  const winner = await judge.evaluate(solutions, context);
+
+  // 5. Log council decision for learning
+  await logCouncilDecision(problem.id, solutions, winner);
+
+  return winner;
+}
+```
+
+### Judging Criteria
+
+| Criterion | Weight | Evaluation Method |
+|-----------|--------|-------------------|
+| **Code Correctness** | 40% | Syntax check, type check |
+| **Reasoning Quality** | 25% | Explanation clarity, logical steps |
+| **Test Pass Rate** | 20% | Run proposed solution against tests |
+| **Confidence Score** | 15% | Model's stated confidence |
+
+### Voting Strategies
+
+| Strategy | Description | When to Use |
+|----------|-------------|-------------|
+| **Majority Vote** | Pick solution most models agree on | Simple problems |
+| **Weighted Vote** | Weight by model's historical accuracy | After learning data |
+| **Best Reasoning** | Judge picks best-explained solution | Complex problems |
+| **Test Winner** | Pick solution that passes most tests | When tests exist |
+| **Consensus Build** | Combine best parts of multiple solutions | Architectural questions |
+
+### Cost Management
+
+| Configuration | Models Queried | Est. Cost/Council |
+|---------------|----------------|-------------------|
+| **Minimal** | DeepSeek + 1 other | ~$0.05 |
+| **Standard** | 3 models | ~$0.15 |
+| **Full** | 5 models | ~$0.30 |
+
+**Cost Controls:**
+- Council only convenes after Tier 1/2 failures
+- Daily/weekly council budget cap
+- Track council success rate to justify cost
+
+### Learning from Council Decisions
+
+```yaml
+council_log:
+  problem_id: "2-5-error-3"
+  problem_type: "rate_limit_handling"
+  models_queried: [deepseek, gemini, gpt]
+  winner: gemini
+  winner_reason: "Only model that knew Deepseek's specific rate limit headers"
+  applied: true
+  outcome: success
+  
+# Over time, learn:
+# - Gemini is best for API-specific questions
+# - GPT is best for complex architecture
+# - DeepSeek is best for standard patterns
+```
+
+### Configuration
+
+```yaml
+# .env or config
+COUNCIL_ENABLED=true
+COUNCIL_MODELS=deepseek,gemini,gpt
+COUNCIL_JUDGE=claude
+COUNCIL_TRIGGER_AFTER_RETRIES=3
+COUNCIL_DAILY_BUDGET=5.00
+COUNCIL_TIMEOUT_MS=30000
+```
+
+### API Key Requirements (BYOK)
+
+```yaml
+# User provides keys for models they want in council
+DEEPSEEK_API_KEY=xxx
+GEMINI_API_KEY=xxx
+OPENAI_API_KEY=xxx
+ANTHROPIC_API_KEY=xxx
+
+# Council uses whichever keys are available
+# Gracefully degrades if some keys missing
+```
+
+### UI Integration
+
+**Activity Log:**
+```
+[15:32:41] Devon stuck on rate limit handling (attempt 3/3)
+[15:32:42] Escalating to AI Council...
+[15:32:45] Council convened: DeepSeek, Gemini, GPT
+[15:32:58] Gemini solution selected (best API knowledge)
+[15:32:59] Applying solution...
+[15:33:15] ✅ Tests passing — council successful
+```
+
+**Dashboard Panel:**
+```
+┌─────────────────────────────────────────────────────┐
+│  AI Council                              [3 today]  │
+├─────────────────────────────────────────────────────┤
+│  Last Council: 15:32 — Rate limit handling          │
+│  Winner: Gemini (API knowledge)                     │
+│  Cost: $0.12                                        │
+│                                                     │
+│  Success Rate: 87% (13/15 this week)                │
+│  Best Model: Gemini (5 wins) > GPT (4) > DS (4)    │
+└─────────────────────────────────────────────────────┘
+```
+
+### Implementation Phases
+
+```
+Phase 7a: Basic Council
+          └── Query multiple models in parallel
+          └── Simple majority voting
+          └── Manual trigger from Orion
+          
+Phase 7b: Intelligent Judging
+          └── Automated judge evaluation
+          └── Test-based winner selection
+          └── Confidence scoring
+          
+Phase 7c: Learning & Optimization
+          └── Track council outcomes
+          └── Learn model strengths
+          └── Auto-route by problem type
+          
+Phase 7d: Cost Optimization
+          └── Smart model selection (don't always query all)
+          └── Budget management
+          └── Caching similar problems
+```
+
+### Benefits
+
+- **No single point of failure** — If one model's knowledge has gaps, others fill in
+- **Best-of-breed solutions** — Each model contributes its strengths
+- **Self-improving** — Learn which models excel at what
+- **Reduces human escalation** — Council solves 80%+ of stuck problems
+- **BYOK friendly** — Works with whatever keys user provides
+
+### Success Metrics
+
+- **Council Success Rate:** % of problems solved without human escalation
+- **Model Win Rate:** Which models provide winning solutions most often
+- **Cost per Resolution:** Average council cost when successful
+- **Time Saved:** Hours of human debugging avoided
+
+---
+
+## 21. Queue Infrastructure (Phase 4)
+
+### Vision
+
+Replace manual agent coordination with an **automated queue system** where:
+- Tasks flow automatically between agents based on TDD phases
+- Orion manages the queues (can override when needed)
+- All queue actions are broadcast to Activity Log
+
+### Queue Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        STATE MACHINE                             │
+│              (triggers queue actions on transitions)             │
+└───────────────────────────────┬─────────────────────────────────┘
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        │                       │                       │
+        ▼                       ▼                       ▼
+┌───────────────┐       ┌───────────────┐       ┌───────────────┐
+│  TARA QUEUE   │       │  DEVON QUEUE  │       │  ORION QUEUE  │
+│               │       │               │       │               │
+│  • Write tests│       │  • Implement  │       │  • PR review  │
+│  • Verify     │       │  • Refactor   │       │  • Git ops    │
+│  • Int. tests │       │  • Pass tests │       │  • Merge      │
+└───────┬───────┘       └───────┬───────┘       └───────┬───────┘
+        │                       │                       │
+        ▼                       ▼                       ▼
+┌───────────────┐       ┌───────────────┐       ┌───────────────┐
+│  TARA WORKER  │       │  DEVON WORKER │       │  ORION WORKER │
+│  (pulls task) │       │  (pulls task) │       │  (pulls task) │
+└───────────────┘       └───────────────┘       └───────────────┘
+```
+
+### TDD Queue Flow (Automatic)
+
+| Step | Phase | Current Queue | Action | Next Queue |
+|------|-------|---------------|--------|------------|
+| 1 | Red | TaraQueue | Write failing tests | → DevonQueue |
+| 2 | Green | DevonQueue | Make tests pass | → DevonQueue |
+| 3 | Refactor | DevonQueue | Clean up code | → TaraQueue |
+| 4 | Int. Red | TaraQueue | Write integration tests | → DevonQueue |
+| 5 | Int. Green | DevonQueue | Pass integration tests | → TaraQueue |
+| 6 | Verify | TaraQueue | Final verification | → OrionQueue |
+| 7 | Complete | OrionQueue | PR, merge, mark done | Done |
+
+### Auto-Generated Orion Tasks
+
+When a subtask starts, Orion's queue auto-populates:
+
+```javascript
+// Triggered by: user says "Start 3-1"
+orionQueue.addBatch([
+  { type: 'git', action: 'create_branch', branch: 'subtask/3-1-api-client' },
+  { type: 'status', action: 'update_log', status: 'in_progress' },
+  { type: 'status', action: 'update_manifest', status: 'in_progress' },
+  { type: 'handoff', action: 'push_to_queue', queue: 'tara', subtaskId: '3-1' },
+  { type: 'broadcast', message: 'Starting 3-1, assigned to Tara' }
+]);
+```
+
+When a subtask completes:
+
+```javascript
+// Triggered by: Tara marks verification complete
+orionQueue.addBatch([
+  { type: 'status', action: 'update_log', status: 'completed' },
+  { type: 'status', action: 'update_manifest', status: 'completed' },
+  { type: 'git', action: 'merge_branch', branch: 'subtask/3-1-api-client' },
+  { type: 'git', action: 'push_remote' },
+  { type: 'dependency', action: 'check_unblocked' },  // May trigger more tasks
+  { type: 'broadcast', message: '3-1 complete, checking dependencies...' }
+]);
+```
+
+### Orion Override Powers
+
+Orion has **admin access** to all queues:
+
+```javascript
+class OrionQueueManager {
+  // View all queues
+  getAllQueues() {
+    return { tara: taraQueue, devon: devonQueue, orion: orionQueue };
+  }
+  
+  // Skip a TDD step (e.g., skip integration tests for MVP)
+  skipStep(subtaskId, step, reason) {
+    this.removeFromAllQueues(subtaskId, step);
+    this.broadcast({
+      type: 'orion_override',
+      action: 'skip_step',
+      subtaskId, step, reason,
+      icon: '⚠️'
+    });
+    this.advanceToNextStep(subtaskId);
+  }
+  
+  // Force complete a stuck task
+  forceComplete(subtaskId, reason) {
+    this.removeFromAllQueues(subtaskId);
+    this.broadcast({ type: 'orion_override', action: 'force_complete', subtaskId, reason });
+    this.markComplete(subtaskId);
+  }
+  
+  // Reset task to earlier step (e.g., bug found, back to Red)
+  resetToStep(subtaskId, step, reason) {
+    this.broadcast({ type: 'orion_override', action: 'reset', subtaskId, step, reason });
+    this.pushToQueue(step === 'red' ? 'tara' : 'devon', subtaskId);
+  }
+  
+  // Reassign (for multi-agent scenarios)
+  reassign(subtaskId, fromAgent, toAgent, reason) {
+    this.broadcast({ type: 'orion_override', action: 'reassign', subtaskId, fromAgent, toAgent, reason });
+    this.moveTask(subtaskId, fromAgent, toAgent);
+  }
+}
+```
+
+### Override Broadcasts
+
+**All overrides are visible in Activity Log:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Activity Log                                                │
+├─────────────────────────────────────────────────────────────┤
+│  [09:15:32] Tara: Tests written for 3-1 (Red)               │
+│  [09:15:33] System: 3-1 → Devon's queue                     │
+│  [09:18:45] Devon: Implementation complete (Green)           │
+│  [09:18:46] System: 3-1 → Devon's queue (refactor)          │
+│  [09:19:30] Devon: Refactor complete                         │
+│                                                              │
+│  ⚠️ [09:19:35] ORION OVERRIDE: Skipping integration tests   │
+│     for 3-1 (reason: MVP scope)                              │
+│                                                              │
+│  [09:19:36] System: 3-1 → Tara's queue (verify)             │
+│  [09:20:12] Tara: Verification passed ✓                      │
+│  [09:20:13] System: 3-1 → Orion's queue (complete)          │
+│  [09:20:30] Orion: Merged subtask/3-1-api-client to master  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Queue Storage (MVP)
+
+For MVP, use PostgreSQL (we already have it):
+
+```sql
+CREATE TABLE task_queue (
+  id SERIAL PRIMARY KEY,
+  subtask_id VARCHAR(20) NOT NULL,
+  agent VARCHAR(20) NOT NULL,        -- 'tara', 'devon', 'orion'
+  phase VARCHAR(30) NOT NULL,        -- 'red', 'green', 'refactor', etc.
+  status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'in_progress', 'done'
+  priority INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  started_at TIMESTAMP,
+  completed_at TIMESTAMP
+);
+
+-- Index for fast queue pulls
+CREATE INDEX idx_queue_agent_status ON task_queue(agent, status);
+```
+
+### Implementation Phases
+
+```
+Phase 4a: Queue Tables & Basic CRUD
+          └── PostgreSQL queue table
+          └── Add/remove/list operations
+          └── Agent pull mechanism
+          
+Phase 4b: State Machine Integration
+          └── Transitions trigger queue pushes
+          └── Auto-handoff between agents
+          └── Broadcast on all queue actions
+          
+Phase 4c: Orion Override System
+          └── Skip, force complete, reset, reassign
+          └── All overrides broadcast to Activity Log
+          └── Override audit trail
+          
+Phase 4d: Queue Monitoring
+          └── Queue depth metrics
+          └── Agent idle time tracking
+          └── Dashboard queue visualization
+```
+
+### Success Metrics
+
+- **Handoff Time:** < 1 second from phase complete to next agent notified
+- **Zero Manual Pushes:** All TDD transitions are automatic
+- **Override Audit:** 100% of overrides logged and visible
+- **Queue Depth:** Average < 3 items per queue (healthy flow)
 
 ---
 

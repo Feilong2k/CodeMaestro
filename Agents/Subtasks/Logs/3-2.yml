@@ -1,0 +1,53 @@
+id: "3-2"
+title: "WebSocket Client"
+status: pending
+outcome: "Frontend connects to backend WebSocket and receives real-time events"
+branch: "subtask/3-2-websocket-client"
+
+dependencies: []
+relevantFiles:
+  - "frontend/src/socket/client.js"
+  - "frontend/src/socket/events.js"
+  - "backend/src/socket/index.js"
+
+requiredActions:
+  - "Install socket.io-client: npm install socket.io-client"
+  - "Create socket client connecting to localhost:4000"
+  - "Handle connection/disconnection/reconnection"
+  - "Define event listeners: state_change, agent_action, log_entry, error"
+  - "Export connection status (connected/disconnected/reconnecting)"
+  - "Provide subscribe/unsubscribe methods for components"
+
+verificationChecklist:
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Optional)"
+  - "[ ] Coverage > 80%"
+  - "[ ] WebSocket connects when frontend loads"
+
+prChecklist:
+  developer:
+    - "Reconnection logic works on disconnect"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "Connection failure scenarios tested"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-2-websocket-client"
+  - "   If not on correct branch, run: git checkout -b subtask/3-2-websocket-client"
+  - "Backend socket.io is in backend/src/socket/index.js"
+  - "Events defined: state_change, agent_action, log_entry, error"
+
+lastUpdated: "2025-12-05T15:14:00Z"
+updatedBy: "tester"

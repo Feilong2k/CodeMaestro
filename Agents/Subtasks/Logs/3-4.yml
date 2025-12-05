@@ -1,0 +1,55 @@
+id: "3-4"
+title: "Pinia Store - Agents"
+status: pending
+outcome: "Centralized agent state with status tracking and activity history"
+branch: "subtask/3-4-pinia-store-agents"
+
+dependencies: ["3-1", "3-2"]
+relevantFiles:
+  - "frontend/src/stores/agents.js"
+  - "frontend/src/api/agents.js"
+  - "frontend/src/socket/client.js"
+
+requiredActions:
+  - "Create Pinia store for agents"
+  - "State: agents object {orion, tara, devon}, each with status/currentTask/lastActivity"
+  - "State: activityHistory array (recent agent actions)"
+  - "Actions: fetchAgentStatus, updateAgentStatus, addActivity"
+  - "Getters: activeAgent, idleAgents, recentActivity"
+  - "Subscribe to WebSocket agent_action events"
+  - "Auto-update state when WebSocket events arrive"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Optional)"
+  - "[ ] Coverage > 80%"
+  - "[ ] Agent status updates in real-time"
+
+prChecklist:
+  developer:
+    - "Store handles all three agents correctly"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "Agent state transitions tested"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-4-pinia-store-agents"
+  - "   If not on correct branch, run: git checkout -b subtask/3-4-pinia-store-agents"
+  - "Depends on 3-1 (API client) and 3-2 (WebSocket client)"
+  - "Agents: Orion (orchestrator), Tara (tester), Devon (developer)"
+
+lastUpdated: "2025-12-05T09:00:00Z"
+updatedBy: "orchestrator"
+

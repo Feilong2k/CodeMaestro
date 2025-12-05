@@ -1,0 +1,76 @@
+{
+  "agent": "Devon",
+  "role": "Developer",
+  "subtaskId": "3-2",
+  "title": "WebSocket Client",
+  "branch": "subtask/3-2-websocket-client",
+  "goal": "Implement the frontend WebSocket client to make all tests pass (Green)",
+  "currentPhase": "Green (Make tests pass)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Devon_Developer.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "templates": {
+    "subtaskLog": ".clinerules/workflows/templates/Subtask_Log_Template.yml"
+  },
+  
+  "techStack": {
+    "frontend": "Vue 3 + Vite",
+    "websocket": "socket.io-client",
+    "backendUrl": "http://localhost:4000"
+  },
+  
+  "filesToCreate": [
+    "frontend/src/socket/client.js - socket.io client with events",
+    "frontend/src/socket/events.js - event type constants"
+  ],
+  
+  "testFiles": [
+    "frontend/src/__tests__/socket/client.spec.js"
+  ],
+  
+  "implementation": {
+    "client.js": [
+      "import { io } from 'socket.io-client'",
+      "Create socket: io('http://localhost:4000', { autoConnect: true })",
+      "Track connectionStatus: 'disconnected' | 'connected' | 'reconnecting'",
+      "Handle 'connect' event - set status to 'connected'",
+      "Handle 'disconnect' event - set status to 'disconnected'",
+      "Handle 'reconnect_attempt' event - set status to 'reconnecting'",
+      "Create subscribe(event, callback) - socket.on(event, callback)",
+      "Create unsubscribe(event, callback) - socket.off(event, callback)",
+      "Export: socket, connectionStatus, subscribe, unsubscribe"
+    ],
+    "events.js": [
+      "export const EVENTS = {",
+      "  STATE_CHANGE: 'state_change',",
+      "  AGENT_ACTION: 'agent_action',",
+      "  LOG_ENTRY: 'log_entry',",
+      "  ERROR: 'error'",
+      "}"
+    ]
+  },
+  
+  "logFile": "Agents/Subtasks/Logs/3-2.yml",
+  
+  "instructions": [
+    "1. Read your agent prompt: .prompts/Devon_Developer.md",
+    "2. Verify branch: git branch (must show * subtask/3-2-websocket-client)",
+    "3. Install socket.io-client: cd frontend && npm install socket.io-client",
+    "4. Create frontend/src/socket/ directory",
+    "5. Implement client.js and events.js to make Tara's tests pass",
+    "6. Run tests: cd frontend && npm test",
+    "7. All tests must pass (Green)",
+    "8. Update log Agents/Subtasks/Logs/3-2.yml with implementation status",
+    "9. Mark verificationChecklist [TDD] Green as [x]"
+  ],
+  
+  "branchCheck": "⚠️ Run 'git branch' first - must show * subtask/3-2-websocket-client"
+}

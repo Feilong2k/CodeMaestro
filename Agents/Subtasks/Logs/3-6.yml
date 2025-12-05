@@ -1,0 +1,58 @@
+id: "3-6"
+title: "Chat → Orion Integration"
+status: pending
+outcome: "User types message, Orion interprets via Deepseek, responds in chat"
+branch: "subtask/3-6-chat-orion-integration"
+
+dependencies: ["3-1", "3-3", "3-4"]
+relevantFiles:
+  - "frontend/src/components/ChatPanel.vue"
+  - "frontend/src/stores/chat.js"
+  - "frontend/src/api/agents.js"
+  - "backend/src/agents/OrionAgent.js"
+  - "backend/src/routes/agents.js"
+
+requiredActions:
+  - "Create Pinia store for chat (messages array, sending flag)"
+  - "Actions: sendMessage, addMessage, clearHistory"
+  - "Connect ChatPanel.vue input to sendMessage action"
+  - "POST user message to /api/agents/orion/chat endpoint"
+  - "Backend: OrionAgent receives message, calls Deepseek, returns response"
+  - "Display Orion's response in chat panel"
+  - "Show typing indicator while waiting for response"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Optional)"
+  - "[ ] Coverage > 80%"
+  - "[ ] User message reaches Orion, response appears in chat"
+
+prChecklist:
+  developer:
+    - "Chat handles slow responses gracefully"
+    - "Refactor pass completed (no dead code)"
+    - "Linter clean"
+  tester:
+    - "API error scenarios tested"
+    - "No flaky tests"
+    - "Mocks are explicit and localized"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-6-chat-orion-integration"
+  - "   If not on correct branch, run: git checkout -b subtask/3-6-chat-orion-integration"
+  - "This is the KEY integration - user talks to Orion, Orion uses real Deepseek API"
+  - "Depends on 3-1 (API client), 3-3 (Tasks store), 3-4 (Agents store)"
+  - "Backend endpoint may need to be created/extended"
+
+lastUpdated: "2025-12-05T09:00:00Z"
+updatedBy: "orchestrator"
+

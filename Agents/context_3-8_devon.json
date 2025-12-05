@@ -1,0 +1,81 @@
+{
+  "agent": "Devon",
+  "role": "Developer",
+  "subtaskId": "3-8",
+  "title": "Backend Startup & DB Verify",
+  "branch": "subtask/3-8-backend-startup-db-verify",
+  "goal": "Create dev scripts and add DB verification to make all tests pass (Green)",
+  "currentPhase": "Green (Make tests pass)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Devon_Developer.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "templates": {
+    "subtaskLog": ".clinerules/workflows/templates/Subtask_Log_Template.yml"
+  },
+  
+  "techStack": {
+    "backend": "Node.js + Express",
+    "database": "PostgreSQL",
+    "scripts": "npm scripts + concurrently"
+  },
+  
+  "filesToModify": [
+    "package.json (root) - add dev scripts",
+    "backend/package.json - add dev/start scripts",
+    "backend/index.js - add DB connection verification on startup"
+  ],
+  
+  "testFiles": [
+    "backend/__tests__/unit/startup.test.js"
+  ],
+  
+  "implementation": {
+    "root package.json scripts": {
+      "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+      "dev:backend": "cd backend && npm run dev",
+      "dev:frontend": "cd frontend && npm run dev"
+    },
+    "backend package.json scripts": {
+      "dev": "nodemon index.js",
+      "start": "node index.js"
+    },
+    "backend/index.js additions": [
+      "Import db from './src/db/connection'",
+      "On server start, call db.healthCheck()",
+      "Log 'Database connected' on success",
+      "Log 'Database unavailable - running in degraded mode' on failure",
+      "Do NOT crash if DB is unavailable"
+    ]
+  },
+  
+  "dependencies": {
+    "root": ["concurrently"],
+    "backend": ["nodemon"]
+  },
+  
+  "logFile": "Agents/Subtasks/Logs/3-8.yml",
+  
+  "instructions": [
+    "1. Read your agent prompt: .prompts/Devon_Developer.md",
+    "2. Verify branch: git branch (must show * subtask/3-8-backend-startup-db-verify)",
+    "3. Install concurrently in root: npm install concurrently --save-dev",
+    "4. Install nodemon in backend: cd backend && npm install nodemon --save-dev",
+    "5. Add scripts to root package.json",
+    "6. Add scripts to backend/package.json",
+    "7. Modify backend/index.js to verify DB on startup",
+    "8. Run tests: cd backend && npm test",
+    "9. All tests must pass (Green)",
+    "10. Update log Agents/Subtasks/Logs/3-8.yml with implementation status",
+    "11. Mark verificationChecklist [TDD] Green as [x]"
+  ],
+  
+  "branchCheck": "⚠️ Run 'git branch' first - must show * subtask/3-8-backend-startup-db-verify"
+}
