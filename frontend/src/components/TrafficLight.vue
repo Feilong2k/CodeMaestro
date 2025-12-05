@@ -19,22 +19,22 @@ import { computed } from 'vue'
 const props = defineProps({
   status: {
     type: String,
-    default: 'idle', // 'idle', 'warning', 'error'
-    validator: (value) => ['idle', 'warning', 'error'].includes(value)
+    default: 'idle', // 'active', 'idle', 'error'
+    validator: (value) => ['active', 'idle', 'error'].includes(value)
   }
 })
 
 const lights = [
-  { color: 'green', bgClass: 'bg-green-500', label: 'System idle' },
-  { color: 'yellow', bgClass: 'bg-yellow-500', label: 'System warning' },
-  { color: 'red', bgClass: 'bg-red-500', label: 'System error' }
+  { color: 'green', bgClass: 'bg-green-500', label: 'Agent active' },
+  { color: 'yellow', bgClass: 'bg-yellow-500', label: 'Agent idle' },
+  { color: 'red', bgClass: 'bg-red-500', label: 'Offline/Error' }
 ]
 
 const activeColor = computed(() => {
   switch (props.status) {
-    case 'warning': return 'yellow'
+    case 'active': return 'green'
     case 'error': return 'red'
-    default: return 'green'
+    default: return 'yellow' // idle
   }
 })
 </script>
