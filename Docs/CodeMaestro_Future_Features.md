@@ -470,6 +470,111 @@ Enable true parallel agent execution with shared state
 
 ---
 
+## 16. Agent Team Scaling (Phase 5)
+
+### Vision
+Scale from single-agent-per-role to **multi-agent teams** for true parallel development.
+
+### Proposed Team Structure
+
+| Role | Count | Scope | Territory (File Ownership) |
+|------|-------|-------|---------------------------|
+| **Orion** | 1 | Orchestration, status, PRs, coordination | `Agents/`, manifests, logs |
+| **Tara-FE** | 1 | Frontend tests (Vitest) | `frontend/__tests__/`, `*.spec.ts` |
+| **Tara-BE** | 1 | Backend tests (Jest) | `backend/__tests__/`, `*.test.js` |
+| **Devon-FE** | 1 | Vue components, stores, composables | `frontend/src/` |
+| **Devon-BE** | 1 | Express routes, services, DB | `backend/src/` |
+
+### Why Single Orion?
+- **Single source of truth** for task status
+- Prevents conflicting assignments
+- Coordinates merge order to avoid git conflicts
+- Human escalation point
+
+### Why Split Tara/Devon?
+- **No file conflicts** — each agent has a dedicated territory
+- **True parallelism** — FE and BE work can happen simultaneously
+- **Specialized context** — agents maintain domain expertise
+- **Faster throughput** — multiple subtasks progress at once
+
+### Rate Limit Considerations
+
+| Scenario | Agents Active | Est. RPM Needed | Deepseek Tier |
+|----------|---------------|-----------------|---------------|
+| Sequential | 1 | ~10 | Free tier OK |
+| Light parallel | 2-3 | ~30 | Free tier OK |
+| Full team | 5 | ~50 | Paid tier recommended |
+
+### Architecture Requirements
+
+1. **Task Queue System**
+   - Orion pulls unblocked tasks from dependency graph
+   - Assigns to idle agents based on territory
+   - Tracks agent availability (idle/busy/blocked)
+
+2. **Territory Enforcement**
+   - Hard rule: Agents can only edit files in their territory
+   - Prevents merge conflicts
+   - Enforced at orchestration level
+
+3. **Agent Status Tracking**
+   ```yaml
+   agents:
+     orion:
+       status: idle
+       current_task: null
+     tara-fe:
+       status: busy
+       current_task: "2-3"
+     devon-be:
+       status: busy  
+       current_task: "2-2"
+   ```
+
+4. **Merge Coordination**
+   - Orion sequences PRs to avoid conflicts
+   - FE merges don't block BE merges (different files)
+   - Only block when dependencies exist
+
+### Workflow Example
+
+```
+Time 0:  Orion assigns 2-2 (BE) to Devon-BE
+         Orion assigns 2-3 (FE) to Tara-FE
+Time 1:  Devon-BE working, Tara-FE working (parallel)
+Time 2:  Tara-FE done → Orion assigns 2-3 to Devon-FE
+         Devon-BE still working
+Time 3:  Devon-FE working, Devon-BE done
+         Orion assigns 2-2 tests to Tara-BE
+Time 4:  All 4 agents working in parallel (peak throughput)
+```
+
+### Cost Projection
+
+| Team Size | Tasks/Hour | API Calls/Hour | Est. Daily Cost |
+|-----------|------------|----------------|-----------------|
+| 1 (current) | 1-2 | ~100 | ~$0.50 |
+| 3 (light) | 3-5 | ~300 | ~$1.50 |
+| 5 (full) | 5-8 | ~500 | ~$2.50 |
+
+*Based on Deepseek pricing (~$0.001/1K tokens)*
+
+### Implementation Phases
+
+1. **Phase 5a:** Add second Tara (FE/BE split)
+2. **Phase 5b:** Add second Devon (FE/BE split)  
+3. **Phase 5c:** Task queue and agent status tracking
+4. **Phase 5d:** Territory enforcement and conflict prevention
+
+### Success Metrics
+
+- **Throughput:** 3-4x improvement in tasks/day
+- **Parallelism:** Average 2-3 agents active simultaneously
+- **Conflicts:** Zero git merge conflicts from agent work
+- **Quality:** No regression in test pass rate
+
+---
+
 ## References
 
 - System Analysis: `Docs/Development/CodeMaestro_System_Analysis_and_Recommendations.md`
