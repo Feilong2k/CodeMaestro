@@ -1430,6 +1430,81 @@ backgroundMonitor.on('complete', (cmd, result, agent) => {
 | Lint | 2-10s | Maybe |
 | Single file edit | <1s | No |
 
+### Queue Task Creation: Callback-Based (No Polling)
+
+**Key principle:** Don't poll — use callbacks. Only ONE task created when command completes.
+
+```javascript
+function backgroundCommand(cmd, agent, subtaskId) {
+  const process = spawn(cmd);
+  let output = '';
+  
+  process.stdout.on('data', (data) => output += data);
+  process.stderr.on('data', (data) => output += data);
+  
+  // Callback fires ONCE when command exits
+  process.on('exit', (code) => {
+    // NOW add task to agent's queue
+    agentQueue.push(agent.id, {
+      type: 'check_command_result',
+      subtaskId,
+      success: code === 0,
+      output: output.slice(-2000), // Last 2000 chars
+      priority: 'high',
+      timestamp: Date.now()
+    });
+    
+    broadcast({
+      type: 'background_complete',
+      agent: agent.id,
+      subtaskId,
+      duration: Date.now() - startTime,
+      success: code === 0
+    });
+  });
+  
+  // NO polling tasks created
+  // NO periodic "check if done"
+  // Just ONE callback → ONE queue task
+}
+```
+
+**Why callback-based is better than polling:**
+
+| Polling | Callback |
+|---------|----------|
+| Creates many "check if done" tasks | Creates ONE task when done |
+| Redundant tasks pile up | No redundancy |
+| Needs cleanup logic | Self-cleaning |
+| Wastes CPU checking | Event-driven, efficient |
+
+### What If Queue is Empty?
+
+When agent finishes all tasks but background command still running:
+
+```javascript
+async function getNextTask(agent) {
+  // 1. Own queue first
+  let task = await agentQueue.pull(agent.id);
+  if (task) return task;
+  
+  // 2. Global unblocked tasks pool
+  const unblocked = await getUnblockedTasks();
+  const available = unblocked.filter(t => 
+    t.role === agent.role && !t.assignedTo
+  );
+  if (available.length > 0) {
+    return assignAndReturn(available[0], agent);
+  }
+  
+  // 3. Truly idle - wait for callback or new work
+  agent.setStatus('idle', 'waiting_for_background');
+  return null; // Woken by callback or new task assignment
+}
+```
+
+**Agent stays productive:** Pulls from global pool if own queue empty. Only idles when truly nothing to do.
+
 ---
 
 ## 22. Queue Infrastructure (Phase 4)
