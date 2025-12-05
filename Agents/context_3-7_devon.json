@@ -1,0 +1,55 @@
+{
+  "agent": "Devon",
+  "role": "Developer",
+  "subtaskId": "3-7",
+  "title": "Status Bar Integration",
+  "branch": "subtask/3-7-status-bar-integration",
+  "goal": "Connect Status Bar to stores and WebSocket status",
+  "currentPhase": "Green (Make tests pass)",
+  
+  "prompts": {
+    "agentPrompt": ".prompts/Devon_Developer.md",
+    "clineRules": ".clinerules/clineRules.md"
+  },
+  
+  "workflows": {
+    "general": ".clinerules/workflows/General_Workflows.md",
+    "branching": ".clinerules/workflows/Branching_and_PR_Policy.md"
+  },
+  
+  "templates": {
+    "subtaskLog": ".clinerules/workflows/templates/Subtask_Log_Template.yml"
+  },
+  
+  "techStack": {
+    "frontend": "Vue 3 + Vite",
+    "stateManagement": "Pinia",
+    "socket": "socket.io-client"
+  },
+  
+  "filesToModify": [
+    "frontend/src/components/StatusBar.vue"
+  ],
+  
+  "implementation": {
+    "integration": [
+      "Connect to useSocket() for connection status",
+      "Connect to agents store for active agent",
+      "Connect to tasks store for progress"
+    ]
+  },
+  
+  "logFile": "Agents/Subtasks/Logs/3-7.yml",
+  
+  "instructions": [
+    "1. Checkout branch: subtask/3-7-status-bar-integration",
+    "2. Merge master to get tests",
+    "3. Update StatusBar.vue",
+    "4. Run tests: npm test",
+    "5. Ensure Green",
+    "6. Commit and release branch"
+  ],
+  
+  "branchCheck": "⚠️ Run 'git branch' first - must show * subtask/3-7-status-bar-integration"
+}
+

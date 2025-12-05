@@ -1,0 +1,52 @@
+id: "3-10"
+title: "Chat UX Enhancements"
+status: pending
+outcome: "Chat messages render Markdown and show typing effect"
+branch: "subtask/3-10-chat-ux-enhancements"
+
+dependencies: ["3-6"]
+relevantFiles:
+  - "frontend/src/components/ChatPanel.vue"
+  - "frontend/package.json"
+
+requiredActions:
+  - "Install markdown-it (or similar lightweight lib)"
+  - "Implement Markdown rendering for messages (bold, code blocks, lists)"
+  - "Sanitize HTML input (security)"
+  - "Implement typing effect for incoming assistant messages"
+  - "Auto-scroll must respect typing effect (scroll as it types)"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests (Optional)"
+  - "[ ] Coverage > 80%"
+  - "[ ] Visual check: Markdown renders correctly"
+  - "[ ] Visual check: Typing effect looks natural"
+
+prChecklist:
+  developer:
+    - "Markdown is sanitized (no XSS)"
+    - "Refactor pass completed"
+    - "Linter clean"
+  tester:
+    - "Complex markdown scenarios tested"
+    - "Typing effect state handling tested"
+    - "Mocks are explicit"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-10-chat-ux-enhancements"
+  - "   If not on correct branch, run: git checkout -b subtask/3-10-chat-ux-enhancements"
+  - "Depends on 3-6 (Basic Chat Integration)"
+
+lastUpdated: "2025-12-05T12:00:00Z"
+updatedBy: "orchestrator"
+
