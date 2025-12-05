@@ -1350,6 +1350,86 @@ When a hang is detected:
 4. Notify Orion
 5. Orion decides: retry, skip, or escalate to human
 
+### Non-Blocking Execution (Agent Efficiency)
+
+Agents shouldn't waste time waiting for long commands. If a command takes > 5 seconds:
+
+```javascript
+async function executeCommand(cmd, agent) {
+  const quickTimeout = 5000; // 5 seconds
+  
+  const result = await Promise.race([
+    runCommand(cmd),
+    sleep(quickTimeout).then(() => 'STILL_RUNNING')
+  ]);
+  
+  if (result === 'STILL_RUNNING') {
+    // Command is slow — don't block agent
+    backgroundMonitor.track(cmd, agent);
+    
+    broadcast({
+      type: 'command_backgrounded',
+      cmd,
+      message: `Command running in background, ${agent} moving to next task`
+    });
+    
+    // Agent moves on
+    return { status: 'backgrounded', checkLater: true };
+  }
+  
+  return result;
+}
+
+// Background monitor notifies when done
+backgroundMonitor.on('complete', (cmd, result, agent) => {
+  agentQueue.push(agent, {
+    type: 'check_result',
+    cmd,
+    result
+  });
+  
+  broadcast({
+    type: 'command_complete',
+    cmd,
+    message: `Background command finished: ${result.success ? '✓' : '✗'}`
+  });
+});
+```
+
+### Activity Log Example
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Activity Log                                                │
+├─────────────────────────────────────────────────────────────┤
+│  [10:00:00] Devon: Running npm test for 3-8...              │
+│  [10:00:05] System: Command still running, backgrounding    │
+│  [10:00:06] Devon: Moving to 3-9 while 3-8 tests run        │
+│  [10:00:10] Devon: Starting implementation for 3-9...       │
+│  [10:00:45] System: ✓ 3-8 npm test complete (45s)           │
+│  [10:00:46] Devon: 3-8 tests passed, continuing 3-9         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Benefits
+
+| Benefit | Impact |
+|---------|--------|
+| **No wasted time** | Agent works while commands run |
+| **Better parallelism** | Multiple commands can run simultaneously |
+| **Faster throughput** | Don't block on slow operations |
+| **Natural batching** | Start several commands, check results later |
+
+### Commands That Benefit
+
+| Command Type | Typical Time | Background? |
+|--------------|--------------|-------------|
+| `npm test` | 10-60s | ✅ Yes |
+| `npm install` | 30-120s | ✅ Yes |
+| `git push` | 5-30s | ✅ Yes |
+| Lint | 2-10s | Maybe |
+| Single file edit | <1s | No |
+
 ---
 
 ## 22. Queue Infrastructure (Phase 4)
