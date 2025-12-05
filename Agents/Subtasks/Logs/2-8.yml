@@ -1,15 +1,15 @@
 id: "2-8"
 title: "Devon Agent"
-status: pending
+status: in_progress
 outcome: pending
 branch: "subtask/2-8-devon-agent"
 dependencies: ["2-5"]
 relevantFiles:
   - "backend/src/agents/DevonAgent.js"
-  - ".prompts/Devon_Developer_v2.md"
+  - ".prompts/Devon_Developer.md"
 requiredActions:
   - "Role: Developer — implements code"
-  - "Prompt: Load from .prompts/Devon_Developer_v2.md"
+  - "Prompt: Load from .prompts/Devon_Developer.md"
   - "Actions: Implement code to pass tests (Green), Refactor code, Fix failing tests"
   - "File Output: Write implementation files to disk"
 verificationChecklist:
@@ -40,7 +40,15 @@ notes:
   - "  - Test: refactorCode(subtaskId) action ✓"
   - "  - Test: fixFailingTests(subtaskId, errors) action ✓"
   - "  - Test: Writes implementation files to correct paths ✓"
-  - "  - Test: Loads prompt from .prompts/Devon_Developer_v2.md ✓"
+  - "  - Test: Loads prompt from .prompts/Devon_Developer.md ✓"
   - "TESTS STATUS: 11 unit tests created. Tests are failing (Red) because DevonAgent implementation missing."
-lastUpdated: 2025-12-04T23:50:00Z
-updatedBy: tara
+  - "---"
+  - "DEVON INSTRUCTIONS (Make tests pass - Green):"
+  - "  1. Create backend/src/agents/DevonAgent.js extending BaseAgent"
+  - "  2. Load prompt from .prompts/Devon_Developer.md"
+  - "  3. Implement execute() returning action objects"
+  - "  4. Implement: implementCode, refactorCode, fixFailingTests"
+  - "  5. File writing to implementation directories"
+  - "  6. Run tests: cd backend; npm test -- --testPathPatterns=devonAgent"
+lastUpdated: 2025-12-05T05:00:00Z
+updatedBy: orion

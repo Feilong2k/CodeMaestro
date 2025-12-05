@@ -69,7 +69,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/2-7.yml"
   - id: "2-8"
     title: "Devon Agent"
-    status: pending
+    status: in_progress
     branch: "subtask/2-8-devon-agent"
     log: "Agents/Subtasks/Logs/2-8.yml"
   - id: "2-9"
