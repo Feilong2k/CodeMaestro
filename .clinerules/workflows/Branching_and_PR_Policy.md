@@ -114,17 +114,20 @@ All worktrees share the same `.git` — commits from any folder go to the same r
 
 ### Setup Commands
 
-**Create worktree for Tara:**
-```powershell
-cd C:\Coding\CM
-git worktree add ../CM-tara subtask/3-2-websocket-client
-```
+**⚠️ IMPORTANT: Commit to master BEFORE creating worktrees**
 
-**Create worktree for Devon:**
 ```powershell
+# Step 1: Commit all pending changes to master first
 cd C:\Coding\CM
+git add .
+git commit -m "chore: add logs and contexts for Phase X"
+
+# Step 2: THEN create worktree (will have latest master content)
+git worktree add ../CM-tara subtask/3-2-websocket-client
 git worktree add ../CM-devon subtask/3-1-api-client-setup
 ```
+
+This ensures worktrees start with all the latest files (logs, contexts, etc.).
 
 ### Switching Branches in a Worktree
 
