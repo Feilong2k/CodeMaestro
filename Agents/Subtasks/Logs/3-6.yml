@@ -1,6 +1,6 @@
 id: "3-6"
 title: "Chat → Orion Integration"
-status: pending
+status: completed
 outcome: "User types message, Orion interprets via Deepseek, responds in chat"
 branch: "subtask/3-6-chat-orion-integration"
 
@@ -23,11 +23,11 @@ requiredActions:
 
 verificationChecklist:
   - "[x] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
-  - "[ ] [TDD] Integration Tests (Optional)"
-  - "[ ] Coverage > 80%"
-  - "[ ] User message reaches Orion, response appears in chat"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[x] [TDD] Integration Tests (Optional)"
+  - "[x] Coverage > 80%"
+  - "[x] User message reaches Orion, response appears in chat"
 
 prChecklist:
   developer:
@@ -53,5 +53,5 @@ notes:
   - "Depends on 3-1 (API client), 3-3 (Tasks store), 3-4 (Agents store)"
   - "Backend endpoint may need to be created/extended"
 
-lastUpdated: "2025-12-05T17:49:00Z"
-updatedBy: "tester"
+lastUpdated: "2025-12-05T20:25:00Z"
+updatedBy: "orchestrator"
