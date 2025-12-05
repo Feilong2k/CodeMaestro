@@ -51,7 +51,9 @@ describe('StatusBar.vue', () => {
     const wrapper = mount(StatusBar)
     const stateText = wrapper.find('.state-text')
     expect(stateText.exists()).toBe(true)
-    expect(stateText.text()).toContain('System Idle')
+    // Should contain connection status and agent status
+    expect(stateText.text()).toContain('Connected')
+    expect(stateText.text()).toContain('All agents idle')
   })
 
   it('should be positioned at the bottom or in a designated location', () => {
@@ -77,24 +79,55 @@ describe('StatusBar.vue', () => {
 
   describe('Integration with stores', () => {
     it('should display WebSocket connection status from useSocket', () => {
-      // This test will fail because the component doesn't use useSocket yet.
-      // We are in Red phase, so that's okay.
-      expect(false).toBe(true)
+      const wrapper = mount(StatusBar)
+      // The useSocket mock returns isConnected: true
+      const connectionStatus = wrapper.find('.state-text')
+      expect(connectionStatus.text()).toContain('Connected')
+      // The connection dot should have green background
+      const connectionDot = wrapper.find('.w-2.h-2.rounded-full')
+      expect(connectionDot.classes()).toContain('bg-green-500')
     })
 
     it('should display active agent from agents store', () => {
-      // This test will fail because the component doesn't use agents store yet.
-      expect(false).toBe(true)
+      // Setup agents store with an active agent
+      const agentsStore = useAgentsStore()
+      agentsStore.agents.orion.status = 'active'
+      
+      const wrapper = mount(StatusBar)
+      const stateText = wrapper.find('.state-text')
+      expect(stateText.text()).toContain('Orion active')
     })
 
     it('should display current task progress from tasks store', () => {
-      // This test will fail because the component doesn't use tasks store yet.
-      expect(false).toBe(true)
+      // Setup tasks store with a task in progress
+      const tasksStore = useTasksStore()
+      tasksStore.subtasks = [
+        { id: '3-7', title: 'Status Bar Integration', status: 'in_progress' }
+      ]
+      
+      const wrapper = mount(StatusBar)
+      const stateText = wrapper.find('.state-text')
+      expect(stateText.text()).toContain('3-7: Status Bar Integration')
     })
 
     it('should update status in real-time when stores change', () => {
-      // This test will fail.
-      expect(false).toBe(true)
+      // This test is more complex and would require mocking socket events.
+      // For now, we can test that the component reacts to store changes.
+      // We'll set up initial state and then change it.
+      const agentsStore = useAgentsStore()
+      agentsStore.agents.orion.status = 'idle'
+      
+      const wrapper = mount(StatusBar)
+      let stateText = wrapper.find('.state-text')
+      expect(stateText.text()).toContain('All agents idle')
+      
+      // Change the agent status
+      agentsStore.agents.orion.status = 'active'
+      // Trigger update - we need to wait for next tick
+      wrapper.vm.$nextTick(() => {
+        stateText = wrapper.find('.state-text')
+        expect(stateText.text()).toContain('Orion active')
+      })
     })
   })
 })
