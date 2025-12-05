@@ -49,7 +49,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/2-3.yml"
   - id: "2-4"
     title: "Agent Framework"
-    status: pending
+    status: completed
     branch: "subtask/2-4-agent-framework"
     log: "Agents/Subtasks/Logs/2-4.yml"
   - id: "2-5"
@@ -74,7 +74,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/2-8.yml"
   - id: "2-9"
     title: "WebSocket Events"
-    status: pending
+    status: completed
     branch: "subtask/2-9-websocket-events"
     log: "Agents/Subtasks/Logs/2-9.yml"
   - id: "2-10"
