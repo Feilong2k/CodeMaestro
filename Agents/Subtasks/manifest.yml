@@ -96,7 +96,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/3-2.yml"
   - id: "3-3"
     title: "Pinia Store - Tasks"
-    status: pending
+    status: completed
     branch: "subtask/3-3-pinia-store-tasks"
     log: "Agents/Subtasks/Logs/3-3.yml"
     dependencies: ["3-1", "3-2"]
