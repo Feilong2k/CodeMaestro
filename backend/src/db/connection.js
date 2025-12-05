@@ -1,14 +1,25 @@
 const { Pool } = require('pg');
 
-// Database configuration from environment variables
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: parseInt(process.env.PG_MAX, 10) || 10,
-  min: parseInt(process.env.PG_MIN, 10) || 0,
-  idleTimeoutMillis: parseInt(process.env.PG_IDLE_TIMEOUT_MS, 10) || 10000,
-  connectionTimeoutMillis: parseInt(process.env.PG_CONNECTION_TIMEOUT_MS, 10) || 5000,
-  ssl: { rejectUnauthorized: false },
-});
+// Lazy initialization - pool is created on first use, not on require
+let pool = null;
+
+/**
+ * Get the database pool (lazy initialization)
+ * @returns {Pool} PostgreSQL connection pool
+ */
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: parseInt(process.env.PG_MAX, 10) || 10,
+      min: parseInt(process.env.PG_MIN, 10) || 0,
+      idleTimeoutMillis: parseInt(process.env.PG_IDLE_TIMEOUT_MS, 10) || 10000,
+      connectionTimeoutMillis: parseInt(process.env.PG_CONNECTION_TIMEOUT_MS, 10) || 5000,
+      ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+    });
+  }
+  return pool;
+}
 
 /**
  * Health check: runs a simple query to verify database connectivity.
@@ -16,7 +27,7 @@ const pool = new Pool({
  */
 async function healthCheck() {
   try {
-    await pool.query('SELECT 1');
+    await getPool().query('SELECT 1');
     return true;
   } catch (error) {
     console.error('Database health check failed:', error.message);
@@ -50,7 +61,7 @@ async function createSubtask(data) {
   `;
   const values = [id, title, status, branch, dependencies];
 
-  const result = await pool.query(query, values);
+  const result = await getPool().query(query, values);
   return result.rows[0];
 }
 
@@ -61,7 +72,7 @@ async function createSubtask(data) {
  */
 async function getSubtask(id) {
   const query = 'SELECT * FROM subtasks WHERE id = $1;';
-  const result = await pool.query(query, [id]);
+  const result = await getPool().query(query, [id]);
   return result.rows[0] || null;
 }
 
@@ -97,7 +108,7 @@ async function updateSubtask(id, updates) {
     RETURNING *;
   `;
 
-  const result = await pool.query(query, values);
+  const result = await getPool().query(query, values);
   if (result.rows.length === 0) {
     throw new Error(`Subtask with id ${id} not found`);
   }
@@ -111,7 +122,7 @@ async function updateSubtask(id, updates) {
  */
 async function deleteSubtask(id) {
   const query = 'DELETE FROM subtasks WHERE id = $1 RETURNING *;';
-  const result = await pool.query(query, [id]);
+  const result = await getPool().query(query, [id]);
   if (result.rows.length === 0) {
     throw new Error(`Subtask with id ${id} not found`);
   }
@@ -124,7 +135,7 @@ async function deleteSubtask(id) {
  */
 async function listSubtasks() {
   const query = 'SELECT * FROM subtasks ORDER BY created_at DESC;';
-  const result = await pool.query(query);
+  const result = await getPool().query(query);
   return result.rows;
 }
 
@@ -133,8 +144,10 @@ async function listSubtasks() {
  * @returns {Promise<void>}
  */
 async function runMigrations() {
+  const p = getPool();
+  
   // Create migrations table if it doesn't exist
-  await pool.query(`
+  await p.query(`
     CREATE TABLE IF NOT EXISTS migrations (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL UNIQUE,
@@ -143,7 +156,7 @@ async function runMigrations() {
   `);
 
   // Get already applied migrations
-  const appliedResult = await pool.query('SELECT name FROM migrations ORDER BY name;');
+  const appliedResult = await p.query('SELECT name FROM migrations ORDER BY name;');
   const applied = new Set(appliedResult.rows.map(row => row.name));
 
   // Read migration files from the migrations directory
@@ -162,14 +175,14 @@ async function runMigrations() {
 
     console.log(`Running migration ${file}...`);
     const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
-    await pool.query('BEGIN');
+    await p.query('BEGIN');
     try {
-      await pool.query(sql);
-      await pool.query('INSERT INTO migrations (name) VALUES ($1);', [file]);
-      await pool.query('COMMIT');
+      await p.query(sql);
+      await p.query('INSERT INTO migrations (name) VALUES ($1);', [file]);
+      await p.query('COMMIT');
       console.log(`Migration ${file} applied successfully.`);
     } catch (error) {
-      await pool.query('ROLLBACK');
+      await p.query('ROLLBACK');
       console.error(`Migration ${file} failed:`, error.message);
       throw error;
     }
@@ -181,9 +194,11 @@ async function runMigrations() {
  * @returns {Promise<void>}
  */
 async function rollbackMigration() {
+  const p = getPool();
+  
   // Note: This is a simple implementation that rolls back the last applied migration.
   // In a real scenario, you would have down scripts. Here we just delete the last record.
-  const result = await pool.query(`
+  const result = await p.query(`
     DELETE FROM migrations
     WHERE id = (SELECT id FROM migrations ORDER BY applied_at DESC LIMIT 1)
     RETURNING name;
@@ -198,8 +213,19 @@ async function rollbackMigration() {
   console.log(`Rolled back migration: ${rolledBack}`);
 }
 
+/**
+ * Close the pool (for cleanup in tests)
+ */
+async function closePool() {
+  if (pool) {
+    await pool.end();
+    pool = null;
+  }
+}
+
 module.exports = {
-  pool,
+  get pool() { return getPool(); }, // Lazy getter for backward compatibility
+  getPool,
   healthCheck,
   createSubtask,
   getSubtask,
@@ -208,4 +234,5 @@ module.exports = {
   listSubtasks,
   runMigrations,
   rollbackMigration,
+  closePool,
 };
