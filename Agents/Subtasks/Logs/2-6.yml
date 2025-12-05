@@ -31,6 +31,17 @@ prChecklistStatus:
 openQuestions: []
 notes:
   - "Orion is the orchestrator - coordinates Tara and Devon."
-lastUpdated: 2025-12-04T23:00:00Z
-updatedBy: orchestrator
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/2-6-orion-agent"
+  - "TARA INSTRUCTIONS (Create failing tests - Red):"
+  - "  - Create backend/__tests__/unit/orionAgent.test.js"
+  - "  - Test: OrionAgent extends BaseAgent"
+  - "  - Test: OrionAgent.execute() returns actions"
+  - "  - Test: assignTask(subtaskId, agentRole) action"
+  - "  - Test: approveCompletion(subtaskId) action"
+  - "  - Test: rejectCompletion(subtaskId, reason) action"
+  - "  - Test: escalateBlocker(subtaskId, issue) action"
+  - "  - Test: Triggers state machine transitions"
+  - "  - Test: Loads prompt from .prompts/Orion_Orchestrator_v2.md"
+lastUpdated: 2025-12-05T04:00:00Z
+updatedBy: orion
 

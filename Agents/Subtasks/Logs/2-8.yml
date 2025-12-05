@@ -31,6 +31,16 @@ prChecklistStatus:
 openQuestions: []
 notes:
   - "Devon owns the Green and Refactor phases."
-lastUpdated: 2025-12-04T23:00:00Z
-updatedBy: orchestrator
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/2-8-devon-agent"
+  - "TARA INSTRUCTIONS (Create failing tests - Red):"
+  - "  - Create backend/__tests__/unit/devonAgent.test.js"
+  - "  - Test: DevonAgent extends BaseAgent"
+  - "  - Test: DevonAgent.execute() returns actions"
+  - "  - Test: implementCode(subtaskId, testFile) action"
+  - "  - Test: refactorCode(subtaskId) action"
+  - "  - Test: fixFailingTests(subtaskId, errors) action"
+  - "  - Test: Writes implementation files to correct paths"
+  - "  - Test: Loads prompt from .prompts/Devon_Developer.md"
+lastUpdated: 2025-12-05T04:00:00Z
+updatedBy: orion
 

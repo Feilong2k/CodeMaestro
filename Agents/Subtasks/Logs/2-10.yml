@@ -34,6 +34,18 @@ prChecklistStatus:
 openQuestions: []
 notes:
   - "These endpoints wire the dashboard to the backend."
-lastUpdated: 2025-12-04T23:00:00Z
-updatedBy: orchestrator
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/2-10-rest-api-endpoints"
+  - "TARA INSTRUCTIONS (Create failing tests - Red):"
+  - "  - Create backend/__tests__/unit/routes.test.js"
+  - "  - Test: GET /api/subtasks returns list"
+  - "  - Test: GET /api/subtasks/:id returns subtask + log"
+  - "  - Test: GET /api/subtasks/:id returns 404 for unknown id"
+  - "  - Test: POST /api/subtasks/:id/start triggers workflow"
+  - "  - Test: POST /api/subtasks/:id/approve marks complete"
+  - "  - Test: GET /api/agents/status returns agent states"
+  - "  - Test: GET /api/events returns recent events"
+  - "  - Test: Error responses have correct format"
+  - "  - Use supertest to test Express routes"
+lastUpdated: 2025-12-05T04:00:00Z
+updatedBy: orion
 

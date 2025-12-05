@@ -31,6 +31,17 @@ prChecklistStatus:
 openQuestions: []
 notes:
   - "Tara owns the Red phase and final verification."
-lastUpdated: 2025-12-04T23:00:00Z
-updatedBy: orchestrator
+  - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/2-7-tara-agent"
+  - "TARA INSTRUCTIONS (Create failing tests - Red):"
+  - "  - Create backend/__tests__/unit/taraAgent.test.js"
+  - "  - Test: TaraAgent extends BaseAgent"
+  - "  - Test: TaraAgent.execute() returns actions"
+  - "  - Test: generateUnitTests(subtaskId) action"
+  - "  - Test: generateIntegrationTests(subtaskId) action"
+  - "  - Test: runCoverageCheck() action"
+  - "  - Test: reportVerificationStatus(subtaskId, passed) action"
+  - "  - Test: Writes test files to correct paths"
+  - "  - Test: Loads prompt from .prompts/Tara_Tester.md"
+lastUpdated: 2025-12-05T04:00:00Z
+updatedBy: orion
 
