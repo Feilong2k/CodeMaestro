@@ -55,5 +55,10 @@ notes:
   - "  4. Wire routes in backend/index.js"
   - "  5. Implement all endpoints using db and orchestrator services"
   - "  6. Run tests: cd backend; npm test -- --testPathPatterns=routes"
-lastUpdated: 2025-12-05T05:15:00Z
+  - "⚠️ POWERSHELL REMINDER:"
+  - "  - Do NOT use bash heredocs (<<'EOF'). They don't work in PowerShell!"
+  - "  - Use ';' for sequential commands, NOT '&&'"
+  - "  - To debug, create a temp .js file and run it, don't use inline scripts"
+  - "  - Just run the test suite: npm test -- --testPathPatterns=routes"
+lastUpdated: 2025-12-05T05:30:00Z
 updatedBy: orion
