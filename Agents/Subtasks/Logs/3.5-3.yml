@@ -1,7 +1,7 @@
 id: "3.5-3"
 title: "Project Management System"
 status: pending
-outcome: "User can create, select, and switch projects"
+outcome: "User can create, select, and switch projects (Virtual or Git-Cloned)"
 branch: "subtask/3.5-3-project-management"
 
 dependencies: ["3.5-2"]
@@ -13,24 +13,27 @@ relevantFiles:
   - "frontend/src/components/ProjectSelector.vue"
 
 requiredActions:
-  - "DB: Create 'projects' table and foreign keys"
+  - "DB: Create 'projects' table (id, name, path, git_url, created_at)"
   - "Backend: Add GET/POST /projects endpoints"
+  - "Backend: Implement 'Import from Git' service (clones to ./projects/<id>)"
   - "Frontend: Create Pinia Project Store"
   - "Frontend: Create ProjectSelector component in Header"
-  - "Frontend: Create 'New Project' Modal"
+  - "Frontend: Create 'New Project' Modal (Create Empty OR Import Git)"
   - "Logic: Filter Tasks/Logs by selected Project ID"
 
 verificationChecklist:
   - "[ ] [TDD] API Tests (Backend)"
   - "[ ] [TDD] Store Tests (Frontend)"
   - "[ ] [TDD] Implementation (Green)"
-  - "[ ] Can create new project"
+  - "[ ] Can create empty project"
+  - "[ ] Can clone git repo into projects folder"
   - "[ ] Can switch projects"
   - "[ ] Data filters correctly by project"
 
 prChecklist:
   developer:
     - "Schema migration script created"
+    - "Git clone error handling (private repos?)"
     - "Linter clean"
   tester:
     - "Multi-project isolation verified"
@@ -45,8 +48,7 @@ openQuestions: []
 
 notes:
   - "⚠️ BRANCH CHECK: Run 'git checkout -b subtask/3.5-3-project-management'"
-  - "This upgrades CodeMaestro to multi-project capability"
+  - "Managed Folder Strategy: Projects live in C:/Coding/CM/Projects/<id>"
 
-lastUpdated: "2025-12-05T21:00:00Z"
+lastUpdated: "2025-12-05T21:30:00Z"
 updatedBy: "orchestrator"
-

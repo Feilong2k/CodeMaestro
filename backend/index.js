@@ -5,6 +5,7 @@ const subtasksRouter = require('./src/routes/subtasks');
 const agentsRouter = require('./src/routes/agents');
 const eventsRouter = require('./src/routes/events');
 const { healthCheck } = require('./src/db/connection');
+const socketService = require('./src/socket');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -88,15 +89,23 @@ if (require.main === module) {
       console.warn('⚠️ Starting server with database connection issues');
     }
     
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Backend listening on http://localhost:${PORT}`);
     });
+    
+    // Initialize Socket.IO
+    socketService.init(server);
+    console.log('WebSocket server initialized');
   }).catch(error => {
     console.error('Failed to check database connection:', error);
     // Still start the server even if DB check fails
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Backend listening on http://localhost:${PORT} (database check failed)`);
     });
+    
+    // Initialize Socket.IO even if DB failed
+    socketService.init(server);
+    console.log('WebSocket server initialized');
   });
 }
 

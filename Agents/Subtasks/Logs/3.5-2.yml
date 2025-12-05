@@ -10,6 +10,7 @@ relevantFiles:
   - "backend/src/agents/OrionAgent.js"
   - "frontend/src/stores/chat.js"
   - "frontend/src/components/ChatPanel.vue"
+  - "frontend/src/__tests__/stores/chat.spec.js"
 
 requiredActions:
   - "Backend: Ensure OrionAgent emits 'log_entry' via WebSocket on actions"
@@ -43,7 +44,8 @@ openQuestions: []
 notes:
   - "⚠️ BRANCH CHECK: Run 'git checkout -b subtask/3.5-2-logic-persistence'"
   - "Check backend/src/agents/OrionAgent.js for missing socket calls"
+  - "⚠️ TEST RUNNER: Do NOT use complex PowerShell pipes (`| Select-String`) when running Vitest. Run `npx vitest run ...` directly."
+  - "Current status: Basic chat tests passed, but persistence logic/tests missing."
 
-lastUpdated: "2025-12-05T21:00:00Z"
+lastUpdated: "2025-12-05T21:45:00Z"
 updatedBy: "orchestrator"
-

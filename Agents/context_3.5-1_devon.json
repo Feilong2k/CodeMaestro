@@ -4,7 +4,7 @@
   "subtaskId": "3.5-1",
   "title": "Chat UI Polish & Layout",
   "branch": "subtask/3.5-1-chat-ui-polish",
-  "goal": "Polish chat interface: bubbles alignment, font size, scrollbar, Act button location",
+  "goal": "Polish chat interface: bubbles alignment, font size, scrollbar, Act button location, Input fix",
   "currentPhase": "Red (Write failing tests)",
   
   "prompts": {
@@ -38,6 +38,9 @@
       "Move Plan/Act toggle from Header to ChatPanel (above input)",
       "Remove Theme Toggle from Header",
       "Ensure MessageList scrolls independently (overflow-y-auto)"
+    ],
+    "fixes": [
+      "Clear input field IMMEDIATELY on send (don't await API response)"
     ]
   },
   
@@ -48,9 +51,8 @@
     "1. Checkout branch: subtask/3.5-1-chat-ui-polish",
     "2. Merge master",
     "3. Modify MessageItem.vue for alignment props (user=right, orion=left)",
-    "4. Modify ChatPanel.vue to move Plan/Act button",
+    "4. Modify ChatPanel.vue to move Plan/Act button AND fix input clearing delay",
     "5. Modify TheHeader.vue to remove Theme Toggle",
     "6. Verify visual changes (run dev server if needed)"
   ]
 }
-
