@@ -66,5 +66,21 @@ notes:
   - "  - Mock pg if needed for unit tests, use real DB for integration"
   - "UNIT TESTS CREATED: backend/__tests__/unit/db.test.js and backend/__tests__/__mocks__/pg.js"
   - "PARALLEL TASKS: When done with 2-2, you can also work on 2-3, 2-4, 2-9"
-lastUpdated: 2025-12-05T01:37:00Z
-updatedBy: tester
+  - "---"
+  - "DEVON INSTRUCTIONS (Make tests pass - Green):"
+  - "  1. Install pg: npm install pg"
+  - "  2. Create backend/src/db/connection.js exporting:"
+  - "     - pool: pg.Pool configured from env vars (DATABASE_URL, PG_MAX, PG_MIN, etc)"
+  - "     - healthCheck(): async, returns true if SELECT 1 succeeds, false otherwise"
+  - "     - createSubtask(data): INSERT INTO subtasks"
+  - "     - getSubtask(id): SELECT by id, return null if not found"
+  - "     - updateSubtask(id, updates): UPDATE subtasks SET ..."
+  - "     - deleteSubtask(id): DELETE FROM subtasks WHERE id = ..."
+  - "     - listSubtasks(): SELECT * FROM subtasks ORDER BY created_at DESC"
+  - "     - runMigrations(): Create migrations table, run .sql files from migrations/"
+  - "     - rollbackMigration(): Revert last migration"
+  - "  3. Create backend/src/db/migrations/001_create_subtasks.sql"
+  - "  4. Run tests: cd backend; npm test -- --testPathPattern=unit/db"
+  - "  5. Update this log when tests pass (Green)"
+lastUpdated: 2025-12-05T01:45:00Z
+updatedBy: orion
