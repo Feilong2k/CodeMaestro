@@ -1,0 +1,49 @@
+id: "3.5-2"
+title: "Logic & Persistence Fixes"
+status: pending
+outcome: "Core logic bugs fixed: Activity Log updates, Chat persistence, Typewriter effect"
+branch: "subtask/3.5-2-logic-persistence"
+
+dependencies: ["3-5", "3-6"]
+relevantFiles:
+  - "backend/src/socket/index.js"
+  - "backend/src/agents/OrionAgent.js"
+  - "frontend/src/stores/chat.js"
+  - "frontend/src/components/ChatPanel.vue"
+
+requiredActions:
+  - "Backend: Ensure OrionAgent emits 'log_entry' via WebSocket on actions"
+  - "Frontend: Fix Typewriter effect (ensure prop passed correctly)"
+  - "Frontend: Implement localStorage persistence for Chat Store"
+  - "Frontend: Implement 'Act Block' logic (disable Act if Plan not approved)"
+  - "Frontend: Restore chat context on page reload"
+
+verificationChecklist:
+  - "[ ] [TDD] Tests for persistence and blocking logic"
+  - "[ ] [TDD] Implementation (Green)"
+  - "[ ] Activity Log updates in real-time"
+  - "[ ] Chat history survives refresh"
+  - "[ ] Act button disabled initially"
+
+prChecklist:
+  developer:
+    - "Persistence logic is robust (handles storage limits)"
+    - "Linter clean"
+  tester:
+    - "Refresh test passed"
+    - "Activity log stream verified"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git checkout -b subtask/3.5-2-logic-persistence'"
+  - "Check backend/src/agents/OrionAgent.js for missing socket calls"
+
+lastUpdated: "2025-12-05T21:00:00Z"
+updatedBy: "orchestrator"
+

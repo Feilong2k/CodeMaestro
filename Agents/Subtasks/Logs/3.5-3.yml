@@ -1,0 +1,52 @@
+id: "3.5-3"
+title: "Project Management System"
+status: pending
+outcome: "User can create, select, and switch projects"
+branch: "subtask/3.5-3-project-management"
+
+dependencies: ["3.5-2"]
+relevantFiles:
+  - "backend/src/db/schema.sql"
+  - "backend/src/routes/projects.js"
+  - "frontend/src/stores/project.js"
+  - "frontend/src/components/TheHeader.vue"
+  - "frontend/src/components/ProjectSelector.vue"
+
+requiredActions:
+  - "DB: Create 'projects' table and foreign keys"
+  - "Backend: Add GET/POST /projects endpoints"
+  - "Frontend: Create Pinia Project Store"
+  - "Frontend: Create ProjectSelector component in Header"
+  - "Frontend: Create 'New Project' Modal"
+  - "Logic: Filter Tasks/Logs by selected Project ID"
+
+verificationChecklist:
+  - "[ ] [TDD] API Tests (Backend)"
+  - "[ ] [TDD] Store Tests (Frontend)"
+  - "[ ] [TDD] Implementation (Green)"
+  - "[ ] Can create new project"
+  - "[ ] Can switch projects"
+  - "[ ] Data filters correctly by project"
+
+prChecklist:
+  developer:
+    - "Schema migration script created"
+    - "Linter clean"
+  tester:
+    - "Multi-project isolation verified"
+    - "Modal UX verified"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git checkout -b subtask/3.5-3-project-management'"
+  - "This upgrades CodeMaestro to multi-project capability"
+
+lastUpdated: "2025-12-05T21:00:00Z"
+updatedBy: "orchestrator"
+

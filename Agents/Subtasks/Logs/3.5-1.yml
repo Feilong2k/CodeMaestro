@@ -1,0 +1,51 @@
+id: "3.5-1"
+title: "Chat UI Polish & Layout"
+status: pending
+outcome: "Chat interface is polished, responsive, and matches UX requirements"
+branch: "subtask/3.5-1-chat-ui-polish"
+
+dependencies: ["3-10"]
+relevantFiles:
+  - "frontend/src/components/ChatPanel.vue"
+  - "frontend/src/components/MessageItem.vue"
+  - "frontend/src/App.vue"
+  - "frontend/src/components/TheHeader.vue"
+
+requiredActions:
+  - "Align User messages to Right (Blue), Orion to Left (Gray)"
+  - "Implement Compact Mode (smaller font/padding)"
+  - "Fix scrolling issues (ensure chat container scrolls, not page)"
+  - "Move Plan/Act toggle into Chat Panel (above Send button)"
+  - "Remove Theme Toggle (dark circle) from Header"
+  - "Ensure messages don't take full width (max-width: 80%)"
+
+verificationChecklist:
+  - "[ ] [TDD] Visual/Unit Tests updated"
+  - "[ ] [TDD] Implementation (Green)"
+  - "[ ] User messages aligned Right"
+  - "[ ] Orion messages aligned Left"
+  - "[ ] Scrollbar appears only in chat list"
+  - "[ ] Plan/Act toggle visible in Chat Panel"
+
+prChecklist:
+  developer:
+    - "Responsive design checked"
+    - "Linter clean"
+  tester:
+    - "Verified bubble alignment"
+    - "Verified scrolling behavior"
+
+prChecklistStatus:
+  developer: pending
+  tester: pending
+  orchestrator: pending
+
+openQuestions: []
+
+notes:
+  - "⚠️ BRANCH CHECK: Run 'git checkout -b subtask/3.5-1-chat-ui-polish'"
+  - "Focus on CSS/Tailwind classes and Component structure"
+
+lastUpdated: "2025-12-05T21:00:00Z"
+updatedBy: "orchestrator"
+
