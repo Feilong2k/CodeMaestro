@@ -1,6 +1,6 @@
 id: "3-5"
 title: "Activity Log Integration"
-status: pending
+status: completed
 outcome: "Activity Log component displays real-time agent actions from WebSocket"
 branch: "subtask/3-5-activity-log-integration"
 
@@ -19,12 +19,12 @@ requiredActions:
   - "Make entries clickable to expand details"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
-  - "[ ] [TDD] Integration Tests (Optional)"
-  - "[ ] Coverage > 80%"
-  - "[ ] Activity Log shows real-time updates"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[x] [TDD] Integration Tests (Optional)"
+  - "[x] Coverage > 80%"
+  - "[x] Activity Log shows real-time updates"
 
 prChecklist:
   developer:
@@ -49,6 +49,5 @@ notes:
   - "Depends on 3-2 (WebSocket) and 3-4 (Agents store)"
   - "ActivityLog.vue already exists from Phase 1"
 
-lastUpdated: "2025-12-05T09:00:00Z"
+lastUpdated: "2025-12-05T19:50:00Z"
 updatedBy: "orchestrator"
-

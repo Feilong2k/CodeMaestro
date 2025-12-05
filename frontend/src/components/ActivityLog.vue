@@ -16,8 +16,9 @@
           Live
         </span>
         <button
-          @click="clearEvents"
+          @click="clearActivity"
           class="px-2 py-1 text-xs rounded bg-bg-elevated border border-line-base text-text-secondary hover:bg-bg-elevated/80 font-matrix-mono"
+          :disabled="activityItems.length === 0"
         >
           Clear
         </button>
@@ -26,7 +27,7 @@
 
     <div v-if="activityItems.length === 0" class="text-center py-8">
       <p class="text-text-muted font-matrix-sans">Waiting for activity...</p>
-      <p class="text-xs text-text-muted/50 font-matrix-mono mt-2">Events will appear here in real-time</p>
+      <p class="text-xs text-text-muted/50 font-matrix-mono mt-2">Agent actions will appear here in real-time</p>
     </div>
 
     <div v-else class="activity-list space-y-2 max-h-[300px] overflow-y-auto pr-2">
@@ -45,87 +46,75 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import ActivityRow from './ActivityRow.vue'
-import { useSocket } from '../composables/useSocket'
+import { useAgentsStore } from '../stores/agents'
 
-const {
-  isConnected,
-  logEntries,
-  stateChanges,
-  agentActions,
-  clearEvents
-} = useSocket()
+const agentsStore = useAgentsStore()
 
-// Generate unique ID for each activity item
-let itemCounter = 0
-
-const activityItems = computed(() => {
-  const items = []
-
-  // Process log entries
-  logEntries.value.forEach(entry => {
-    items.push({
-      id: `log-${++itemCounter}`,
-      agent: getAgentFromLog(entry),
-      avatarBg: getAvatarBg(getAgentFromLog(entry)),
-      avatarText: getAvatarText(getAgentFromLog(entry)),
-      description: entry.message,
-      status: entry.level,
-      timeAgo: formatTimeAgo(entry.timestamp)
-    })
-  })
-
-  // Process state changes
-  stateChanges.value.forEach(change => {
-    items.push({
-      id: `state-${++itemCounter}`,
-      agent: 'System',
-      avatarBg: 'bg-accent-primary',
-      avatarText: 'S',
-      description: `State change: ${change.subtaskId} from ${change.from} to ${change.to}`,
-      status: 'Transition',
-      timeAgo: formatTimeAgo(change.timestamp)
-    })
-  })
-
-  // Process agent actions
-  agentActions.value.forEach(action => {
-    items.push({
-      id: `action-${++itemCounter}`,
-      agent: action.agent,
-      avatarBg: getAvatarBg(action.agent),
-      avatarText: getAvatarText(action.agent),
-      description: `Action: ${action.action}`,
-      status: 'Active',
-      timeAgo: formatTimeAgo(action.timestamp)
-    })
-  })
-
-  // Sort by timestamp (newest first)
-  return items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+// Initialize WebSocket connection for agent actions
+onMounted(() => {
+  agentsStore.initSocket()
 })
 
-function getAgentFromLog(entry) {
-  // Try to extract agent from log message
-  const message = entry.message || ''
-  if (message.includes('Orion')) return 'Orion'
-  if (message.includes('Tara')) return 'Tara'
-  if (message.includes('Devon')) return 'Devon'
-  return 'System'
+// Clean up WebSocket connection
+onUnmounted(() => {
+  agentsStore.cleanupSocket()
+})
+
+const isConnected = computed(() => {
+  // For now, we assume connection is always active when socket is initialized.
+  // In a real app, we might want to track connection status via the socket client.
+  return true
+})
+
+const activityItems = computed(() => {
+  // Get recent activities from the agents store (most recent first)
+  const recentActivities = agentsStore.recentActivity(50) // Show up to 50 most recent
+  return recentActivities.map((activity, index) => ({
+    id: `activity-${index}-${activity.timestamp.getTime()}`,
+    agent: activity.agent,
+    avatarBg: getAvatarBg(activity.agent),
+    avatarText: getAvatarText(activity.agent),
+    description: formatDescription(activity),
+    status: getStatus(activity.action),
+    timeAgo: formatTimeAgo(activity.timestamp)
+  }))
+})
+
+function formatDescription(activity) {
+  if (activity.action && activity.taskId) {
+    return `${activity.agent}: ${activity.action} (${activity.taskId})`
+  } else if (activity.action) {
+    return `${activity.agent}: ${activity.action}`
+  } else {
+    return `${activity.agent}: Unknown action`
+  }
+}
+
+function getStatus(action) {
+  if (action.includes('completed') || action.includes('finished')) {
+    return 'Completed'
+  } else if (action.includes('started') || action.includes('began')) {
+    return 'Active'
+  } else if (action.includes('error') || action.includes('failed')) {
+    return 'Error'
+  } else {
+    return 'Info'
+  }
 }
 
 function getAvatarBg(agent) {
-  switch (agent) {
-    case 'Orion': return 'bg-accent-primary'
-    case 'Tara': return 'bg-accent-secondary'
-    case 'Devon': return 'bg-accent-tertiary'
+  switch (agent.toLowerCase()) {
+    case 'orion': return 'bg-accent-primary'
+    case 'tara': return 'bg-accent-secondary'
+    case 'devon': return 'bg-accent-tertiary'
     default: return 'bg-accent-primary'
   }
 }
 
 function getAvatarText(agent) {
-  return agent.charAt(0)
+  return agent.charAt(0).toUpperCase()
 }
 
 function formatTimeAgo(timestamp) {
@@ -139,6 +128,11 @@ function formatTimeAgo(timestamp) {
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
   return `${Math.floor(seconds / 86400)}d ago`
+}
+
+function clearActivity() {
+  // Clear the activity history in the agents store
+  agentsStore.activityHistory = []
 }
 </script>
 

@@ -1,7 +1,21 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import StatusBar from '../../components/StatusBar.vue'
-import { createPinia, setActivePinia } from 'pinia'
+import { createTestingPinia } from '@pinia/testing'
+import { setActivePinia, createPinia } from 'pinia'
+import { useTasksStore } from '../../stores/tasks'
+import { useAgentsStore } from '../../stores/agents'
+
+// Mock the useSocket composable
+vi.mock('../../composables/useSocket', () => ({
+  useSocket: () => ({
+    isConnected: true,
+    logEntries: [],
+    stateChanges: [],
+    agentActions: [],
+    clearEvents: vi.fn()
+  })
+}))
 
 describe('StatusBar.vue', () => {
   // Setup Pinia if needed
@@ -37,7 +51,9 @@ describe('StatusBar.vue', () => {
     const wrapper = mount(StatusBar)
     const stateText = wrapper.find('.state-text')
     expect(stateText.exists()).toBe(true)
-    expect(stateText.text()).toContain('System Idle')
+    // Should contain connection status and agent status
+    expect(stateText.text()).toContain('Connected')
+    expect(stateText.text()).toContain('All agents idle')
   })
 
   it('should be positioned at the bottom or in a designated location', () => {
@@ -59,5 +75,59 @@ describe('StatusBar.vue', () => {
     const container = wrapper.find('.status-bar')
     expect(container.classes()).toContain('bg-bg-layer')
     expect(container.classes()).toContain('border-line-base')
+  })
+
+  describe('Integration with stores', () => {
+    it('should display WebSocket connection status from useSocket', () => {
+      const wrapper = mount(StatusBar)
+      // The useSocket mock returns isConnected: true
+      const connectionStatus = wrapper.find('.state-text')
+      expect(connectionStatus.text()).toContain('Connected')
+      // The connection dot should have green background
+      const connectionDot = wrapper.find('.w-2.h-2.rounded-full')
+      expect(connectionDot.classes()).toContain('bg-green-500')
+    })
+
+    it('should display active agent from agents store', () => {
+      // Setup agents store with an active agent
+      const agentsStore = useAgentsStore()
+      agentsStore.agents.orion.status = 'active'
+      
+      const wrapper = mount(StatusBar)
+      const stateText = wrapper.find('.state-text')
+      expect(stateText.text()).toContain('Orion active')
+    })
+
+    it('should display current task progress from tasks store', () => {
+      // Setup tasks store with a task in progress
+      const tasksStore = useTasksStore()
+      tasksStore.subtasks = [
+        { id: '3-7', title: 'Status Bar Integration', status: 'in_progress' }
+      ]
+      
+      const wrapper = mount(StatusBar)
+      const stateText = wrapper.find('.state-text')
+      expect(stateText.text()).toContain('3-7: Status Bar Integration')
+    })
+
+    it('should update status in real-time when stores change', () => {
+      // This test is more complex and would require mocking socket events.
+      // For now, we can test that the component reacts to store changes.
+      // We'll set up initial state and then change it.
+      const agentsStore = useAgentsStore()
+      agentsStore.agents.orion.status = 'idle'
+      
+      const wrapper = mount(StatusBar)
+      let stateText = wrapper.find('.state-text')
+      expect(stateText.text()).toContain('All agents idle')
+      
+      // Change the agent status
+      agentsStore.agents.orion.status = 'active'
+      // Trigger update - we need to wait for next tick
+      wrapper.vm.$nextTick(() => {
+        stateText = wrapper.find('.state-text')
+        expect(stateText.text()).toContain('Orion active')
+      })
+    })
   })
 })

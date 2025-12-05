@@ -1771,12 +1771,23 @@ When a subtask starts, Orion's queue auto-populates:
 ```javascript
 // Triggered by: user says "Start 3-1"
 orionQueue.addBatch([
-  { type: 'git', action: 'create_branch', branch: 'subtask/3-1-api-client' },
+  // Logic: Check if branch exists, instruct agent accordingly
+  { type: 'logic', action: 'determine_git_command', branch: 'subtask/3-1-api-client' },
   { type: 'status', action: 'update_log', status: 'in_progress' },
   { type: 'status', action: 'update_manifest', status: 'in_progress' },
   { type: 'handoff', action: 'push_to_queue', queue: 'tara', subtaskId: '3-1' },
   { type: 'broadcast', message: 'Starting 3-1, assigned to Tara' }
 ]);
+```
+
+**Branch Assignment Logic:**
+```javascript
+function generateGitCommand(branchName) {
+  const exists = git.branchExists(branchName);
+  return exists 
+    ? `git checkout ${branchName}` 
+    : `git checkout -b ${branchName}`;
+}
 ```
 
 When a subtask completes:
