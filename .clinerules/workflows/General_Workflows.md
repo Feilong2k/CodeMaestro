@@ -12,15 +12,25 @@ This document defines the workflows the assistants must follow when implementing
 Use this canonical loop for every subtask:
 
 1. **Test (Tara)**: Write failing unit tests (scope: module/composable/service).
-   - **Sad Path Mandate**: Must include at least one error/failure case (e.g., 500 error, invalid input).
-2. **Implement (Devon)**: Implement to green (minimal code to satisfy tests).
+   - **Sad Path Mandate**: Must include at least one error/failure case.
+   - **HANDOFF**: Tara commits → notifies Orion → Orion merges to `main`.
+
+2. **Implement (Devon)**: Pull `main` (get tests) → Implement to green.
+
 3. **Refactor (Devon)**: Review code for clarity/duplication/structure. Improve implementation *without* breaking tests.
-   - **Mandatory Step**: Even if "production ready", pause to evaluate structure.
+   - **Mandatory Step**: Pause to evaluate structure.
+
 4. **Integration (Tara)**: Write failing integration tests (scope: endpoint/flow).
-5. **Implement (Devon)**: Adjust implementation to pass integration tests.
+   - **HANDOFF**: Tara commits → notifies Orion → Orion merges to `main`.
+
+5. **Implement (Devon)**: Pull `main` → Adjust implementation to pass integration tests.
+
 6. **Coverage Check (Tara)**: Ensure new code has ~80% coverage.
+
 7. **Final Verification (Tara)**: Run the *full suite* in a clean environment to ensure no regressions.
    - **Gate**: If this fails, return to step 2/3. Do not proceed to PR.
+
+8. **Completion (Orion)**: Merge final implementation to `main`.
 
 ### UI-First TDD Variant (Visual Progress)
 For tasks where visual feedback is priority:
