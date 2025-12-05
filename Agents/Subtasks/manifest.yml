@@ -59,7 +59,7 @@ subtasks:
     log: "Agents/Subtasks/Logs/2-5.yml"
   - id: "2-6"
     title: "Orion Agent"
-    status: pending
+    status: in_progress
     branch: "subtask/2-6-orion-agent"
     log: "Agents/Subtasks/Logs/2-6.yml"
   - id: "2-7"

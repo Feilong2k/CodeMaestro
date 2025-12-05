@@ -1,6 +1,6 @@
 id: "2-6"
 title: "Orion Agent"
-status: pending
+status: in_progress
 outcome: pending
 branch: "subtask/2-6-orion-agent"
 dependencies: ["2-5"]
