@@ -1,6 +1,6 @@
 id: "2-3"
 title: "State Machine (XState)"
-status: pending
+status: in_progress
 outcome: pending
 branch: "subtask/2-3-state-machine-xstate"
 dependencies: ["2-1"]
