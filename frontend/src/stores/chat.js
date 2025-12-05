@@ -89,7 +89,8 @@ export const useChatStore = defineStore('chat', {
         this.addMessage({
           sender: 'Orion',
           content: response.data?.response || 'I received your message.',
-          timestamp: new Date()
+          timestamp: new Date(),
+          typingEffect: true
         })
       } catch (error) {
         this.error = `Failed to send message: ${error.message}`

@@ -42,11 +42,13 @@
         </button>
         <button
           @click="setView('act')"
+          :disabled="chatStore.isActDisabled"
           :class="[
             'px-4 py-1.5 rounded-sm text-sm font-medium transition-colors duration-fast font-matrix-sans',
             currentView === 'act'
               ? 'bg-accent-primary text-bg-base shadow-matrix-glow'
-              : 'text-text-secondary hover:text-text-primary hover:shadow-matrix-glow'
+              : 'text-text-secondary hover:text-text-primary hover:shadow-matrix-glow',
+            chatStore.isActDisabled ? 'opacity-50 cursor-not-allowed hover:text-text-secondary hover:shadow-none' : ''
           ]"
         >
           Act
