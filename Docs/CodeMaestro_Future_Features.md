@@ -575,6 +575,168 @@ Time 4:  All 4 agents working in parallel (peak throughput)
 
 ---
 
+## 17. Distribution & Business Models
+
+### BYOK (Bring Your Own Key) — Recommended Launch Strategy
+
+**Why BYOK first:**
+- Zero API cost to you
+- No enterprise deals needed — ship immediately
+- Privacy selling point ("Your keys, your data")
+- Open source friendly
+
+**Who does BYOK:**
+- Cline, Continue.dev, Aider, LM Studio
+- Cursor (originally, before subscription)
+
+### Business Model Options
+
+| Model | How It Works | When to Use |
+|-------|--------------|-------------|
+| **BYOK Only** | Users provide their own keys | MVP, open source |
+| **Usage-Based** | Route through your backend, charge margin | After traction |
+| **Subscription** | Flat fee, you pay providers | After enterprise deals |
+| **Hybrid** | Free = BYOK, Pro = bundled | Growth phase |
+| **Enterprise** | Teams, RBAC, SLA, support | B2B sales |
+
+### Cline's Playbook (Reference)
+
+1. **Open source extension** → Massive adoption (free)
+2. **Optional managed routing** → Usage-based fees
+3. **Cline Teams** → Enterprise features (free through 2025, paid 2026+)
+4. **Land grab strategy** → Grow first, monetize later
+
+### CodeMaestro Revenue Path
+
+```
+Phase 1-5: Free / Open Source (BYOK)
+           └── Build product, prove value
+           
+Phase 6:   Usage-Based Option
+           └── "Easy Mode" — we manage keys, small markup
+           └── Revenue: API margin (~10-20%)
+           
+Phase 7:   Pro Tier
+           └── Advanced dashboard, priority support
+           └── Revenue: $20-50/mo subscription
+           
+Phase 8:   Enterprise / Teams
+           └── Centralized billing, RBAC, audit logs
+           └── SSO, SLA, dedicated support
+           └── Revenue: $X/seat/month
+```
+
+---
+
+## 18. IDE Extension Strategy (Phase 6+)
+
+### Why Extensions Win
+
+1. **Zero friction** — Users stay in their IDE
+2. **File access** — Direct read/write to workspace
+3. **Terminal integration** — Run commands natively
+4. **Git integration** — Branch/commit from extension
+5. **Marketplace distribution** — One-click install (30M+ VSCode users)
+
+### Target Platforms
+
+| Platform | Type | Priority | Notes |
+|----------|------|----------|-------|
+| **VSCode** | Extension | P0 | Largest market, also works in Cursor/Windsurf |
+| **JetBrains** | Plugin | P1 | IntelliJ, WebStorm, PyCharm — enterprise |
+| **Neovim** | Plugin | P2 | Power users, CLI-native |
+| **GitHub Codespaces** | Extension | P1 | Cloud IDE, enterprise |
+| **Gitpod** | Extension | P2 | Cloud IDE |
+
+### Extension Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    VSCode Extension                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │  Sidebar     │  │  Commands    │  │  Status Bar  │  │
+│  │  (Webview)   │  │  Palette     │  │  Agent Info  │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  │
+│         └─────────────────┼─────────────────┘          │
+│                           │                             │
+│              ┌────────────▼────────────┐               │
+│              │   Extension Host        │               │
+│              │   • File operations     │               │
+│              │   • Terminal commands   │               │
+│              │   • Git operations      │               │
+│              └────────────┬────────────┘               │
+└───────────────────────────┼─────────────────────────────┘
+                            │
+                 ┌──────────▼──────────┐
+                 │  CodeMaestro Core   │
+                 │  (Embedded/Local)   │
+                 │  • Agent Framework  │
+                 │  • State Machine    │
+                 │  • LLM Integration  │
+                 └─────────────────────┘
+```
+
+### Extension Features
+
+**Sidebar Panel (Webview):**
+- Task list with status
+- Agent activity log
+- Chat interface for commands
+- Current task details
+
+**Command Palette:**
+- `CodeMaestro: Start Task`
+- `CodeMaestro: Check Status`
+- `CodeMaestro: Assign to Tara/Devon`
+- `CodeMaestro: Approve PR`
+- `CodeMaestro: View Dependencies`
+
+**Status Bar:**
+- Current agent working
+- Task progress (e.g., "2-2: 3/5 checks")
+- Quick actions
+
+**Output Channel:**
+- Real-time agent logs
+- Test results
+- Git operations
+
+### Implementation Phases
+
+```
+Phase 6a: Basic Extension Shell
+          └── Webview with existing dashboard
+          └── Command palette basics
+          
+Phase 6b: Native IDE Integration
+          └── File operations via Extension API
+          └── Terminal integration
+          └── Git via Extension API
+          
+Phase 6c: Polish & Publish
+          └── Marketplace listing
+          └── Documentation
+          └── Onboarding flow
+          
+Phase 6d: Multi-IDE
+          └── JetBrains plugin
+          └── Neovim plugin
+```
+
+### Competitive Positioning
+
+| Tool | Model | Strength | CodeMaestro Differentiator |
+|------|-------|----------|---------------------------|
+| **Copilot** | Bundled | Autocomplete | We do orchestration, not autocomplete |
+| **Cline** | BYOK | Full autonomy | We have structured TDD workflow |
+| **Continue** | BYOK | Customizable | We have multi-agent roles |
+| **Cursor** | Standalone | Full control | We're an extension, not a fork |
+| **Aider** | CLI | Git-native | We have GUI + process governance |
+
+**CodeMaestro's unique value:** Not just "AI writes code" but **"AI team follows your process"** — TDD workflow, role separation, quality gates.
+
+---
+
 ## References
 
 - System Analysis: `Docs/Development/CodeMaestro_System_Analysis_and_Recommendations.md`
