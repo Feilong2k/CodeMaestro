@@ -96,19 +96,19 @@ subtasks:
     log: "Agents/Subtasks/Logs/3-2.yml"
   - id: "3-3"
     title: "Pinia Store - Tasks"
-    status: pending
+    status: completed
     branch: "subtask/3-3-pinia-store-tasks"
     log: "Agents/Subtasks/Logs/3-3.yml"
     dependencies: ["3-1", "3-2"]
   - id: "3-4"
     title: "Pinia Store - Agents"
-    status: pending
+    status: completed
     branch: "subtask/3-4-pinia-store-agents"
     log: "Agents/Subtasks/Logs/3-4.yml"
     dependencies: ["3-1", "3-2"]
   - id: "3-5"
     title: "Activity Log Integration"
-    status: pending
+    status: completed
     branch: "subtask/3-5-activity-log-integration"
     log: "Agents/Subtasks/Logs/3-5.yml"
     dependencies: ["3-2", "3-4"]
