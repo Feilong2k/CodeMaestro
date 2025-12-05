@@ -103,7 +103,64 @@ Definition of Done (per subtask):
 
 ---
 
-## 6) References & Rules
+## 6) Error Escalation Protocol
+
+When an agent encounters an error, follow this protocol:
+
+### The Rule: STOP and REPORT
+
+```
+Agent hits error → STOP → Log error → Report to Orion → Wait for approval → Execute fix
+```
+
+**DO NOT** attempt to fix errors yourself (especially git/environment errors). This prevents making things worse.
+
+### Error Classification
+
+| Error Type | Action | Example |
+|------------|--------|---------|
+| **Git errors** | 🛑 ALWAYS escalate | "not a git repository", merge conflicts |
+| **Missing files/folders** | 🛑 Escalate | "Cannot find module", "ENOENT" |
+| **Permission errors** | 🛑 Escalate | "Access denied", "EPERM" |
+| **Environment errors** | 🛑 Escalate | Wrong Node version, missing env vars |
+| **Test failures** | ✅ Self-fix | That's Devon's job - implement to pass |
+| **Syntax/lint errors** | ✅ Self-fix | Fix and re-run |
+| **Unknown errors** | 🛑 Escalate | When in doubt, STOP |
+
+### How to Report
+
+Add to the subtask log (`Agents/Subtasks/Logs/<id>.yml`):
+
+```yaml
+errors:
+  - timestamp: "2025-12-05T11:00:00Z"
+    agent: "devon"
+    command: "git status"
+    error: "fatal: not a git repository"
+    context: "Was trying to check branch before starting work"
+    proposedFix: "Worktree may be corrupted - need Orion to recreate"
+    status: "awaiting_orion"
+```
+
+Then report: **"Error encountered on 3-X, see log, awaiting Orion review"**
+
+### Orion Response
+
+Orion will either:
+1. **Approve proposed fix** → Agent executes it
+2. **Provide alternative fix** → Agent executes that instead
+3. **Handle it directly** → Orion fixes from main repo
+
+### Why This Matters
+
+- Prevents cascading failures (one bad fix leads to more errors)
+- Maintains audit trail of what went wrong
+- Orion has full repo context to make better decisions
+- Keeps git operations centralized
+
+---
+
+## 7) References & Rules
 - **Static Rules (Naming, Roles, Shell)**: See `.clinerules/clineRules.md`.
 - **Branching Policy**: See `.clinerules/workflows/Branching_and_PR_Policy.md`.
 - **Test Workflow**: See `.clinerules/workflows/Test_Workflows.md`.
