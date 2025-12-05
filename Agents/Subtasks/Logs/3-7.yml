@@ -42,7 +42,19 @@ prChecklistStatus:
   tester: pending
   orchestrator: pending
 
-openQuestions: []
+openQuestions:
+  - key: "traffic-light-logic"
+    status: "answered"
+    question: "Should the TrafficLight component show connection status (isConnected) or agent activity status?"
+    answer: "Agent Activity (Green=Active). Connection status should be separate (small dot)."
+  - key: "multiple-agents"
+    status: "answered"
+    question: "If multiple agents are active, how should we display them?"
+    answer: "Comma-separated ('Orion, Tara') or count ('2 Agents') if overflow."
+  - key: "status-text"
+    status: "answered"
+    question: "What's the expected format for the status text?"
+    answer: "[Connection Dot] [Agent Name] : [Task Title]"
 
 notes:
   - "⚠️ BRANCH CHECK: Run 'git branch' - must show * subtask/3-7-status-bar-integration"
@@ -50,5 +62,5 @@ notes:
   - "Depends on 3-3 (Tasks store) and 3-4 (Agents store)"
   - "StatusBar.vue already exists from Phase 1"
 
-lastUpdated: "2025-12-05T18:57:00Z"
-updatedBy: "tester"
+lastUpdated: "2025-12-05T19:40:00Z"
+updatedBy: "orchestrator"
