@@ -10,7 +10,11 @@
         :sender="msg.sender"
         :time="formatTimeAgo(msg.timestamp)"
         :message="msg.content"
+        :typing-effect="msg.typingEffect || false"
+        :typing-speed="20"
       />
+      
+      <!-- Typing indicator when waiting for response -->
       <div v-if="chatStore.sending" class="typing-indicator flex items-center space-x-2">
         <div class="w-2 h-2 bg-accent-primary rounded-full animate-pulse"></div>
         <div class="w-2 h-2 bg-accent-primary rounded-full animate-pulse animation-delay-200"></div>
@@ -80,6 +84,7 @@ const getAvatarText = (sender) => {
 }
 
 const formatTimeAgo = (timestamp) => {
+  if (!timestamp) return 'Just now'
   const date = new Date(timestamp)
   const now = new Date()
   const diffMs = now - date
