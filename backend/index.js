@@ -4,7 +4,9 @@ const cors = require('cors');
 const subtasksRouter = require('./src/routes/subtasks');
 const agentsRouter = require('./src/routes/agents');
 const eventsRouter = require('./src/routes/events');
-const { healthCheck } = require('./src/db/connection');
+const projectsRouter = require('./src/routes/projects');
+const patternsRouter = require('./src/routes/patterns');
+const { healthCheck, runMigrations } = require('./src/db/connection');
 const socketService = require('./src/socket');
 
 const app = express();
@@ -33,6 +35,8 @@ app.use((req, res, next) =>
 app.use('/api/subtasks', subtasksRouter);
 app.use('/api/agents', agentsRouter);
 app.use('/api/events', eventsRouter);
+app.use('/api/projects', projectsRouter);
+app.use('/api/patterns', patternsRouter);
 
 // Global JSON error handler (including body parser errors)
 app.use((err, req, res, next) => {
@@ -84,8 +88,16 @@ app.get('/api/health', async (req, res) => {
 // Only start the server if this file is run directly (not in tests)
 if (require.main === module) {
   // Check database connection on startup
-  checkDatabaseConnection().then(dbHealthy => {
-    if (!dbHealthy) {
+  checkDatabaseConnection().then(async dbHealthy => {
+    if (dbHealthy) {
+      try {
+        console.log('Running migrations...');
+        await runMigrations();
+        console.log('✅ Migrations applied');
+      } catch (err) {
+        console.error('❌ Migration failed:', err);
+      }
+    } else {
       console.warn('⚠️ Starting server with database connection issues');
     }
     

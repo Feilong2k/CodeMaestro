@@ -1,20 +1,40 @@
 const request = require('supertest');
+// Mock pg before requiring app
+jest.mock('pg', () => {
+  const mPool = {
+    query: jest.fn(),
+    end: jest.fn(),
+    on: jest.fn()
+  };
+  return { Pool: jest.fn(() => mPool) };
+});
+
 const app = require('../../../index');
-const db = require('../../../src/db/connection');
+const db = require('../../../src/db/connection'); // This will use the mocked Pool
 
 describe('Pattern Library API', () => {
   let createdPatternId;
+  let pool;
+
+  beforeAll(() => {
+    pool = db.getPool();
+  });
+
+  beforeEach(() => {
+    pool.query.mockReset();
+  });
 
   // Cleanup after tests
   afterAll(async () => {
-    if (createdPatternId) {
-      await db.pool.query('DELETE FROM patterns WHERE id = $1', [createdPatternId]);
-    }
     await db.closePool();
   });
 
   describe('POST /api/patterns', () => {
     it('should create a new pattern', async () => {
+      pool.query.mockResolvedValueOnce({ 
+        rows: [{ id: 1, title: 'Test Pattern', solution: 'console.log("test")' }] 
+      });
+
       const res = await request(app)
         .post('/api/patterns')
         .send({
@@ -37,35 +57,57 @@ describe('Pattern Library API', () => {
         .send({ title: 'Missing Content' });
       
       expect(res.statusCode).toBe(400);
+      expect(res.body).toHaveProperty('error');
     });
   });
 
   describe('GET /api/patterns', () => {
     it('should list patterns', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [] });
       const res = await request(app).get('/api/patterns');
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
     });
 
     it('should search patterns by query', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [] });
       const res = await request(app).get('/api/patterns?q=Test');
       expect(res.statusCode).toBe(200);
-      // We expect the search to work if implemented, but initially it might return all or empty
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+  });
+
+  describe('GET /api/patterns/:id', () => {
+    it('should return a specific pattern', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 1, title: 'Found' }] });
+      const idToGet = createdPatternId || 1;
+      
+      const res = await request(app).get(`/api/patterns/${idToGet}`);
+      
+      // We expect 200 OK
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 404 for non-existent pattern', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [] });
+      const res = await request(app).get('/api/patterns/999999');
+      expect(res.statusCode).toBe(404);
     });
   });
 
   describe('DELETE /api/patterns/:id', () => {
     it('should delete a pattern', async () => {
-      // Create a dummy pattern to delete
-      const createRes = await request(app)
-        .post('/api/patterns')
-        .send({ title: 'To Delete', solution: '...' });
-        
-      const idToDelete = createRes.body.id || 99999; 
+      pool.query.mockResolvedValueOnce({ rows: [{ id: 1 }] });
+      const idToDelete = createdPatternId || 1; 
 
       const res = await request(app).delete(`/api/patterns/${idToDelete}`);
       expect(res.statusCode).toBe(204);
     });
+
+    it('should return 404 if trying to delete non-existent pattern', async () => {
+       pool.query.mockResolvedValueOnce({ rows: [] });
+       const res = await request(app).delete('/api/patterns/999999');
+       expect(res.statusCode).toBe(404);
+    });
   });
 });
-

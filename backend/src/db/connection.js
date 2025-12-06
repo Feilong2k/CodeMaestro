@@ -223,6 +223,110 @@ async function closePool() {
   }
 }
 
+// ===== Project Management Functions =====
+
+/**
+ * Creates a new project record.
+ * @param {Object} data - The project data.
+ * @param {string} data.name - The project name.
+ * @param {string} [data.description] - The project description.
+ * @param {string} [data.path] - The local filesystem path.
+ * @param {string} [data.git_url] - The git repository URL.
+ * @returns {Promise<Object>} The created project.
+ */
+async function createProject(data) {
+  const {
+    name,
+    description = null,
+    path = null,
+    git_url = null,
+  } = data;
+
+  const query = `
+    INSERT INTO projects (name, description, path, git_url)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *;
+  `;
+  const values = [name, description, path, git_url];
+
+  const result = await getPool().query(query, values);
+  return result.rows[0];
+}
+
+/**
+ * Retrieves a project by its ID.
+ * @param {number} id - The project ID.
+ * @returns {Promise<Object|null>} The project or null if not found.
+ */
+async function getProject(id) {
+  const query = 'SELECT * FROM projects WHERE id = $1;';
+  const result = await getPool().query(query, [id]);
+  return result.rows[0] || null;
+}
+
+/**
+ * Updates an existing project.
+ * @param {number} id - The project ID.
+ * @param {Object} updates - The fields to update.
+ * @returns {Promise<Object>} The updated project.
+ */
+async function updateProject(id, updates) {
+  const allowedFields = ['name', 'description', 'path', 'git_url'];
+  const setClauses = [];
+  const values = [];
+  let paramCount = 1;
+
+  allowedFields.forEach(field => {
+    if (updates.hasOwnProperty(field)) {
+      setClauses.push(`${field} = $${paramCount}`);
+      values.push(updates[field]);
+      paramCount++;
+    }
+  });
+
+  if (setClauses.length === 0) {
+    throw new Error('No valid fields provided for update');
+  }
+
+  values.push(id);
+  const query = `
+    UPDATE projects
+    SET ${setClauses.join(', ')}, updated_at = NOW()
+    WHERE id = $${paramCount}
+    RETURNING *;
+  `;
+
+  const result = await getPool().query(query, values);
+  if (result.rows.length === 0) {
+    throw new Error(`Project with id ${id} not found`);
+  }
+  return result.rows[0];
+}
+
+/**
+ * Deletes a project by its ID.
+ * @param {number} id - The project ID.
+ * @returns {Promise<Object>} The deleted project.
+ */
+async function deleteProject(id) {
+  const query = 'DELETE FROM projects WHERE id = $1 RETURNING *;';
+  const result = await getPool().query(query, [id]);
+  if (result.rows.length === 0) {
+    throw new Error(`Project with id ${id} not found`);
+  }
+  return result.rows[0];
+}
+
+/**
+ * Lists all projects, ordered by creation date (newest first).
+ * @returns {Promise<Array>} Array of project objects.
+ */
+async function listProjects() {
+  const query = 'SELECT * FROM projects ORDER BY created_at DESC;';
+  const result = await getPool().query(query);
+  return result.rows;
+}
+
 module.exports = {
   get pool() { return getPool(); }, // Lazy getter for backward compatibility
   getPool,
@@ -232,6 +336,11 @@ module.exports = {
   updateSubtask,
   deleteSubtask,
   listSubtasks,
+  createProject,
+  getProject,
+  updateProject,
+  deleteProject,
+  listProjects,
   runMigrations,
   rollbackMigration,
   closePool,

@@ -1,0 +1,26 @@
+{
+  "task": {
+    "id": "4-1",
+    "title": "Pattern Library (Snippet Vault)",
+    "description": "Create a system for agents to store and retrieve reusable code snippets.",
+    "role": "tester",
+    "phase": "red"
+  },
+  "instructions": [
+    "You are Tara, the QA/Tester Agent.",
+    "Your goal is to write the FAILING TESTS (Red Phase) for the Pattern Library API.",
+    "Target File: `backend/src/__tests__/routes/patterns.spec.js`",
+    "Test Coverage Required:",
+    "1. POST /api/patterns - Should create a new pattern (title, solution, problem, tags).",
+    "2. GET /api/patterns - Should return a list of patterns.",
+    "3. GET /api/patterns?q=auth - Should filter patterns by query.",
+    "4. GET /api/patterns/:id - Should return a specific pattern.",
+    "5. DELETE /api/patterns/:id - Should delete a pattern.",
+    "Note: The backend routes are NOT connected yet (I disabled them in index.js), so expect 404s. This is the expected RED state.",
+    "Do NOT implement the backend logic. Just the tests."
+  ],
+  "relevant_files": [
+    "backend/index.js",
+    "backend/src/routes/patterns.js"
+  ]
+}

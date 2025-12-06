@@ -1,54 +1,26 @@
+# Subtask Log: 3.5-3 (Project Management System)
 id: "3.5-3"
-title: "Project Management System"
-status: pending
-outcome: "User can create, select, and switch projects (Virtual or Git-Cloned)"
-branch: "subtask/3.5-3-project-management"
+status: in_progress
+history:
+  - ts: "2025-12-05T23:55:00Z"
+    role: Devon-1
+    action: STARTED
+    message: "Started subtask 3.5-3. Initializing branch and planning."
 
-dependencies: ["3.5-2"]
-relevantFiles:
-  - "backend/src/db/schema.sql"
-  - "backend/src/routes/projects.js"
-  - "frontend/src/stores/project.js"
-  - "frontend/src/components/TheHeader.vue"
-  - "frontend/src/components/ProjectSelector.vue"
-
-requiredActions:
-  - "DB: Create 'projects' table (id, name, path, git_url, created_at)"
-  - "Backend: Add GET/POST /projects endpoints"
-  - "Backend: Implement 'Import from Git' service (clones to ./projects/<id>)"
-  - "Frontend: Create Pinia Project Store"
-  - "Frontend: Create ProjectSelector component in Header"
-  - "Frontend: Create 'New Project' Modal (Create Empty OR Import Git)"
-  - "Logic: Filter Tasks/Logs by selected Project ID"
-
-verificationChecklist:
-  - "[ ] [TDD] API Tests (Backend)"
-  - "[ ] [TDD] Store Tests (Frontend)"
-  - "[ ] [TDD] Implementation (Green)"
-  - "[ ] Can create empty project"
-  - "[ ] Can clone git repo into projects folder"
-  - "[ ] Can switch projects"
-  - "[ ] Data filters correctly by project"
-
-prChecklist:
+checklists:
   developer:
-    - "Schema migration script created"
-    - "Git clone error handling (private repos?)"
-    - "Linter clean"
+    - [ ] Database: Create 'projects' table migration
+    - [ ] Database: Add 'project_id' to tasks and logs
+    - [ ] Backend: Add Project Model/Service
+    - [ ] Backend: Add Project Routes (CRUD)
+    - [ ] Backend: Update Task/Log Routes to support project filtering
+    - [ ] Frontend: Create Project Store (Pinia)
+    - [ ] Frontend: Create Project Selector UI
+    - [ ] Frontend: Update Task List & Activity Log to filter by project
+    - [ ] Frontend: Create 'New Project' Modal
   tester:
-    - "Multi-project isolation verified"
-    - "Modal UX verified"
-
-prChecklistStatus:
-  developer: pending
-  tester: pending
-  orchestrator: pending
+    - [ ] Test Project CRUD API
+    - [ ] Test Filtering Logic
+    - [ ] Test UI Interactions
 
 openQuestions: []
-
-notes:
-  - "⚠️ BRANCH CHECK: Run 'git checkout -b subtask/3.5-3-project-management'"
-  - "Managed Folder Strategy: Projects live in C:/Coding/CM/Projects/<id>"
-
-lastUpdated: "2025-12-05T21:30:00Z"
-updatedBy: "orchestrator"
