@@ -120,7 +120,7 @@ subtasks:
     dependencies: ["3-1", "3-3", "3-4"]
   - id: "3-7"
     title: "Status Bar Integration"
-    status: pending
+    status: completed
     branch: "subtask/3-7-status-bar-integration"
     log: "Agents/Subtasks/Logs/3-7.yml"
     dependencies: ["3-3", "3-4"]
@@ -139,7 +139,7 @@ subtasks:
   # Phase 3.5: Polish & Fixes (Post-Integration)
   - id: "3.5-1"
     title: "Chat UI Polish & Layout"
-    status: pending
+    status: completed
     branch: "subtask/3.5-1-chat-ui-polish"
     log: "Agents/Subtasks/Logs/3.5-1.yml"
     dependencies: ["3-10"]
@@ -147,7 +147,7 @@ subtasks:
 
   - id: "3.5-2"
     title: "Logic & Persistence Fixes"
-    status: pending
+    status: completed
     branch: "subtask/3.5-2-logic-persistence"
     log: "Agents/Subtasks/Logs/3.5-2.yml"
     dependencies: ["3-5", "3-6"]
@@ -155,7 +155,7 @@ subtasks:
 
   - id: "3.5-3"
     title: "Project Management System"
-    status: pending
+    status: completed
     branch: "subtask/3.5-3-project-management"
     log: "Agents/Subtasks/Logs/3.5-3.yml"
     dependencies: ["3.5-2"]
@@ -167,6 +167,38 @@ subtasks:
     branch: "subtask/3-9-e2e-flow-test"
     log: "Agents/Subtasks/Logs/3-9.yml"
     dependencies: ["3.5-1", "3.5-2", "3.5-3"]
+
+  # Phase 4: Self-Evolution & Advanced Capabilities
+  - id: "4-0"
+    title: "Architecture & Logic Mapping"
+    status: completed
+    branch: "subtask/4-0-architecture-logic"
+    log: "Agents/Subtasks/Logs/4-0.yml"
+    description: "High-level design of data flow and relationships for Phase 4"
+
+  - id: "4-1"
+    title: "Pattern Library (Snippet Vault)"
+    status: in_progress
+    branch: "subtask/4-1-pattern-library"
+    log: "Agents/Subtasks/Logs/4-1.yml"
+    dependencies: ["4-0"]
+    description: "Database and API for storing reusable patterns"
+
+  - id: "4-2"
+    title: "Split-Brain Orchestration"
+    status: pending
+    branch: "subtask/4-2-split-brain"
+    log: "Agents/Subtasks/Logs/4-2.yml"
+    dependencies: ["4-0"]
+    description: "Routing logic for Gemini (Strategic) vs DeepSeek (Tactical)"
+
+  - id: "4-3"
+    title: "Dynamic Workflows (State Machine)"
+    status: pending
+    branch: "subtask/4-3-dynamic-workflows"
+    log: "Agents/Subtasks/Logs/4-3.yml"
+    dependencies: ["4-0"]
+    description: "Database-backed workflow engine replacing .clinerules"
 
 sequence:
   # Phase 3: Frontend ↔ Backend Integration
@@ -189,5 +221,11 @@ sequence:
   - "3.5-2" # Logic & Persistence
   - "3.5-3" # Project Management
   
+  # Phase 4: Self-Evolution
+  - "4-0"   # Architecture
+  - "4-1"   # Pattern Library
+  - "4-2"   # Split-Brain
+  - "4-3"   # Dynamic Workflows
+
   # Final:
   - "3-9"  # End-to-End Flow Test

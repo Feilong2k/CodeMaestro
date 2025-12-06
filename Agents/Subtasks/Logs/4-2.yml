@@ -1,0 +1,25 @@
+# Subtask Log: 4-2 (Split-Brain Orchestration)
+id: "4-2"
+title: "Split-Brain Orchestration"
+status: pending
+branch: "subtask/4-2-split-brain"
+
+history:
+  - ts: "2025-12-06T02:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Waiting for 4-1 completion."
+
+requiredActions:
+  - "Define Model Routing Logic (Strategic vs Tactical)"
+  - "Implement 'Orchestrator' Service/Module"
+  - "Integrate with Agent Framework (Context Selection)"
+  - "Testing: Verify tasks route to correct model"
+
+verificationChecklist:
+  - "[ ] 'Strategic' tasks go to Gemini 1.5 Pro"
+  - "[ ] 'Tactical' tasks go to DeepSeek V3"
+  - "[ ] Escalation Protocol (Level 1-5) implemented"
+
+openQuestions: []
+

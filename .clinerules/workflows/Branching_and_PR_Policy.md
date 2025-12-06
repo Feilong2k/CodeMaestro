@@ -210,6 +210,7 @@ Agents should NOT run merge commands themselves — Orion handles all git syncs.
 | **Main repo = Orion** | Orion uses the main folder for merges and orchestration |
 | **Agent folders** | Each agent (Tara, Devon) gets their own worktree folder |
 | **Merges in main** | All merges happen in the main repo folder |
+| **Parking Rule** | When finished, Agents MUST run `git checkout --detach` to release the branch lock |
 
 ### Space Efficiency
 
