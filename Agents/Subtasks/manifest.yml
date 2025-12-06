@@ -178,7 +178,7 @@ subtasks:
 
   - id: "4-1"
     title: "Pattern Library (Snippet Vault)"
-    status: in_progress
+    status: completed
     branch: "subtask/4-1-pattern-library"
     log: "Agents/Subtasks/Logs/4-1.yml"
     dependencies: ["4-0"]
