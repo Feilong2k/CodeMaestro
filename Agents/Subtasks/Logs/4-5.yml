@@ -1,0 +1,25 @@
+# Subtask Log: 4-5 (Dynamic Workflows Data)
+id: "4-5"
+title: "Dynamic Workflows (Data & Migration)"
+status: pending
+branch: "subtask/4-5-dynamic-workflows-data"
+
+history:
+  - ts: "2025-12-07T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized."
+
+requiredActions:
+  - "DB: Create `workflows` table (id, name, state_machine_json, active)"
+  - "DB: Create `workflow_runs` table (track active instances)"
+  - "Migration: Script to parse .clinerules and insert into DB"
+  - "API: CRUD for Workflows"
+
+verificationChecklist:
+  - "[ ] Schema supports XState-like JSON"
+  - "[ ] Migration script successfully imports existing markdown rules"
+  - "[ ] API returns valid workflow objects"
+
+openQuestions: []
+

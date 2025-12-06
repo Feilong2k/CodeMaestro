@@ -1,25 +1,23 @@
-# Subtask Log: 4-3 (Dynamic Workflows)
+# Subtask Log: 4-3 (Split-Brain Foundation)
 id: "4-3"
-title: "Dynamic Workflows (State Machine)"
+title: "Split-Brain Foundation (Model Adapter)"
 status: pending
-branch: "subtask/4-3-dynamic-workflows"
+branch: "subtask/4-3-split-brain-foundation"
 
 history:
-  - ts: "2025-12-06T02:00:00Z"
+  - ts: "2025-12-07T08:00:00Z"
     role: orchestrator
     action: CREATED
-    message: "Log initialized. Waiting for 4-2 completion."
+    message: "Log initialized."
 
 requiredActions:
-  - "Database: Create 'workflows' table (JSON schema)"
-  - "Migrate .clinerules logic to Database"
-  - "Backend: Workflow Engine (Load/Execute state machine)"
-  - "Frontend: Workflow Visualizer (Optional MVP)"
+  - "Config: Update `backend/src/config/ai.js` (or similar) to hold keys for both models"
+  - "Adapter: Create `StrategicAdapter` (Gemini) and `TacticalAdapter` (DeepSeek)"
+  - "Interface: Unified `AiService` that accepts a `mode` parameter ('strategic' | 'tactical')"
 
 verificationChecklist:
-  - "[ ] Can load TDD workflow from DB"
-  - "[ ] State transitions enforced by Guards"
-  - "[ ] 'False Red' / 'Bad Red' logic handled"
+  - "[ ] Can send prompt to Gemini via 'strategic' mode"
+  - "[ ] Can send prompt to DeepSeek via 'tactical' mode"
+  - "[ ] Fallback mechanisms defined"
 
 openQuestions: []
-

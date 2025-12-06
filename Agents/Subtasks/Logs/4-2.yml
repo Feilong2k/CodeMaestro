@@ -1,25 +1,30 @@
-# Subtask Log: 4-2 (Split-Brain Orchestration)
+# Subtask Log: 4-2 (Pattern Library Frontend)
 id: "4-2"
-title: "Split-Brain Orchestration"
+title: "Pattern Library Frontend"
 status: pending
-branch: "subtask/4-2-split-brain"
+branch: "subtask/4-2-pattern-library-frontend"
 
 history:
-  - ts: "2025-12-06T02:00:00Z"
+  - ts: "2025-12-07T08:00:00Z"
     role: orchestrator
     action: CREATED
-    message: "Log initialized. Waiting for 4-1 completion."
+    message: "Log initialized. Waiting for TDD cycle."
 
 requiredActions:
-  - "Define Model Routing Logic (Strategic vs Tactical)"
-  - "Implement 'Orchestrator' Service/Module"
-  - "Integrate with Agent Framework (Context Selection)"
-  - "Testing: Verify tasks route to correct model"
+  - "Store: Create `frontend/src/stores/patterns.js` (fetch, create, search)"
+  - "UI: Create `frontend/src/components/PatternManager.vue` (List, Form, Search)"
+  - "UI: Integrate into Dashboard (New Tab 'Knowledge Base'?)"
+  - "UI: Implement 'Status Bar' click -> Task Queue Modal (Agent workloads)"
+  - "Feature: Add 'Clear Chat' button to remove unwanted messages"
+  - "Bug Fix: Prevent re-streaming of historical chat messages on reload"
+  - "Tests: Unit tests for Store and Component"
 
 verificationChecklist:
-  - "[ ] 'Strategic' tasks go to Gemini 1.5 Pro"
-  - "[ ] 'Tactical' tasks go to DeepSeek V3"
-  - "[ ] Escalation Protocol (Level 1-5) implemented"
+  - "[ ] Can list patterns from backend"
+  - "[ ] Can create a new pattern via UI"
+  - "[ ] Search bar filters results"
+  - "[ ] UI matches Matrix theme"
+  - "[ ] Status Bar click opens Queue Modal"
+  - "[ ] Chat history does not re-animate on reload"
 
 openQuestions: []
-

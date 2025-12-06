@@ -1,0 +1,29 @@
+# Subtask Log: 4-6 (Dynamic Workflows Engine)
+id: "4-6"
+title: "Dynamic Workflows (Execution Engine)"
+status: pending
+branch: "subtask/4-6-dynamic-workflows-engine"
+
+history:
+  - ts: "2025-12-07T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized."
+
+requiredActions:
+  - "Engine: `WorkflowEngine` class to load JSON and manage state"
+  - "Logic: Implement `transition(currentState, event)` with Guards"
+  - "Logic: Implement 'Step-by-Step' mode (manual confirmation gate)"
+  - "Logic: Implement Global 'PAUSE' state (blocks all task pulls)"
+  - "API: `/api/workflow/next-step` endpoint"
+  - "Integration: Agent loop calls Engine before acting"
+
+verificationChecklist:
+  - "[ ] Engine blocks invalid transitions"
+  - "[ ] Engine returns correct next step"
+  - "[ ] Context/Variables are preserved across steps"
+  - "[ ] Step-by-Step mode waits for user signal"
+  - "[ ] Pause button halts system execution"
+
+openQuestions: []
+

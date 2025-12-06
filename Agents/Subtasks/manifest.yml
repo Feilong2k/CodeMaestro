@@ -181,24 +181,63 @@ subtasks:
     status: completed
     branch: "subtask/4-1-pattern-library"
     log: "Agents/Subtasks/Logs/4-1.yml"
-    dependencies: ["4-0"]
     description: "Database and API for storing reusable patterns"
 
   - id: "4-2"
-    title: "Split-Brain Orchestration"
+    title: "Pattern Library Frontend"
     status: pending
-    branch: "subtask/4-2-split-brain"
+    branch: "subtask/4-2-pattern-library-frontend"
     log: "Agents/Subtasks/Logs/4-2.yml"
-    dependencies: ["4-0"]
-    description: "Routing logic for Gemini (Strategic) vs DeepSeek (Tactical)"
+    dependencies: ["4-1"]
+    description: "UI for managing and searching the Pattern Library"
 
   - id: "4-3"
-    title: "Dynamic Workflows (State Machine)"
+    title: "Split-Brain Foundation (Model Adapter)"
     status: pending
-    branch: "subtask/4-3-dynamic-workflows"
+    branch: "subtask/4-3-split-brain-foundation"
     log: "Agents/Subtasks/Logs/4-3.yml"
     dependencies: ["4-0"]
-    description: "Database-backed workflow engine replacing .clinerules"
+    description: "Infrastructure for dual-model support (Strategic vs Tactical)"
+
+  - id: "4-4"
+    title: "Split-Brain Routing Logic"
+    status: pending
+    branch: "subtask/4-4-split-brain-routing"
+    log: "Agents/Subtasks/Logs/4-4.yml"
+    dependencies: ["4-3"]
+    description: "Router class to dispatch tasks based on complexity/type"
+
+  - id: "4-5"
+    title: "Dynamic Workflows (Data & Migration)"
+    status: pending
+    branch: "subtask/4-5-dynamic-workflows-data"
+    log: "Agents/Subtasks/Logs/4-5.yml"
+    dependencies: ["4-0"]
+    description: "Database schema and migration of .clinerules to JSON"
+
+  - id: "4-6"
+    title: "Dynamic Workflows (Execution Engine)"
+    status: pending
+    branch: "subtask/4-6-dynamic-workflows-engine"
+    log: "Agents/Subtasks/Logs/4-6.yml"
+    dependencies: ["4-5"]
+    description: "Backend engine to enforce state machine transitions"
+
+  - id: "4-7"
+    title: "Persistent Memory (Reflexes)"
+    status: pending
+    branch: "subtask/4-7-persistent-memory"
+    log: "Agents/Subtasks/Logs/4-7.yml"
+    dependencies: ["4-1"]
+    description: "System prompt injection for User Preferences and Reflexes"
+
+  - id: "4-8"
+    title: "Self-Evolution Loop"
+    status: pending
+    branch: "subtask/4-8-self-evolution"
+    log: "Agents/Subtasks/Logs/4-8.yml"
+    dependencies: ["4-6", "4-7"]
+    description: "Automated debrief and pattern saving after tasks"
 
 sequence:
   # Phase 3: Frontend ↔ Backend Integration
@@ -223,9 +262,14 @@ sequence:
   
   # Phase 4: Self-Evolution
   - "4-0"   # Architecture
-  - "4-1"   # Pattern Library
-  - "4-2"   # Split-Brain
-  - "4-3"   # Dynamic Workflows
+  - "4-1"   # Pattern Library (Backend)
+  - "4-2"   # Pattern Library (Frontend)
+  - "4-3"   # Split-Brain Foundation
+  - "4-4"   # Split-Brain Routing
+  - "4-5"   # Dynamic Workflows (Data)
+  - "4-6"   # Dynamic Workflows (Engine)
+  - "4-7"   # Persistent Memory
+  - "4-8"   # Self-Evolution Loop
 
   # Final:
   - "3-9"  # End-to-End Flow Test

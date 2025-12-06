@@ -1,0 +1,24 @@
+# Subtask Log: 4-7 (Persistent Memory)
+id: "4-7"
+title: "Persistent Memory (Reflexes)"
+status: pending
+branch: "subtask/4-7-persistent-memory"
+
+history:
+  - ts: "2025-12-07T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized."
+
+requiredActions:
+  - "DB: Add `type='reflex'` and `type='preference'` to Patterns"
+  - "Logic: `ContextInjector` middleware"
+  - "Logic: `ReflexMonitor` to watch for triggers (e.g., git hang)"
+  - "Integration: Inject User Preferences into System Prompt"
+
+verificationChecklist:
+  - "[ ] System Prompt includes user preferences"
+  - "[ ] Reflexes trigger automatically on specific errors"
+
+openQuestions: []
+
