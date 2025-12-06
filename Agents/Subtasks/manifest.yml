@@ -181,11 +181,11 @@ subtasks:
     status: completed
     branch: "subtask/4-1-pattern-library"
     log: "Agents/Subtasks/Logs/4-1.yml"
-    description: "Database and API for storing reusable patterns"
+    description: "Database for reusable code snippets and semantic search integration"
 
   - id: "4-2"
     title: "Pattern Library Frontend"
-    status: pending
+    status: in_progress
     branch: "subtask/4-2-pattern-library-frontend"
     log: "Agents/Subtasks/Logs/4-2.yml"
     dependencies: ["4-1"]

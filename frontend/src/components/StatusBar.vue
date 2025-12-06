@@ -6,7 +6,7 @@
         <TrafficLight :status="trafficLightStatus" />
 
         <!-- Current state text -->
-        <div class="state-text text-sm text-text-secondary font-matrix-sans">
+        <div class="state-text text-sm text-text-secondary font-matrix-sans flex items-center">
           <!-- Connection indicator -->
           <span class="inline-flex items-center">
             <span
@@ -20,8 +20,14 @@
           <!-- Agent status -->
           <span>{{ agentStatusText }}</span>
           <span class="mx-2">•</span>
-          <!-- Task status -->
-          <span>{{ taskStatusText }}</span>
+          <!-- Task status (Clickable) -->
+          <button 
+            @click="showTaskQueue = true"
+            class="hover:text-accent-primary transition-colors focus:outline-none"
+            title="View Task Queue"
+          >
+            {{ taskStatusText }}
+          </button>
         </div>
       </div>
 
@@ -31,11 +37,51 @@
         <span>Version: <span class="text-text-secondary">0.1.0</span></span>
       </div>
     </div>
+
+    <!-- Task Queue Modal -->
+    <div v-if="showTaskQueue" class="fixed inset-0 bg-bg-base/80 backdrop-blur-sm flex items-center justify-center z-50" @click.self="showTaskQueue = false">
+      <div class="bg-bg-layer border border-line-base rounded-xl p-6 w-full max-w-2xl shadow-matrix-glow-lg max-h-[80vh] flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-text-primary">Task Queue</h3>
+          <button @click="showTaskQueue = false" class="text-text-secondary hover:text-text-primary">
+            ✕
+          </button>
+        </div>
+        
+        <div class="overflow-y-auto flex-1 pr-2 space-y-2">
+          <div 
+            v-for="task in tasksStore.subtasks" 
+            :key="task.id"
+            class="p-3 rounded-lg border border-line-base bg-bg-base/50 flex justify-between items-center"
+            :class="{ 'border-accent-primary/50': task.status === 'in_progress' }"
+          >
+            <div>
+              <span class="font-mono text-xs text-text-muted mr-2">{{ task.id }}</span>
+              <span class="text-text-primary font-medium">{{ task.title }}</span>
+            </div>
+            <span 
+              class="text-xs px-2 py-1 rounded border capitalize"
+              :class="{
+                'bg-accent-primary/20 text-accent-primary border-accent-primary/30': task.status === 'in_progress',
+                'bg-green-500/20 text-green-400 border-green-500/30': task.status === 'completed',
+                'bg-bg-layer text-text-secondary border-line-base': task.status === 'pending'
+              }"
+            >
+              {{ task.status.replace('_', ' ') }}
+            </span>
+          </div>
+          
+          <div v-if="tasksStore.subtasks.length === 0" class="text-center text-text-muted py-8">
+            No tasks in queue.
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useAgentsStore } from '../stores/agents'
 import { useTasksStore } from '../stores/tasks'
 import { useSocket } from '../composables/useSocket'
@@ -44,6 +90,8 @@ import TrafficLight from './TrafficLight.vue'
 const agentsStore = useAgentsStore()
 const tasksStore = useTasksStore()
 const socket = useSocket()
+
+const showTaskQueue = ref(false)
 
 // Connection status
 const isConnected = computed(() => socket.isConnected)
