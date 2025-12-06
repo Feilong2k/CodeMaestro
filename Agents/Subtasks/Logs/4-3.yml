@@ -14,10 +14,12 @@ requiredActions:
   - "Config: Update `backend/src/config/ai.js` (or similar) to hold keys for both models"
   - "Adapter: Create `StrategicAdapter` (Gemini) and `TacticalAdapter` (DeepSeek)"
   - "Interface: Unified `AiService` that accepts a `mode` parameter ('strategic' | 'tactical')"
+  - "Demo: Create `backend/demo/demo_4-3.js` to demonstrate calling both models"
 
 verificationChecklist:
   - "[ ] Can send prompt to Gemini via 'strategic' mode"
   - "[ ] Can send prompt to DeepSeek via 'tactical' mode"
   - "[ ] Fallback mechanisms defined"
+  - "[ ] Demo script runs successfully"
 
 openQuestions: []

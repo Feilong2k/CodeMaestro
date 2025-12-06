@@ -1,11 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useAppStore } from './stores/appStore'
+import { storeToRefs } from 'pinia'
 import TheHeader from './components/TheHeader.vue'
 import MatrixBackground from './components/MatrixBackground.vue'
 import MainLayout from './components/MainLayout.vue'
 import ChatPanel from './components/ChatPanel.vue'
 import ActivityLog from './components/ActivityLog.vue'
 import StatusBar from './components/StatusBar.vue'
+import PatternManager from './components/PatternManager.vue'
+
+const appStore = useAppStore()
+const { currentView } = storeToRefs(appStore)
 
 const healthStatus = ref('Checking backend...')
 const error = ref(null)
@@ -39,7 +45,8 @@ onMounted(checkHealth)
       <MainLayout>
         <!-- Default slot (main content) -->
         <template #default>
-          <ChatPanel />
+          <PatternManager v-if="currentView === 'patterns'" />
+          <ChatPanel v-else />
         </template>
 
         <!-- Right slot (for activity log) -->

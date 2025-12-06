@@ -67,6 +67,24 @@
         </div>
       </div>
 
+      <!-- Center: Navigation -->
+      <div class="flex items-center space-x-1 absolute left-1/2 transform -translate-x-1/2">
+        <button
+          @click="setView('dashboard')"
+          class="px-3 py-1.5 text-xs font-matrix-sans rounded-md transition-colors duration-fast"
+          :class="currentView === 'dashboard' ? 'text-bg-base bg-accent-primary font-bold' : 'text-text-muted hover:text-text-primary hover:bg-bg-layer'"
+        >
+          Dashboard
+        </button>
+        <button
+          @click="setView('patterns')"
+          class="px-3 py-1.5 text-xs font-matrix-sans rounded-md transition-colors duration-fast"
+          :class="currentView === 'patterns' ? 'text-bg-base bg-accent-primary font-bold' : 'text-text-muted hover:text-text-primary hover:bg-bg-layer'"
+        >
+          Patterns
+        </button>
+      </div>
+
       <!-- Right: User Menu -->
       <div class="flex items-center space-x-4">
         <!-- User Avatar (placeholder) -->

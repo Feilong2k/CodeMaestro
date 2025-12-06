@@ -185,7 +185,7 @@ subtasks:
 
   - id: "4-2"
     title: "Pattern Library Frontend"
-    status: in_progress
+    status: completed
     branch: "subtask/4-2-pattern-library-frontend"
     log: "Agents/Subtasks/Logs/4-2.yml"
     dependencies: ["4-1"]
@@ -193,7 +193,7 @@ subtasks:
 
   - id: "4-3"
     title: "Split-Brain Foundation (Model Adapter)"
-    status: pending
+    status: in_progress
     branch: "subtask/4-3-split-brain-foundation"
     log: "Agents/Subtasks/Logs/4-3.yml"
     dependencies: ["4-0"]
