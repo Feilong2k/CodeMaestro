@@ -80,10 +80,18 @@ git commit -m "feat: implement 3-1 API client"
     git merge --squash subtask/<id>-<slug>
     git commit -m "feat: complete subtask <id> (<slug>)"
     git push origin main
-    git branch -d subtask/<id>-<slug>
     ```
   - *Why Squash?* Keeps `main` history clean (one commit per subtask).
-  - *Why Delete Branch?* Keeps `git branch` output clean. Commits are preserved in main.
+
+### Step 4: Cleanup (Orion)
+- **Mandatory**: Immediate deletion of the feature branch after successful merge.
+- **Action**:
+  ```bash
+  git branch -D subtask/<id>-<slug>
+  # If pushed to origin:
+  git push origin --delete subtask/<id>-<slug>
+  ```
+- **Goal**: Maintain a clean repo with ONLY `master`/`main` and active work.
 
 ---
 

@@ -18,9 +18,10 @@
   - <bullet>
   - <bullet>
 
-## 3. Merge Command
-Ready to squash and merge to `main`.
+## 3. Execution Plan
+1. **Merge:** Squash merge to `main`
+2. **Commit:** `feat: complete subtask <id>`
+3. **Cleanup:** Delete branch `subtask/<id>-<slug>`
 
 > **Human Action Required:**
-> Reply **"Approve"** to execute the merge.
-
+> Reply **"Approve"** to execute the merge and cleanup.
