@@ -13,6 +13,10 @@ history:
     role: orchestrator
     action: NOTE_ADDED
     message: "Added requirement for Bug Escalation routing rule."
+  - ts: "2023-12-07T17:00:00Z"
+    role: orchestrator
+    action: NOTE_ADDED
+    message: "Added requirement for Three-Tier Planning Pipeline (DeepSeek->GPT->Gemini)."
 
 requiredActions:
   - "Engine: `WorkflowEngine` class to load JSON and manage state"
@@ -20,15 +24,21 @@ requiredActions:
   - "Logic: Implement 'Step-by-Step' mode (manual confirmation gate)"
   - "Logic: Implement Global 'PAUSE' state (blocks all task pulls)"
   - "Logic: Implement 'Bug Escalation Rule' (If Devon escalates a bug -> Force Strategic Mode)"
+  - "Logic: Implement 'Three-Tier Planning' (DeepSeek Draft -> GPT Critique -> Gemini Synthesis)"
   - "API: `/api/workflow/next-step` endpoint"
   - "Integration: Agent loop calls Engine before acting"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests - REQUIRED for this task"
   - "[ ] Engine blocks invalid transitions"
   - "[ ] Engine returns correct next step"
   - "[ ] Context/Variables are preserved across steps"
   - "[ ] Step-by-Step mode waits for user signal"
   - "[ ] Pause button halts system execution"
   - "[ ] Escalated bugs automatically route to Strategic Brain"
+  - "[ ] Planning phase utilizes Multi-Model Pipeline"
 
 openQuestions: []
