@@ -17,8 +17,11 @@ requiredActions:
   - "Integration: Inject User Preferences into System Prompt"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests - REQUIRED for this task"
   - "[ ] System Prompt includes user preferences"
   - "[ ] Reflexes trigger automatically on specific errors"
 
 openQuestions: []
-

@@ -1,7 +1,7 @@
 # Subtask Log: 4-5 (Dynamic Workflows Data)
 id: "4-5"
 title: "Dynamic Workflows (Data & Migration)"
-status: in_progress
+status: completed
 branch: "subtask/4-5-dynamic-workflows-data"
 
 history:
@@ -13,20 +13,24 @@ history:
     role: orchestrator
     action: UPDATED
     message: "Status changed to in_progress. Updating checklist to match TDD standards."
+  - ts: "2023-12-07T16:00:00Z"
+    role: orchestrator
+    action: COMPLETED
+    message: "Schema created, Parser implemented, and Core Workflows (TDD, Request Lifecycle) seeded."
 
 requiredActions:
-  - "Schema: Create `backend/src/db/migrations/008_create_workflows_table.sql`"
-  - "Data: Create `workflows` table (id, name, version, states, transitions)"
-  - "Logic: Implement `MarkdownParser` service (convert .clinerules -> JSON)"
-  - "Seed: Import existing `.clinerules` into DB as initial workflow"
+  - [x] "Schema: Create `backend/src/db/migrations/008_create_workflows_table.sql`"
+  - [x] "Data: Create `workflows` table (id, name, version, states, transitions)"
+  - [x] "Logic: Implement `MarkdownParser` service (convert .clinerules -> JSON)"
+  - [x] "Seed: Import existing `.clinerules` into DB as initial workflow"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
-  - "[ ] [TDD] Integration Tests - REQUIRED for this task"
-  - "[ ] Database table `workflows` created successfully"
-  - "[ ] Parser correctly converts Markdown to JSON XState format"
-  - "[ ] Seed script populates DB with current rules"
+  - [x] "[TDD] Failing Unit Tests created (Red)"
+  - [x] "[TDD] Implementation satisfies Unit Tests (Green)"
+  - [x] "[TDD] Refactor pass (Cleanup)"
+  - [x] "[TDD] Integration Tests - REQUIRED for this task" (Schema Tests passed)
+  - [x] "Database table `workflows` created successfully"
+  - [x] "Parser correctly converts Markdown to JSON XState format"
+  - [x] "Seed script populates DB with current rules"
 
 openQuestions: []

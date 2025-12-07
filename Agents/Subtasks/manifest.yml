@@ -209,7 +209,7 @@ subtasks:
 
   - id: "4-5"
     title: "Dynamic Workflows (Data & Migration)"
-    status: in_progress
+    status: completed
     branch: "subtask/4-5-dynamic-workflows-data"
     log: "Agents/Subtasks/Logs/4-5.yml"
     dependencies: ["4-0"]
@@ -217,7 +217,7 @@ subtasks:
 
   - id: "4-6"
     title: "Dynamic Workflows (Execution Engine)"
-    status: pending
+    status: in_progress
     branch: "subtask/4-6-dynamic-workflows-engine"
     log: "Agents/Subtasks/Logs/4-6.yml"
     dependencies: ["4-5"]
