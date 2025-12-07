@@ -49,7 +49,11 @@ requiredActions:
   - "Logic: `executeTask(taskId)` method"
   - "Integration: Connect to `TaskQueue` (5-2)"
   - "Integration: Connect to `ToolRegistry` (5-1)"
-  - "Safety: Implement Step Budget Counter"
+  - "Safety: Implement Step Budget Counter (Max 20)"
+  - "Safety: Define Failure Modes (Retry vs Abort)"
+    - "Network Error -> Retry (Max 3)"
+    - "Logic Error (Loop) -> Abort"
+    - "Security Violation -> Abort"
   - "Safety: Integrate Context Pruner (4-11)"
 
 verificationChecklist:

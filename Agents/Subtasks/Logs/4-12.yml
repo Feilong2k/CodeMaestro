@@ -1,0 +1,48 @@
+# Subtask Log: 4-12 (Constraint Enforcement Logic)
+id: "4-12"
+title: "Constraint Enforcement Logic (Safety Engine)"
+status: pending
+branch: "subtask/4-12-constraint-logic"
+
+constraint_discovery:
+  subtask_id: "4-12"
+  owner: "Devon"
+  concern: "Safety & Reliability"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "Validation Check"
+      description: "Pre-flight check before critical actions"
+      
+  resources_touched:
+    - resource: "Shared State"
+      action: "Modification"
+      
+  resource_physics:
+    - resource: "High Risk Ops"
+      constraint: "Data Corruption"
+      risk: "Concurrent edits, race conditions"
+      mitigation: "Centralized Validation Service"
+    - resource: "Time"
+      constraint: "Latency/Rate Limits"
+      risk: "API abuse"
+      mitigation: "Token Budget / Rate Limiter"
+
+history:
+  - ts: "2025-12-07T22:15:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Scoped to High Risk constraints only."
+
+requiredActions:
+  - "Logic: Create `ConstraintService`"
+  - "Logic: Implement `validateGitLock()` (Prevent concurrent commits)"
+  - "Logic: Implement `validatePathSafety(path)` (Prevent traversal)"
+  - "Logic: Implement `validateRateLimit(agentId)` (Time constraint)"
+  - "Integration: Inject `ConstraintService` into `ToolRegistry` (Phase 5)"
+
+verificationChecklist:
+  - "[ ] [TDD] Path validation rejects '../'"
+  - "[ ] [TDD] Git lock validation fails if lock exists"
+  - "[ ] [TDD] Rate limit throttles rapid requests"
+
