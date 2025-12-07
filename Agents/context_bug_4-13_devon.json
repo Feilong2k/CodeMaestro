@@ -1,0 +1,24 @@
+{
+  "task": "bug-4-13-loading",
+  "role": "developer",
+  "goal": "Fix infinite loading state in MermaidGraph component.",
+  "phase": "debug",
+  "branch": "bugfix/4-13-mermaid-loading",
+  "worktree_path": "../CM-devon",
+  "requirements": [
+    "Investigate `frontend/src/components/MermaidGraph.vue`.",
+    "Implement a timeout (e.g., 2 seconds) for the `mermaid.render` call to prevent infinite spinning.",
+    "Ensure `loading.value` is ALWAYS set to false, even if errors occur.",
+    "Log the generated `diagramCode` to the console for debugging visibility.",
+    "Add a fallback: if rendering fails, display the raw mermaid code in a `<pre>` block so the user can still see the logic.",
+    "Verify `mermaid.initialize` configuration is compatible with version 11.x."
+  ],
+  "constraints": [
+    "Do not downgrade mermaid version.",
+    "Maintain the existing styling/theme integration."
+  ],
+  "files": [
+    "frontend/src/components/MermaidGraph.vue"
+  ]
+}
+
