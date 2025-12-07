@@ -1,30 +1,15 @@
 {
-  "task": {
-    "id": "4-5",
-    "title": "Dynamic Workflows (Data & Migration)",
-    "description": "Create the database schema for Workflows and a parser to migrate .clinerules to JSON.",
-    "role": "tester",
-    "phase": "red"
-  },
-  "instructions": [
-    "You are Tara, the QA/Tester Agent.",
-    "Your goal is to write the FAILING TESTS (Red Phase) for the Workflow Data Layer.",
-    "Target Files:",
-    "1. `backend/src/__tests__/db/workflows.spec.js` (Database)",
-    "2. `backend/src/__tests__/utils/workflowParser.spec.js` (Migration Utility)",
-    "Test Coverage Required:",
-    "1. Workflow CRUD:",
-    "   - Create a workflow with valid JSON state machine.",
-    "   - Retrieve workflow by ID.",
-    "   - Validate JSON schema (ensure 'states', 'initial' exist).",
-    "2. Workflow Parser:",
-    "   - Input: A sample markdown string (like .clinerules).",
-    "   - Output: A valid JSON object matching our schema.",
-    "   - Test edge cases (invalid markdown, missing sections).",
-    "Note: The DB table and Parser do not exist yet. Good Red."
+  "task": "4-5",
+  "role": "tester",
+  "goal": "Create failing unit tests for the Dynamic Workflows system (Red Phase).",
+  "requirements": [
+    "Verify 'workflows' table schema (id, name, version, states, transitions).",
+    "Verify 'WorkflowParser' logic (Markdown -> JSON conversion).",
+    "Ensure tests fail initially (Red Phase)."
   ],
-  "relevant_files": [
-    "backend/src/db/connection.js"
-  ]
+  "files": [
+    "backend/src/__tests__/unit/workflowParser.test.js",
+    "backend/src/__tests__/schema/workflows.test.js"
+  ],
+  "context": "We are moving .clinerules to the database. We need a parser to convert existing markdown rules into a JSON state machine format."
 }
-

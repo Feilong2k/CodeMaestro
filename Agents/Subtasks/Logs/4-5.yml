@@ -1,7 +1,7 @@
 # Subtask Log: 4-5 (Dynamic Workflows Data)
 id: "4-5"
 title: "Dynamic Workflows (Data & Migration)"
-status: pending
+status: in_progress
 branch: "subtask/4-5-dynamic-workflows-data"
 
 history:
@@ -9,17 +9,24 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized."
+  - ts: "2023-12-07T15:00:00Z"
+    role: orchestrator
+    action: UPDATED
+    message: "Status changed to in_progress. Updating checklist to match TDD standards."
 
 requiredActions:
-  - "DB: Create `workflows` table (id, name, state_machine_json, active)"
-  - "DB: Create `workflow_runs` table (track active instances)"
-  - "Migration: Script to parse .clinerules and insert into DB"
-  - "API: CRUD for Workflows"
+  - "Schema: Create `backend/src/db/migrations/008_create_workflows_table.sql`"
+  - "Data: Create `workflows` table (id, name, version, states, transitions)"
+  - "Logic: Implement `MarkdownParser` service (convert .clinerules -> JSON)"
+  - "Seed: Import existing `.clinerules` into DB as initial workflow"
 
 verificationChecklist:
-  - "[ ] Schema supports XState-like JSON"
-  - "[ ] Migration script successfully imports existing markdown rules"
-  - "[ ] API returns valid workflow objects"
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests - REQUIRED for this task"
+  - "[ ] Database table `workflows` created successfully"
+  - "[ ] Parser correctly converts Markdown to JSON XState format"
+  - "[ ] Seed script populates DB with current rules"
 
 openQuestions: []
-

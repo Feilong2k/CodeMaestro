@@ -1,0 +1,17 @@
+{
+  "task": "4-5",
+  "role": "developer",
+  "goal": "Implement the Dynamic Workflows data layer and parser (Green Phase).",
+  "requirements": [
+    "Create DB Migration: '008_create_workflows_table.sql'.",
+    "Implement 'WorkflowParser' service to pass Tara's tests.",
+    "Seed the DB with the current .clinerules content."
+  ],
+  "files": [
+    "backend/src/db/migrations/008_create_workflows_table.sql",
+    "backend/src/services/workflowParser.js",
+    "backend/src/db/seeds/initial_workflow.js"
+  ],
+  "context": "Tara has created failing tests. Your job is to make them pass by implementing the schema and the parser."
+}
+
