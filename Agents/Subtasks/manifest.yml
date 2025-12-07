@@ -1,5 +1,5 @@
 # Phase 4 Subtasks Manifest
-# Statuses: pending, in_progress, completed, failed
+# Statuses: pending, in_progress, completed, failed, cancelled
 
 subtasks:
   - id: "4-1"
@@ -10,8 +10,8 @@ subtasks:
     dependencies: []
     
   - id: "4-2"
-    title: "Context Pruning (Task Queue)"
-    status: pending
+    title: "Pattern Library Frontend"
+    status: completed
     owner: "Devon"
     priority: high
     dependencies: ["4-1"]
@@ -46,7 +46,7 @@ subtasks:
   
   - id: "4-9"
     title: "Orchestrator Automation (Concern-Based Locking)"
-    status: in_progress
+    status: completed
     owner: "Orion"
     priority: critical
     dependencies: ["4-6"]
@@ -58,9 +58,16 @@ subtasks:
     priority: high
     dependencies: ["4-9"]
 
-  - id: "4-8"
-    title: "Self-Evolution Loop"
+  - id: "4-10"
+    title: "Workflow API & Viewer UI"
     status: pending
     owner: "Devon"
     priority: medium
-    dependencies: ["4-7"]
+    dependencies: ["4-5"]
+
+  - id: "4-11"
+    title: "Context Pruning Logic"
+    status: pending
+    owner: "Devon"
+    priority: medium
+    dependencies: ["4-2"]

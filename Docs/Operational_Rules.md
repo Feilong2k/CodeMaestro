@@ -1,7 +1,7 @@
 # Operational Rules: Conflict Prevention & Multi-Agent Safety
 
-**Version:** 1.0
-**Status:** Draft
+**Version:** 2.0 (Updated for Worktree Model)
+**Status:** Active
 **Context:** Rules for Phase 4-9 (Automated Orchestrator)
 
 ---
@@ -88,7 +88,7 @@ This schema will be stored in the `subtasks` table (metadata column) or a new `l
   
   // Branching Strategy
   "branch_name": "feature/TASK-0142-tests",
-  "base_branch": "feature/TASK-0142-base",
+  "base_branch": "subtask/4-9-orchestrator-automation",
   
   // Locking Status
   "status": "in_progress",
@@ -112,24 +112,44 @@ This schema will be stored in the `subtasks` table (metadata column) or a new `l
 
 ---
 
-## 5. Workflow: The Factory Line
+## 5. Workflow: The Factory Floor (Git Worktrees)
 
-1.  **Start:** Orion creates Task-123 branch `feature/TASK-123-base`.
-2.  **Assign Tests:** Orion assigns Tara.
-    *   Tara checks out `feature/TASK-123-tests` (from base).
-    *   Tara writes tests. Commits.
-    *   Tara signals completion.
-3.  **Merge Tests:** Orion merges `tests` -> `base`.
-4.  **Assign Impl:** Orion assigns Devon.
-    *   Devon checks out `feature/TASK-123-impl` (from base).
-    *   Devon sees tests (because of merge).
-    *   Devon implements. Commits.
-5.  **Verify:** Devon runs tests (locally). Passes?
-6.  **Merge Impl:** Orion merges `impl` -> `base`.
-7.  **Finalize:** Orion merges `base` -> `master`.
+To allow true parallelism, we utilize **Git Worktrees** to provide each agent with their own "Physical Workstation".
 
-**Advantages:**
-*   Never working on same branch (no push/pull race).
-*   Integration happens at the `base` branch level controlled by Orion.
-*   Clear history.
+### The Workstations
+1.  **Orion (Master):** `C:\Coding\CM`
+    *   Role: Orchestration, Merging, Deployment.
+    *   Active Branch: `master` or `subtask/{id}-base`.
+2.  **Tara (Tester):** `C:\Coding\CM-tara`
+    *   Role: Writing Tests, Verification.
+    *   Active Branch: `feature/{id}-tests`.
+3.  **Devon (Implementer):** `C:\Coding\CM-devon`
+    *   Role: Implementation, Refactoring.
+    *   Active Branch: `feature/{id}-impl`.
 
+### The Flow (Topology)
+1.  **Preparation (Orion):**
+    *   Creates `subtask/{id}-base` from `master`.
+    *   Pushes to origin.
+
+2.  **The Sync Step (Critical):**
+    *   Before starting ANY task, Agent runs:
+    *   `git fetch origin`
+    *   `git pull origin subtask/{id}-base` (to ensure they have latest baseline)
+
+3.  **Execution (Parallel):**
+    *   **Tara:** Creates/Checks out `feature/{id}-tests`. Writes Code. Pushes.
+    *   **Devon:** Creates/Checks out `feature/{id}-impl`. Writes Code. Pushes.
+
+4.  **Integration (Orion):**
+    *   Orion merges `feature/{id}-tests` -> `subtask/{id}-base`.
+    *   Orion merges `feature/{id}-impl` -> `subtask/{id}-base`.
+    *   (Conflicts are resolved here by Orion).
+
+5.  **Completion:**
+    *   Orion merges `subtask/{id}-base` -> `master`.
+
+### Advantages
+*   **Physical Isolation:** Agents cannot accidentally overwrite each other's uncommitted work.
+*   **Context Switching:** Tara can stay on `tests` for Task A while Devon moves to `impl` for Task B.
+*   **Clean Master:** `master` only receives fully integrated code.

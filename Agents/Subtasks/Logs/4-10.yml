@@ -1,0 +1,30 @@
+# Subtask Log: 4-10 (Workflow API & Viewer)
+id: "4-10"
+title: "Workflow API & Viewer UI"
+status: pending
+branch: "subtask/4-10-workflow-api-viewer"
+
+history:
+  - ts: "2025-12-07T13:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Separated from 4-8 to focus on Infrastructure and UI."
+
+requiredActions:
+  - "API: `GET /api/workflows` (List)"
+  - "API: `GET /api/workflows/:id` (Detail)"
+  - "API: `PUT /api/workflows/:id` (Update - Admin/Orion only)"
+  - "UI: Create `frontend/src/views/Workflows.vue` (List View)"
+  - "UI: Create `frontend/src/components/WorkflowViewer.vue` (Detail View - Read Only)"
+  - "UI: Add 'Workflows' tab to Main Navigation"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] API returns correct list of workflows"
+  - "[ ] UI displays workflows in a list"
+  - "[ ] UI displays details (states/transitions) correctly"
+  - "[ ] Update endpoint is secured (or mock secured for MVP)"
+
+openQuestions: []
+
