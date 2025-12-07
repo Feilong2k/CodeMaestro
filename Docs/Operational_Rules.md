@@ -1,6 +1,6 @@
 # Operational Rules: Conflict Prevention & Multi-Agent Safety
 
-**Version:** 3.2 (Orion-Integrated Git Flow)
+**Version:** 3.3 (Orion-Integrated Git Flow + Constraint Protocol)
 **Status:** Active
 **Context:** Rules for Phase 4-9 (Automated Orchestrator)
 
@@ -135,3 +135,51 @@ Orion pushes `subtask/{id}-base` to Origin:
 *   **Merge:** `subtask/{id}-base` -> `master`.
 *   **Push:** `master` -> Origin.
 *   **Cleanup:** Delete subtask and feature branches.
+
+---
+
+## 7. Constraint Discovery Protocol (Phase Zero)
+
+Before implementing any subtask, the **Constraint Discovery Template** must be filled out in the subtask log. This prevents "Hidden Logic Bugs" by identifying physical constraints early.
+
+#### Constraint Discovery Template
+
+```yaml
+constraint_discovery:
+  subtask_id: "X-Y"
+  owner: "AgentName"
+  concern: "Implementation/Tests"
+  date: "YYYY-MM-DD"
+
+  atomic_actions:
+    - action: "git commit"
+      description: "Commit changes to local branch"
+    - action: "run npm test"
+      description: "Execute unit tests"
+
+  resources_touched:
+    - resource: ".git/index"
+      action: "git commit"
+      notes: "Locked during operation"
+    - resource: "File System"
+      action: "write src/files"
+      notes: "Shared resource"
+
+  resource_physics:
+    - resource: ".git/index"
+      constraint: "Single lock per repo"
+      risk: "Concurrent commits fail"
+    - resource: "File System"
+      constraint: "No concurrent writes to same file"
+      risk: "Race condition / Data loss"
+
+  verification:
+    - action: "git commit"
+      method: "Orion Serializer / Lock Check"
+    - action: "file write"
+      method: "Concern-Based Locking"
+
+  mitigation:
+    - violation: "Git lock active"
+      plan: "Wait/Retry (Backoff)"
+```
