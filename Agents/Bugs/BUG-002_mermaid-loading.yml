@@ -1,6 +1,6 @@
 id: "BUG-002"
 title: "Workflow Visualization Infinite Loading (Mermaid)"
-status: open
+status: closed
 priority: high
 reported: 2025-12-07
 reporter: user
@@ -22,6 +22,12 @@ expectedBehavior: |
 actualBehavior: |
   The loading spinner persists indefinitely.
 
+resolution: |
+  Implemented a timeout mechanism (2 seconds) for the Mermaid render call.
+  Added a fallback view that displays the raw Mermaid code if rendering fails.
+  Ensured `loading.value` is always set to false in a `finally` block.
+  Added console logging for the generated diagram code to aid future debugging.
+
 possibleCauses:
   - Mermaid library initialization issue (async/await timing).
   - Error in `generateMermaid` causing a silent failure or promise rejection not caught properly.
@@ -30,5 +36,5 @@ possibleCauses:
   - Version mismatch or missing dependency in `package.json` (though we added it).
 
 notes:
-  - "Must be fixed before Phase 5 starts."
+  - "Fixed on 2025-12-07."
 
