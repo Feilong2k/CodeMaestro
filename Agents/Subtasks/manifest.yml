@@ -53,7 +53,7 @@ subtasks:
 
   - id: "4-7"
     title: "Persistent Memory (Reflexes)"
-    status: in_progress
+    status: completed
     owner: "Tara"
     priority: high
     dependencies: ["4-9"]

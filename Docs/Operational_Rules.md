@@ -1,6 +1,6 @@
 # Operational Rules: Conflict Prevention & Multi-Agent Safety
 
-**Version:** 2.0 (Updated for Worktree Model)
+**Version:** 3.0 (Local Factory Model)
 **Status:** Active
 **Context:** Rules for Phase 4-9 (Automated Orchestrator)
 
@@ -112,9 +112,9 @@ This schema will be stored in the `subtasks` table (metadata column) or a new `l
 
 ---
 
-## 5. Workflow: The Factory Floor (Git Worktrees)
+## 5. Workflow: The Local Factory (Git Worktrees)
 
-To allow true parallelism, we utilize **Git Worktrees** to provide each agent with their own "Physical Workstation".
+To allow true parallelism without cloud latency, we use **Local Git Worktrees** sharing a single repository.
 
 ### The Workstations
 1.  **Orion (Master):** `C:\Coding\CM`
@@ -128,28 +128,34 @@ To allow true parallelism, we utilize **Git Worktrees** to provide each agent wi
     *   Active Branch: `feature/{id}-impl`.
 
 ### The Flow (Topology)
-1.  **Preparation (Orion):**
-    *   Creates `subtask/{id}-base` from `master`.
-    *   Pushes to origin.
 
-2.  **The Sync Step (Critical):**
-    *   Before starting ANY task, Agent runs:
-    *   `git fetch origin`
-    *   `git pull origin subtask/{id}-base` (to ensure they have latest baseline)
+**1. Setup (Orion)**
+*   Creates `subtask/{id}-base` from `master`.
+*   (No push to origin yet).
 
-3.  **Execution (Parallel):**
-    *   **Tara:** Creates/Checks out `feature/{id}-tests`. Writes Code. Pushes.
-    *   **Devon:** Creates/Checks out `feature/{id}-impl`. Writes Code. Pushes.
+**2. Red Phase (Tara)**
+*   Checks out `feature/{id}-tests`.
+*   Writes Tests. Commits.
+*   **Merges** `feature/{id}-tests` -> `subtask/{id}-base` (Locally).
 
-4.  **Integration (Orion):**
-    *   Orion merges `feature/{id}-tests` -> `subtask/{id}-base`.
-    *   Orion merges `feature/{id}-impl` -> `subtask/{id}-base`.
-    *   (Conflicts are resolved here by Orion).
+**3. Green Phase (Devon)**
+*   Checks out `subtask/{id}-base` (Instantly sees Tara's work).
+*   Checks out `feature/{id}-impl`.
+*   Writes Code. Commits.
+*   **Merges** `feature/{id}-impl` -> `subtask/{id}-base` (Locally).
 
-5.  **Completion:**
-    *   Orion merges `subtask/{id}-base` -> `master`.
+**4. Completion (Orion)**
+*   Checks out `master`.
+*   **Merges** `subtask/{id}-base` -> `master`.
+*   **Pushes** `master` -> Origin.
+
+**5. Cleanup (Mandatory)**
+*   Orion commands Tara/Devon to checkout `master` (Release branches).
+*   Orion deletes `feature/{id}-tests`.
+*   Orion deletes `feature/{id}-impl`.
+*   Orion deletes `subtask/{id}-base`.
 
 ### Advantages
-*   **Physical Isolation:** Agents cannot accidentally overwrite each other's uncommitted work.
-*   **Context Switching:** Tara can stay on `tests` for Task A while Devon moves to `impl` for Task B.
-*   **Clean Master:** `master` only receives fully integrated code.
+*   **Speed:** No network latency for intermediate steps.
+*   **Isolation:** Worktrees prevent file clobbering.
+*   **Cleanliness:** Origin only sees the finished product.
