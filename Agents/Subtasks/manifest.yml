@@ -74,7 +74,7 @@ subtasks:
 
   - id: "4-12"
     title: "Constraint Enforcement Logic"
-    status: pending
+    status: completed
     owner: "Devon"
     priority: high
     dependencies: ["4-9"]

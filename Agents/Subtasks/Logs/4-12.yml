@@ -1,7 +1,7 @@
 # Subtask Log: 4-12 (Constraint Enforcement Logic)
 id: "4-12"
 title: "Constraint Enforcement Logic (Safety Engine)"
-status: pending
+status: completed
 branch: "subtask/4-12-constraint-logic"
 
 constraint_discovery:
@@ -41,6 +41,14 @@ history:
     role: tester
     action: HANDOFF
     message: "Committed failing unit tests (Red phase). Ready for Devon to implement the ConstraintService class and integration."
+  - ts: "2025-12-07T23:23:00Z"
+    role: devon
+    action: IMPLEMENTATION
+    message: "Implemented ConstraintService with three validation methods: validatePathSafety, validateGitLock, validateRateLimit. All unit tests pass (Green phase). Code refactored for clarity."
+  - ts: "2025-12-07T23:30:00Z"
+    role: orchestrator
+    action: COMPLETED
+    message: "Verified implementation via unit tests. ConstraintService is ready for Phase 5 integration."
 
 requiredActions:
   - "Logic: Create `ConstraintService`"
@@ -50,6 +58,6 @@ requiredActions:
   - "Integration: Inject `ConstraintService` into `ToolRegistry` (Phase 5)"
 
 verificationChecklist:
-  - "[x] [TDD] Path validation rejects '../' (Red)"
-  - "[x] [TDD] Git lock validation fails if lock exists (Red)"
-  - "[x] [TDD] Rate limit throttles rapid requests (Red)"
+  - "[x] [TDD] Path validation rejects '../'"
+  - "[x] [TDD] Git lock validation fails if lock exists"
+  - "[x] [TDD] Rate limit throttles rapid requests"
