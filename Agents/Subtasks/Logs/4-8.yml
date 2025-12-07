@@ -9,6 +9,10 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized."
+  - ts: "2025-12-06T22:15:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for EvolutionService (Red phase). Coverage: logOutcome, analyzePatterns, proposeOptimization, applyOptimization, metrics calculation."
 
 requiredActions:
   - "Process: Add 'Debrief' step to all workflows"
@@ -17,9 +21,12 @@ requiredActions:
   - "Auto-Save: Logic to save accepted patterns"
 
 verificationChecklist:
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests - REQUIRED for this task"
   - "[ ] Agent asks 'Did we learn anything?' at end of task"
   - "[ ] New patterns are saved to library"
   - "[ ] Evolution metrics tracked"
 
 openQuestions: []
-
