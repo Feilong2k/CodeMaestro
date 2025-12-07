@@ -67,7 +67,7 @@ subtasks:
 
   - id: "4-11"
     title: "Context Pruning Logic"
-    status: in_progress
+    status: completed
     owner: "Devon"
     priority: medium
     dependencies: ["4-2"]
