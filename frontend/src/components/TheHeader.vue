@@ -83,6 +83,13 @@
         >
           Patterns
         </button>
+        <button
+          @click="setView('workflows')"
+          class="px-3 py-1.5 text-xs font-matrix-sans rounded-md transition-colors duration-fast"
+          :class="currentView === 'workflows' ? 'text-bg-base bg-accent-primary font-bold' : 'text-text-muted hover:text-text-primary hover:bg-bg-layer'"
+        >
+          Workflows
+        </button>
       </div>
 
       <!-- Right: User Menu -->

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    currentView: 'dashboard' // 'dashboard' or 'patterns'
+    currentView: 'dashboard' // 'dashboard', 'patterns', or 'workflows'
   }),
 
   actions: {

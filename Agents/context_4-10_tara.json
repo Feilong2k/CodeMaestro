@@ -1,0 +1,29 @@
+{
+  "task": "4-10",
+  "role": "tester",
+  "goal": "Create failing unit tests for the Workflow API (Red Phase).",
+  "phase": "red",
+  "branch": "subtask/4-10-workflow-api-viewer",
+  "worktree_path": "../CM-tara",
+  "requirements": [
+    "Create test file: `backend/src/__tests__/unit/workflowApi.test.js`",
+    "Test `GET /api/workflows` returns 200 and a JSON array of active workflows.",
+    "Test `GET /api/workflows/:id` returns 200 and the workflow state machine object.",
+    "Test `GET /api/workflows/:id` returns 404 if workflow not found.",
+    "Test `PUT /api/workflows/:id` accepts valid JSON update and returns 200.",
+    "Test `PUT /api/workflows/:id` returns 400 for invalid JSON structure.",
+    "Mock `WorkflowEngine` dependency to isolate API logic."
+  ],
+  "constraints": [
+    "**Strict Separation:** Do NOT touch implementation files (`src/routes`, `src/app.js`).",
+    "**Network Physics:** Ensure tests clean up listeners/ports to avoid EADDRINUSE errors.",
+    "**Git Rule:** Commit with `[TARA] Red Phase: ...` message."
+  ],
+  "files": [
+    "backend/src/__tests__/unit/workflowApi.test.js"
+  ],
+  "context_pruning": {
+    "active_concern": "Tests",
+    "ignored_paths": ["frontend/", "Docs/"]
+  }
+}

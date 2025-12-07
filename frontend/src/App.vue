@@ -9,6 +9,7 @@ import ChatPanel from './components/ChatPanel.vue'
 import ActivityLog from './components/ActivityLog.vue'
 import StatusBar from './components/StatusBar.vue'
 import PatternManager from './components/PatternManager.vue'
+import Workflows from './views/Workflows.vue'
 
 const appStore = useAppStore()
 const { currentView } = storeToRefs(appStore)
@@ -46,6 +47,7 @@ onMounted(checkHealth)
         <!-- Default slot (main content) -->
         <template #default>
           <PatternManager v-if="currentView === 'patterns'" />
+          <Workflows v-else-if="currentView === 'workflows'" />
           <ChatPanel v-else />
         </template>
 

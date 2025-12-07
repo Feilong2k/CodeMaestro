@@ -1,0 +1,29 @@
+{
+  "task": "4-10",
+  "role": "developer",
+  "goal": "Implement the Workflow API & Viewer to pass existing tests (Green Phase).",
+  "phase": "green",
+  "branch": "subtask/4-10-workflow-api-viewer",
+  "worktree_path": "../CM-devon",
+  "requirements": [
+    "Implement `GET /api/workflows` to list workflows from DB.",
+    "Implement `GET /api/workflows/:id` to get workflow details.",
+    "Implement `PUT /api/workflows/:id` to update workflow definition.",
+    "Implement `frontend/src/views/Workflows.vue` (List View).",
+    "Implement `frontend/src/components/WorkflowViewer.vue` (Detail View).",
+    "Ensure `backend/src/app.js` mounts the new routes.",
+    "Ensure all tests in `backend/src/__tests__/unit/workflowApi.test.js` pass."
+  ],
+  "constraints": [
+    "**Concerns:** You own `Implementation` (src/). Do NOT edit tests.",
+    "**DB:** Use the existing `WorkflowEngine` or direct DB queries if needed.",
+    "**Git:** Commit with `[DEVON] Green Phase: ...`."
+  ],
+  "files": [
+    "backend/src/routes/workflows.js",
+    "backend/src/app.js",
+    "frontend/src/views/Workflows.vue",
+    "frontend/src/components/WorkflowViewer.vue"
+  ]
+}
+

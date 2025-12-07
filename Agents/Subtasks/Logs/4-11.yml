@@ -4,6 +4,39 @@ title: "Context Pruning Logic"
 status: pending
 branch: "subtask/4-11-context-pruning"
 
+constraint_discovery:
+  subtask_id: "4-11"
+  owner: "Devon"
+  concern: "Implementation"
+  date: "2025-12-07"
+
+  atomic_actions:
+    - action: "Read/Write Memory"
+      description: "Access `memories` table to store summaries"
+    - action: "Call LLM"
+      description: "Optional: Use LLM to generate summary text"
+
+  resources_touched:
+    - resource: "LLM Tokens"
+      action: "Summarization"
+      notes: "Consumes tokens to save tokens (Net benefit check)"
+    - resource: "Database"
+      action: "Store Summary"
+      notes: "Standard SQL write"
+
+  resource_physics:
+    - resource: "LLM Context Window"
+      constraint: "Hard limit (e.g. 128k)"
+      risk: "If pruning fails, we crash on large tasks"
+
+  verification:
+    - action: "Pruning"
+      method: "Unit Test + Debug CLI Tool"
+
+  mitigation:
+    - violation: "Summary too large"
+      plan: "Truncate or recursive summary"
+
 history:
   - ts: "2025-12-07T13:15:00Z"
     role: orchestrator
@@ -16,6 +49,7 @@ requiredActions:
   - "Logic: `optimizeContext(currentTask)`: Keep only relevant recent history + summary"
   - "Integration: Update `AiService` to use `ContextPruner` before sending prompts"
   - "Config: Add token limits/thresholds to `config/ai.js`"
+  - "Tool: Create `scripts/debug-pruner.js` CLI to manually verify pruning output"
 
 verificationChecklist:
   - "[ ] [TDD] Failing Unit Tests created (Red)"
@@ -24,6 +58,7 @@ verificationChecklist:
   - "[ ] Summary generation works (mocked or actual LLM call)"
   - "[ ] Context size is reduced after pruning"
   - "[ ] Critical context (Active Task) is PRESERVED"
+  - "[ ] Debug CLI tool successfully outputs Before/After context stats"
 
 openQuestions: []
 

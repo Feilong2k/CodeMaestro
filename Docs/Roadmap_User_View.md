@@ -30,6 +30,7 @@
 *   **Tool Execution:** Agents can write files, run terminal commands, and execute Git commits.
 *   **The Loop:** A continuous cycle of `Code -> Test -> Fix` that runs until the task is done.
 *   **Task Queue:** A prioritized list of work that agents pull from automatically.
+    NOTES: Link context pruning done in 4-11 to task que
 
 ## Phase 6: The "Evolution" (Future)
 **Objective:** The system improves itself.

@@ -216,6 +216,89 @@ class WorkflowEngine {
     }
     return this.paused;
   }
+
+  /**
+   * List all active workflows.
+   * @returns {Promise<Array>} Array of workflow objects with id, name, status
+   */
+  async listWorkflows() {
+    const result = await pool.query(
+      'SELECT name, is_active FROM workflows WHERE is_active = true ORDER BY name'
+    );
+    return result.rows.map(row => ({
+      id: row.name,
+      name: row.name,
+      status: row.is_active ? 'active' : 'inactive'
+    }));
+  }
+
+  /**
+   * Get a workflow by its name (id).
+   * @param {string} id - Workflow name (used as id)
+   * @returns {Promise<Object|null>} Workflow object or null if not found
+   */
+  async getWorkflow(id) {
+    try {
+      const workflow = await this.loadWorkflow(id);
+      return {
+        id: workflow.name,
+        name: workflow.name,
+        definition: workflow.definition,
+        metadata: workflow.metadata
+      };
+    } catch (error) {
+      if (error.message.includes('Workflow not found')) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Update a workflow by its name (id).
+   * @param {string} id - Workflow name (used as id)
+   * @param {Object} data - Update data (name, definition, metadata, etc.)
+   * @returns {Promise<Object|null>} Updated workflow or null if not found
+   */
+  async updateWorkflow(id, data) {
+    // Validate required fields
+    if (!data.name || !data.definition) {
+      throw new Error('Workflow update requires name and definition');
+    }
+
+    // Check if workflow exists
+    const existing = await pool.query(
+      'SELECT name FROM workflows WHERE name = $1',
+      [id]
+    );
+    if (existing.rows.length === 0) {
+      return null;
+    }
+
+    // Update the workflow
+    const result = await pool.query(
+      `UPDATE workflows 
+       SET name = $1, definition = $2, metadata = $3, updated_at = NOW()
+       WHERE name = $4
+       RETURNING name, definition, metadata, is_active`,
+      [data.name, JSON.stringify(data.definition), JSON.stringify(data.metadata || {}), id]
+    );
+
+    const row = result.rows[0];
+    // Clear cache for this workflow
+    this.workflowCache.delete(id);
+    if (id !== data.name) {
+      this.workflowCache.delete(data.name);
+    }
+
+    return {
+      id: row.name,
+      name: row.name,
+      definition: typeof row.definition === 'string' ? JSON.parse(row.definition) : row.definition,
+      metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata,
+      updatedAt: new Date().toISOString()
+    };
+  }
 }
 
 module.exports = new WorkflowEngine();
