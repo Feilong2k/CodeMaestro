@@ -5,7 +5,7 @@ import client from './client';
  * @returns {Promise<Array>} Array of workflow objects
  */
 export async function listWorkflows() {
-  const response = await client.get('/api/workflows');
+  const response = await client.get('/workflows');
   return response.data;
 }
 
@@ -15,7 +15,7 @@ export async function listWorkflows() {
  * @returns {Promise<Object>} Workflow object
  */
 export async function getWorkflow(workflowId) {
-  const response = await client.get(`/api/workflows/${workflowId}`);
+  const response = await client.get(`/workflows/${workflowId}`);
   return response.data;
 }
 
@@ -26,7 +26,7 @@ export async function getWorkflow(workflowId) {
  * @returns {Promise<Object>} Updated workflow object
  */
 export async function updateWorkflow(workflowId, updateData) {
-  const response = await client.put(`/api/workflows/${workflowId}`, updateData);
+  const response = await client.put(`/workflows/${workflowId}`, updateData);
   return response.data;
 }
 
