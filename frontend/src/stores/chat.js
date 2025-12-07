@@ -30,7 +30,8 @@ function loadFromStorage() {
     return {
       messages: data.messages.map(msg => ({
         ...msg,
-        timestamp: new Date(msg.timestamp)
+        timestamp: new Date(msg.timestamp),
+        typingEffect: false // Disable typing effect for loaded messages
       })),
       isPlanApproved: data.isPlanApproved || false
     }

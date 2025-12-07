@@ -56,17 +56,26 @@
       </div>
 
       <!-- Compact mode toggle -->
-      <button
-        @click="compactMode = !compactMode"
-        :class="[
-          'px-4 py-1.5 rounded-md text-sm font-medium transition-colors duration-fast font-matrix-sans border',
-          compactMode
-            ? 'bg-accent-secondary text-bg-base border-accent-secondary shadow-matrix-glow'
-            : 'bg-bg-layer/60 text-text-secondary border-line-base/60 hover:text-text-primary hover:shadow-matrix-glow'
-        ]"
-      >
-        {{ compactMode ? 'Normal' : 'Compact' }}
-      </button>
+      <div class="flex items-center space-x-2">
+        <button
+          @click="chatStore.clearHistory()"
+          class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors duration-fast font-matrix-sans border bg-bg-layer/60 text-text-secondary border-line-base/60 hover:text-status-error hover:border-status-error hover:shadow-matrix-glow"
+          title="Clear Chat History"
+        >
+          Clear
+        </button>
+        <button
+          @click="compactMode = !compactMode"
+          :class="[
+            'px-4 py-1.5 rounded-md text-sm font-medium transition-colors duration-fast font-matrix-sans border',
+            compactMode
+              ? 'bg-accent-secondary text-bg-base border-accent-secondary shadow-matrix-glow'
+              : 'bg-bg-layer/60 text-text-secondary border-line-base/60 hover:text-text-primary hover:shadow-matrix-glow'
+          ]"
+        >
+          {{ compactMode ? 'Normal' : 'Compact' }}
+        </button>
+      </div>
     </div>
 
     <!-- Input area - fixed at bottom -->
