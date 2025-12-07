@@ -1,0 +1,58 @@
+[33mcommit 750594cc2994c7c5e64c156b68812e61da0b95fa[m[33m ([m[1;32msubtask/3.5-3-project-management-devon[m[33m, [m[1;32msubtask/3.5-1-chat-ui-polish[m[33m, [m[1;32mmaster[m[33m)[m
+Author: Feilong2k <lei.wang@fu-zu.com>
+Date:   Fri Dec 5 18:41:03 2025 -0500
+
+    fix: layout scroll constraints
+
+ frontend/src/components/MainLayout.vue | 4 [32m++[m[31m--[m
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+[33mcommit b1c0dc9106837c35f4046757ae2038d4dfb531d3[m
+Author: Feilong2k <lei.wang@fu-zu.com>
+Date:   Fri Dec 5 18:38:35 2025 -0500
+
+    fix: backend activity log events
+
+ backend/src/agents/OrionAgent.js | 26 [32m++++++++++++++++++++++[m[31m----[m
+ backend/src/socket/index.js      | 10 [32m++++++++++[m
+ 2 files changed, 32 insertions(+), 4 deletions(-)
+
+[33mcommit 518d14424980a24bdccbf918ebdffd105472cdf9[m
+Author: Feilong2k <lei.wang@fu-zu.com>
+Date:   Fri Dec 5 18:38:28 2025 -0500
+
+    fix: orchestrator polish (scroll, act button, activity log, typing effect)
+
+ frontend/src/components/ChatPanel.vue  | 4 [32m+++[m[31m-[m
+ frontend/src/components/MainLayout.vue | 4 [32m++[m[31m--[m
+ frontend/src/stores/chat.js            | 3 [32m++[m[31m-[m
+ 3 files changed, 7 insertions(+), 4 deletions(-)
+
+[33mcommit 85b106a167f92a9cd0a507e83c795f159df501e4[m[33m ([m[1;32msubtask/3.5-2-logic-persistence[m[33m)[m
+Author: Feilong2k <lei.wang@fu-zu.com>
+Date:   Fri Dec 5 18:25:34 2025 -0500
+
+    3.5-2: Logic & Persistence Fixes
+    
+    - Backend: OrionAgent emits 'log_entry' socket events for all actions
+    - Frontend: Chat store persistence via localStorage (survives page reload)
+    - Frontend: Act blocking logic with isPlanApproved state and isActDisabled getter
+    - Frontend: Updated chat store tests for persistence and plan approval
+    - Fixes: Typewriter effect prop passing verified in ChatPanel
+    
+    Implements requirements from subtask 3.5-2:
+    ✓ Activity Log updates via WebSocket
+    ✓ Chat history persistence
+    ✓ Act button blocking when plan not approved
+
+ backend/src/agents/OrionAgent.js           |  52 [32m+++++++++++[m
+ frontend/src/__tests__/stores/chat.spec.js | 138 [32m++++++++++++++++++++++++++++[m[31m-[m
+ frontend/src/stores/chat.js                | 130 [32m++++++++++++++++++++++++[m[31m---[m
+ 3 files changed, 305 insertions(+), 15 deletions(-)
+
+[33mcommit 5c310080620b1fc367d348db7e83188bb1f11945[m
+Merge: 0eb0526 173740b
+Author: Feilong2k <lei.wang@fu-zu.com>
+Date:   Fri Dec 5 18:18:51 2025 -0500
+
+    merge: 3.5-1 chat ui polish (and fix input bug)

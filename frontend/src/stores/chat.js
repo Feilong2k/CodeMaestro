@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { chat } from '../api/agents'
+import { classifyMessage } from '../api/router'
 
 // LocalStorage key for persistence
 const CHAT_STORAGE_KEY = 'codemaestro_chat'
@@ -85,13 +86,28 @@ export const useChatStore = defineStore('chat', {
       this.error = null
 
       try {
-        const response = await chat(content)
+        // 1. Classify the message to determine mode (Strategic vs Tactical)
+        let mode = 'tactical' // Default
+        try {
+          const routeRes = await classifyMessage(content)
+          if (routeRes.data && routeRes.data.mode) {
+            mode = routeRes.data.mode
+          }
+          console.log(`[Chat] Routing message via mode: ${mode.toUpperCase()}`)
+        } catch (routeErr) {
+          console.warn('[Chat] Routing failed, defaulting to tactical:', routeErr)
+        }
+
+        // 2. Send message with the determined mode
+        const response = await chat(content, mode)
+        
         // Add Orion's response
         this.addMessage({
           sender: 'Orion',
           content: response.data?.response || 'I received your message.',
           timestamp: new Date(),
-          typingEffect: true
+          typingEffect: true,
+          mode: mode // Optional: store mode to display icon/badge later
         })
       } catch (error) {
         this.error = `Failed to send message: ${error.message}`

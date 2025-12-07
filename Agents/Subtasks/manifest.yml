@@ -201,7 +201,7 @@ subtasks:
 
   - id: "4-4"
     title: "Split-Brain Routing Logic"
-    status: in_progress
+    status: completed
     branch: "subtask/4-4-split-brain-routing"
     log: "Agents/Subtasks/Logs/4-4.yml"
     dependencies: ["4-3"]
@@ -209,7 +209,7 @@ subtasks:
 
   - id: "4-5"
     title: "Dynamic Workflows (Data & Migration)"
-    status: pending
+    status: in_progress
     branch: "subtask/4-5-dynamic-workflows-data"
     log: "Agents/Subtasks/Logs/4-5.yml"
     dependencies: ["4-0"]
