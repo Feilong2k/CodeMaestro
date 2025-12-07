@@ -60,7 +60,7 @@ subtasks:
 
   - id: "4-10"
     title: "Workflow API & Viewer UI"
-    status: pending
+    status: completed
     owner: "Devon"
     priority: medium
     dependencies: ["4-5"]

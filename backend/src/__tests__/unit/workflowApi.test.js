@@ -29,7 +29,17 @@ describe('Workflow API Endpoints', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     app = express();
-    app.use(express.json());
+    
+    // JSON parser with graceful invalid JSON handling (same as in index.js)
+    const jsonParser = express.json();
+    app.use((req, res, next) =>
+      jsonParser(req, res, (err) => {
+        if (err) {
+          return res.status(400).json({ error: 'Invalid JSON' });
+        }
+        return next();
+      })
+    );
     
     // Mount router if it exists
     if (workflowsRouter) {
