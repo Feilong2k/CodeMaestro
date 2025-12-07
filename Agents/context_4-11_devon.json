@@ -10,6 +10,7 @@
     "Method `prune(messages, tokenLimit)`: Reduce message count to fit within limit, removing oldest non-critical messages first.",
     "Method `summarize(messages)`: Call `aiService.callLLM` to generate a summary of the provided messages.",
     "Method `preserveCritical(messages)`: Filter and return messages that MUST be kept (role='system', or content includes 'Active subtask').",
+    "Method `checkRateLimit(agentId)`: Basic in-memory timestamp check (1 request per second) to respect Time Constraints.",
     "Ensure `ContextPruner` handles empty arrays and edge cases gracefully."
   ],
   "constraints": [

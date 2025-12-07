@@ -55,6 +55,7 @@ requiredActions:
   - "Logic: Implement `ContextPruner` class in `backend/src/services/ai/`"
   - "Logic: `summarizeHistory(messages)`: Compress older messages into a summary block"
   - "Logic: `optimizeContext(currentTask)`: Keep only relevant recent history + summary"
+  - "Logic: `checkRateLimit(agentId)`: Simple Time Constraint check (1 req/sec)"
   - "Integration: Update `AiService` to use `ContextPruner` before sending prompts"
   - "Config: Add token limits/thresholds to `config/ai.js`"
   - "Tool: Create `scripts/debug-pruner.js` CLI to manually verify pruning output"
