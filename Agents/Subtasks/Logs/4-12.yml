@@ -33,6 +33,14 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized. Scoped to High Risk constraints only."
+  - ts: "2025-12-07T22:27:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for ConstraintService (Red phase). Coverage: validatePathSafety, validateGitLock, validateRateLimit, integration."
+  - ts: "2025-12-07T22:28:00Z"
+    role: tester
+    action: HANDOFF
+    message: "Committed failing unit tests (Red phase). Ready for Devon to implement the ConstraintService class and integration."
 
 requiredActions:
   - "Logic: Create `ConstraintService`"
@@ -42,7 +50,6 @@ requiredActions:
   - "Integration: Inject `ConstraintService` into `ToolRegistry` (Phase 5)"
 
 verificationChecklist:
-  - "[ ] [TDD] Path validation rejects '../'"
-  - "[ ] [TDD] Git lock validation fails if lock exists"
-  - "[ ] [TDD] Rate limit throttles rapid requests"
-
+  - "[x] [TDD] Path validation rejects '../' (Red)"
+  - "[x] [TDD] Git lock validation fails if lock exists (Red)"
+  - "[x] [TDD] Rate limit throttles rapid requests (Red)"
