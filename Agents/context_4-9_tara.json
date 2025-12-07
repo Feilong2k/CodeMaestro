@@ -1,0 +1,17 @@
+{
+  "task": "4-9",
+  "role": "tester",
+  "goal": "Create failing tests for Orchestrator Automation (Red Phase).",
+  "requirements": [
+    "Test 'Locking Logic': Ensure `assignNextTask` rejects if concern is locked.",
+    "Test 'Branching Logic': Verify correct branch name generation (e.g., `feature/TASK-123-tests`).",
+    "Test 'Territory Rules': Ensure Agents are blocked from editing files outside their concern (e.g., Devon cannot edit `__tests__`).",
+    "Test 'Protected Paths': Ensure critical files (e.g., `.env`, `migrations`) are locked by default.",
+    "Test 'Escalation': Verify task failure triggers proper status update and notification."
+  ],
+  "files": [
+    "backend/src/__tests__/unit/orchestratorService.test.js"
+  ],
+  "context": "The OrchestratorService is the central 'Driver' that manages agent assignments, locks, and permissions based on the 'Concern-Based Locking' model."
+}
+

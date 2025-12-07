@@ -1,275 +1,66 @@
+# Phase 4 Subtasks Manifest
+# Statuses: pending, in_progress, completed, failed
+
 subtasks:
-  # Phase 1: Control Panel (UI Shell)
-  - id: "1-1"
-    title: "Header & Navigation"
-    status: completed
-    branch: "subtask/1-1-header-navigation"
-    log: "Agents/Subtasks/Logs/1-1.yml"
-  - id: "1-2"
-    title: "Layout Grid"
-    status: completed
-    branch: "subtask/1-2-layout-grid"
-    log: "Agents/Subtasks/Logs/1-2.yml"
-  - id: "1-3"
-    title: "Chat Interface Shell"
-    status: completed
-    branch: "subtask/1-3-chat-interface-shell"
-    log: "Agents/Subtasks/Logs/1-3.yml"
-  - id: "1-4"
-    title: "Activity Log Shell"
-    status: completed
-    branch: "subtask/1-4-activity-log-shell"
-    log: "Agents/Subtasks/Logs/1-4.yml"
-  - id: "1-5"
-    title: "Status Bar"
-    status: completed
-    branch: "subtask/1-5-status-bar"
-    log: "Agents/Subtasks/Logs/1-5.yml"
-  - id: "1-6"
-    title: "Matrix Theme Integration"
-    status: completed
-    branch: "subtask/1-6-matrix-theme"
-    log: "Agents/Subtasks/Logs/1-6.yml"
-
-  # Phase 2: Backend + State Machine + Agents
-  - id: "2-1"
-    title: "Backend Scaffold"
-    status: completed
-    branch: "subtask/2-1-backend-scaffold"
-    log: "Agents/Subtasks/Logs/2-1.yml"
-  - id: "2-2"
-    title: "PostgreSQL Database"
-    status: completed
-    branch: "subtask/2-2-postgresql-database"
-    log: "Agents/Subtasks/Logs/2-2.yml"
-  - id: "2-3"
-    title: "State Machine (XState)"
-    status: completed
-    branch: "subtask/2-3-state-machine-xstate"
-    log: "Agents/Subtasks/Logs/2-3.yml"
-  - id: "2-4"
-    title: "Agent Framework"
-    status: completed
-    branch: "subtask/2-4-agent-framework"
-    log: "Agents/Subtasks/Logs/2-4.yml"
-  - id: "2-5"
-    title: "Deepseek Integration"
-    status: completed
-    branch: "subtask/2-5-deepseek-integration"
-    log: "Agents/Subtasks/Logs/2-5.yml"
-  - id: "2-6"
-    title: "Orion Agent"
-    status: completed
-    branch: "subtask/2-6-orion-agent"
-    log: "Agents/Subtasks/Logs/2-6.yml"
-  - id: "2-7"
-    title: "Tara Agent"
-    status: completed
-    branch: "subtask/2-7-tara-agent"
-    log: "Agents/Subtasks/Logs/2-7.yml"
-  - id: "2-8"
-    title: "Devon Agent"
-    status: completed
-    branch: "subtask/2-8-devon-agent"
-    log: "Agents/Subtasks/Logs/2-8.yml"
-  - id: "2-9"
-    title: "WebSocket Events"
-    status: completed
-    branch: "subtask/2-9-websocket-events"
-    log: "Agents/Subtasks/Logs/2-9.yml"
-  - id: "2-10"
-    title: "REST API Endpoints"
-    status: completed
-    branch: "subtask/2-10-rest-api-endpoints"
-    log: "Agents/Subtasks/Logs/2-10.yml"
-
-  # Phase 3: Frontend ↔ Backend Integration (The Brain)
-  - id: "3-1"
-    title: "API Client Setup"
-    status: completed
-    branch: "subtask/3-1-api-client-setup"
-    log: "Agents/Subtasks/Logs/3-1.yml"
-  - id: "3-2"
-    title: "WebSocket Client"
-    status: completed
-    branch: "subtask/3-2-websocket-client"
-    log: "Agents/Subtasks/Logs/3-2.yml"
-  - id: "3-3"
-    title: "Pinia Store - Tasks"
-    status: completed
-    branch: "subtask/3-3-pinia-store-tasks"
-    log: "Agents/Subtasks/Logs/3-3.yml"
-    dependencies: ["3-1", "3-2"]
-  - id: "3-4"
-    title: "Pinia Store - Agents"
-    status: completed
-    branch: "subtask/3-4-pinia-store-agents"
-    log: "Agents/Subtasks/Logs/3-4.yml"
-    dependencies: ["3-1", "3-2"]
-  - id: "3-5"
-    title: "Activity Log Integration"
-    status: completed
-    branch: "subtask/3-5-activity-log-integration"
-    log: "Agents/Subtasks/Logs/3-5.yml"
-    dependencies: ["3-2", "3-4"]
-  - id: "3-6"
-    title: "Chat → Orion Integration"
-    status: completed
-    branch: "subtask/3-6-chat-orion-integration"
-    log: "Agents/Subtasks/Logs/3-6.yml"
-    dependencies: ["3-1", "3-3", "3-4"]
-  - id: "3-7"
-    title: "Status Bar Integration"
-    status: completed
-    branch: "subtask/3-7-status-bar-integration"
-    log: "Agents/Subtasks/Logs/3-7.yml"
-    dependencies: ["3-3", "3-4"]
-  - id: "3-8"
-    title: "Backend Startup & DB Verify"
-    status: completed
-    branch: "subtask/3-8-backend-startup-db-verify"
-    log: "Agents/Subtasks/Logs/3-8.yml"
-  - id: "3-10"
-    title: "Chat UX Enhancements"
-    status: completed
-    branch: "subtask/3-10-chat-ux-enhancements"
-    log: "Agents/Subtasks/Logs/3-10.yml"
-    dependencies: ["3-6"]
-
-  # Phase 3.5: Polish & Fixes (Post-Integration)
-  - id: "3.5-1"
-    title: "Chat UI Polish & Layout"
-    status: completed
-    branch: "subtask/3.5-1-chat-ui-polish"
-    log: "Agents/Subtasks/Logs/3.5-1.yml"
-    dependencies: ["3-10"]
-    description: "Fix chat bubbles, font size, scrolling, move Act button, remove theme toggle"
-
-  - id: "3.5-2"
-    title: "Logic & Persistence Fixes"
-    status: completed
-    branch: "subtask/3.5-2-logic-persistence"
-    log: "Agents/Subtasks/Logs/3.5-2.yml"
-    dependencies: ["3-5", "3-6"]
-    description: "Fix Activity Log events, Typewriter effect, Chat persistence, Act blocking"
-
-  - id: "3.5-3"
-    title: "Project Management System"
-    status: completed
-    branch: "subtask/3.5-3-project-management"
-    log: "Agents/Subtasks/Logs/3.5-3.yml"
-    dependencies: ["3.5-2"]
-    description: "Create/Select projects, filter tasks/logs by project, database schema update"
-
-  - id: "3-9"
-    title: "End-to-End Flow Test"
-    status: pending
-    branch: "subtask/3-9-e2e-flow-test"
-    log: "Agents/Subtasks/Logs/3-9.yml"
-    dependencies: ["3.5-1", "3.5-2", "3.5-3"]
-
-  # Phase 4: Self-Evolution & Advanced Capabilities
-  - id: "4-0"
-    title: "Architecture & Logic Mapping"
-    status: completed
-    branch: "subtask/4-0-architecture-logic"
-    log: "Agents/Subtasks/Logs/4-0.yml"
-    description: "High-level design of data flow and relationships for Phase 4"
-
   - id: "4-1"
-    title: "Pattern Library (Snippet Vault)"
+    title: "Split-Brain Foundation (Strategic/Tactical)"
     status: completed
-    branch: "subtask/4-1-pattern-library"
-    log: "Agents/Subtasks/Logs/4-1.yml"
-    description: "Database for reusable code snippets and semantic search integration"
-
+    owner: "Devon"
+    priority: critical
+    dependencies: []
+    
   - id: "4-2"
-    title: "Pattern Library Frontend"
-    status: completed
-    branch: "subtask/4-2-pattern-library-frontend"
-    log: "Agents/Subtasks/Logs/4-2.yml"
+    title: "Context Pruning (Task Queue)"
+    status: pending
+    owner: "Devon"
+    priority: high
     dependencies: ["4-1"]
-    description: "UI for managing and searching the Pattern Library"
 
   - id: "4-3"
-    title: "Split-Brain Foundation (Model Adapter)"
-    status: completed
-    branch: "subtask/4-3-split-brain-foundation"
-    log: "Agents/Subtasks/Logs/4-3.yml"
-    dependencies: ["4-0"]
-    description: "Infrastructure for dual-model support (Strategic vs Tactical)"
-
-  - id: "4-4"
     title: "Split-Brain Routing Logic"
     status: completed
-    branch: "subtask/4-4-split-brain-routing"
-    log: "Agents/Subtasks/Logs/4-4.yml"
+    owner: "Devon"
+    priority: critical
+    dependencies: ["4-1"]
+
+  - id: "4-4"
+    title: "Escalation & Handoff Protocols"
+    status: completed
+    owner: "Tara"
+    priority: critical
     dependencies: ["4-3"]
-    description: "Router class to dispatch tasks based on complexity/type"
 
   - id: "4-5"
     title: "Dynamic Workflows (Data & Migration)"
     status: completed
-    branch: "subtask/4-5-dynamic-workflows-data"
-    log: "Agents/Subtasks/Logs/4-5.yml"
-    dependencies: ["4-0"]
-    description: "Database schema and migration of .clinerules to JSON"
+    owner: "Devon"
+    priority: critical
+    dependencies: ["4-4"]
 
   - id: "4-6"
     title: "Dynamic Workflows (Execution Engine)"
-    status: in_progress
-    branch: "subtask/4-6-dynamic-workflows-engine"
-    log: "Agents/Subtasks/Logs/4-6.yml"
+    status: completed
+    owner: "Devon"
+    priority: critical
     dependencies: ["4-5"]
-    description: "Backend engine to enforce state machine transitions"
+  
+  - id: "4-9"
+    title: "Orchestrator Automation (Concern-Based Locking)"
+    status: in_progress
+    owner: "Orion"
+    priority: critical
+    dependencies: ["4-6"]
 
   - id: "4-7"
     title: "Persistent Memory (Reflexes)"
-    status: pending
-    branch: "subtask/4-7-persistent-memory"
-    log: "Agents/Subtasks/Logs/4-7.yml"
-    dependencies: ["4-1"]
-    description: "System prompt injection for User Preferences and Reflexes"
+    status: in_progress
+    owner: "Tara"
+    priority: high
+    dependencies: ["4-9"]
 
   - id: "4-8"
     title: "Self-Evolution Loop"
     status: pending
-    branch: "subtask/4-8-self-evolution"
-    log: "Agents/Subtasks/Logs/4-8.yml"
-    dependencies: ["4-6", "4-7"]
-    description: "Automated debrief and pattern saving after tasks"
-
-sequence:
-  # Phase 3: Frontend ↔ Backend Integration
-  # No dependencies (can start in parallel):
-  - "3-1"  # API Client Setup
-  - "3-2"  # WebSocket Client
-  - "3-8"  # Backend Startup & DB Verify
-  # After 3-1 and 3-2:
-  - "3-3"  # Pinia Store - Tasks
-  - "3-4"  # Pinia Store - Agents
-  # After stores:
-  - "3-5"  # Activity Log Integration
-  - "3-6"  # Chat → Orion Integration
-  - "3-7"  # Status Bar Integration
-  # Enhancements:
-  - "3-10" # Chat UX (Markdown + Typing)
-  
-  # Phase 3.5: Polish & Fixes
-  - "3.5-1" # Chat UI Polish
-  - "3.5-2" # Logic & Persistence
-  - "3.5-3" # Project Management
-  
-  # Phase 4: Self-Evolution
-  - "4-0"   # Architecture
-  - "4-1"   # Pattern Library (Backend)
-  - "4-2"   # Pattern Library (Frontend)
-  - "4-3"   # Split-Brain Foundation
-  - "4-4"   # Split-Brain Routing
-  - "4-5"   # Dynamic Workflows (Data)
-  - "4-6"   # Dynamic Workflows (Engine)
-  - "4-7"   # Persistent Memory
-  - "4-8"   # Self-Evolution Loop
-
-  # Final:
-  - "3-9"  # End-to-End Flow Test
+    owner: "Devon"
+    priority: medium
+    dependencies: ["4-7"]
