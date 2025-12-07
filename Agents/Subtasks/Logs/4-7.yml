@@ -1,7 +1,7 @@
 # Subtask Log: 4-7 (Persistent Memory)
 id: "4-7"
 title: "Persistent Memory (Reflexes)"
-status: pending
+status: in_progress
 branch: "subtask/4-7-persistent-memory"
 
 history:
@@ -9,6 +9,10 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized."
+  - ts: "2023-12-07T18:35:00Z"
+    role: tara
+    action: STARTED
+    message: "Started failing tests (Red Phase)."
 
 requiredActions:
   - "DB: Add `type='reflex'` and `type='preference'` to Patterns"

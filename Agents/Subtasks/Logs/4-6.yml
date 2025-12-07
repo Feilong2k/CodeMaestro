@@ -1,7 +1,7 @@
 # Subtask Log: 4-6 (Dynamic Workflows Engine)
 id: "4-6"
 title: "Dynamic Workflows (Execution Engine)"
-status: pending
+status: in_progress
 branch: "subtask/4-6-dynamic-workflows-engine"
 
 history:
@@ -29,6 +29,10 @@ history:
     role: orchestrator
     action: NOTE_ADDED
     message: "Added requirement: Lite Activity Logging (Model Name in Logs)."
+  - ts: "2023-12-07T18:30:00Z"
+    role: tara
+    action: TDD_RED_COMPLETE
+    message: "Failing unit tests created for Workflow Engine."
 
 requiredActions:
   - "Engine: `WorkflowEngine` class to load JSON (States, Transitions, Metadata)"
@@ -43,7 +47,7 @@ requiredActions:
   - "Integration: Agent loop calls Engine before acting"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Integration Tests - REQUIRED for this task"
