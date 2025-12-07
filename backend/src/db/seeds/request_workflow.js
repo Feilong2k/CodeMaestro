@@ -70,10 +70,10 @@ async function seed() {
 
     console.log('Inserting into DB...');
     const query = `
-      INSERT INTO workflows (name, version, states, transitions, is_active)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO workflows (name, version, states, transitions, is_active, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (id) DO UPDATE 
-      SET states = $3, transitions = $4, updated_at = NOW()
+      SET states = $3, transitions = $4, is_active = $5, metadata = $6, updated_at = NOW()
       RETURNING id, name;
     `;
 
@@ -82,7 +82,8 @@ async function seed() {
       workflow.version, 
       JSON.stringify(workflow.states), 
       JSON.stringify(workflow.transitions || []),
-      workflow.is_active
+      workflow.is_active,
+      JSON.stringify(workflow.metadata)
     ];
 
     const res = await pool.query(query, values);
