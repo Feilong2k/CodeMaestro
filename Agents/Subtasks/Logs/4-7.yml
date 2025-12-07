@@ -9,6 +9,10 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized."
+  - ts: "2025-12-06T22:11:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for MemoryService (Red phase). Coverage: saveContext, getContext, searchContext, session history, user preferences."
 
 requiredActions:
   - "DB: Add `type='reflex'` and `type='preference'` to Patterns"
@@ -17,7 +21,7 @@ requiredActions:
   - "Integration: Inject User Preferences into System Prompt"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Integration Tests - REQUIRED for this task"
