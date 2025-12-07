@@ -1,5 +1,5 @@
 const BaseAgent = require('./BaseAgent');
-const DeepseekClient = require('../llm/DeepseekClient');
+const AiService = require('../services/aiService');
 const { broadcastToSubtask, broadcastToAll } = require('../socket/index');
 
 /**
@@ -9,7 +9,6 @@ class OrionAgent extends BaseAgent {
   constructor() {
     super('orion');
     this.prompt = this.loadPrompt('Orion_Orchestrator_v2');
-    this.deepseek = new DeepseekClient();
   }
 
   /**
@@ -69,37 +68,22 @@ class OrionAgent extends BaseAgent {
   }
 
   /**
-   * Chat with Orion using Deepseek.
+   * Chat with Orion using AiService (Split-Brain).
    * @param {string} message - The user message.
+   * @param {string} mode - 'strategic' or 'tactical' (default).
    * @returns {Promise<{response: string}>}
    */
-  async chat(message) {
-    const messages = [
-      {
-        role: 'system',
-        content: `You are Orion, an AI development assistant in the CodeMaestro system.
-        You help users with planning, building, and testing software.
-        You are part of a multi-agent system that includes Tara (tester) and Devon (developer).
-        Keep your responses concise and helpful.`
-      },
-      {
-        role: 'user',
-        content: message
-      }
-    ];
-
+  async chat(message, mode = 'tactical') {
     try {
       broadcastToAll('agent_action', {
         agent: 'Orion',
         action: 'processing message',
         status: 'thinking',
+        mode: mode,
         timestamp: new Date()
       });
 
-      const result = await this.deepseek.chat(messages, {
-        temperature: 0.7,
-        max_tokens: 1000
-      });
+      const result = await AiService.generate(message, mode);
 
       broadcastToAll('agent_action', {
         agent: 'Orion',
@@ -108,9 +92,9 @@ class OrionAgent extends BaseAgent {
         timestamp: new Date()
       });
 
-      return { response: result.content };
+      return { response: result };
     } catch (error) {
-      console.error('Deepseek chat error:', error);
+      console.error('Orion chat error:', error);
       throw new Error(`Failed to get response from Orion: ${error.message}`);
     }
   }

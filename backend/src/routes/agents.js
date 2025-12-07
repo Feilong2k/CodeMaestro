@@ -18,13 +18,14 @@ router.get('/status', async (req, res, next) => {
 
 router.post('/orion/chat', async (req, res, next) => {
   try {
-    const { message } = req.body;
+    const { message, mode } = req.body;
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Invalid message: must be a non-empty string' });
     }
 
     const orion = new OrionAgent();
-    const response = await orion.chat(message);
+    // Pass mode (strategic/tactical) to chat
+    const response = await orion.chat(message, mode);
     res.json(response);
   } catch (err) {
     next(err);
