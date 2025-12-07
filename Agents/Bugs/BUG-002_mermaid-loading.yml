@@ -1,0 +1,34 @@
+id: "BUG-002"
+title: "Workflow Visualization Infinite Loading (Mermaid)"
+status: open
+priority: high
+reported: 2025-12-07
+reporter: user
+relatedSubtask: "4-13"
+
+description: |
+  When clicking the "Visualization" toggle in the Workflow Viewer, the Mermaid diagram fails to render and remains in a "Loading diagram..." state with a spinning indicator.
+  
+  The user reported: "hmm Visualization is not working from 4-13, it's just spinning"
+
+affectedFiles:
+  - "frontend/src/components/MermaidGraph.vue"
+  - "frontend/src/components/WorkflowViewer.vue"
+  - "frontend/src/utils/mermaidGenerator.js"
+
+expectedBehavior: |
+  The Mermaid diagram should render the workflow states and transitions shortly after the "Visualization" toggle is clicked.
+
+actualBehavior: |
+  The loading spinner persists indefinitely.
+
+possibleCauses:
+  - Mermaid library initialization issue (async/await timing).
+  - Error in `generateMermaid` causing a silent failure or promise rejection not caught properly.
+  - The `mermaidContainer` ref might be null when `renderDiagram` is called.
+  - Mermaid `render` function might be throwing an error that isn't displaying in the UI properly (though error handling exists).
+  - Version mismatch or missing dependency in `package.json` (though we added it).
+
+notes:
+  - "Must be fixed before Phase 5 starts."
+
