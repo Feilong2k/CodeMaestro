@@ -20,6 +20,10 @@ Enable Agents to autonomously execute tasks through a `Think -> Act -> Observe` 
 *   **Requirements:** 
     *   Input validation (Zod schemas).
     *   Safety checks (Path traversal prevention).
+    *   **Role-Based Access Control (RBAC):**
+        *   **Tara:** Can edit `tests/`, `__tests__/`. Read-only `src/`.
+        *   **Devon:** Can edit `src/`, `package.json`. Read-only `tests/`.
+        *   **Orion:** Can edit `Agents/`, `Docs/`. Git `merge/push`.
     *   Standardized output format `{ success: boolean, data: any, error: string }`.
 
 ### 5-2: Task Queue System (Postgres)
@@ -36,7 +40,8 @@ Enable Agents to autonomously execute tasks through a `Think -> Act -> Observe` 
     4.  `action = ai.decideAction(plan)`.
     5.  `result = tools.execute(action)`.
     6.  `ai.observe(result)`.
-    7.  Repeat until `task.done`.
+    7.  **Step Budget Check:** If steps > 20, abort and fail task (prevent infinite loops).
+    8.  Repeat until `task.done`.
 
 ### 5-4: Output Parsers
 *   **Objective:** Convert LLM text to Actions.
