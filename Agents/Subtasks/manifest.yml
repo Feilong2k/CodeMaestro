@@ -85,3 +85,32 @@ subtasks:
     owner: "Devon"
     priority: medium
     dependencies: ["4-10"]
+
+  # Phase 5: Autonomous Execution
+  - id: "5-1"
+    title: "Tool Registry & Safety (RBAC)"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["4-11"]
+
+  - id: "5-2"
+    title: "Task Queue System (Postgres)"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["5-1"]
+
+  - id: "5-3"
+    title: "The Agent Loop (Executor)"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["5-2"]
+
+  - id: "5-4"
+    title: "Output Parsers (XML)"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["5-3"]

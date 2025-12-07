@@ -1,0 +1,55 @@
+# Subtask Log: 5-2 (Task Queue System)
+id: "5-2"
+title: "Task Queue System (Postgres)"
+status: pending
+branch: "subtask/5-2-task-queue"
+
+constraint_discovery:
+  subtask_id: "5-2"
+  owner: "Orion"
+  concern: "Data Integrity & Concurrency"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "Enqueue Task"
+      description: "Add new job to DB"
+    - action: "Dequeue Task"
+      description: "Worker claims job (Locking)"
+      
+  resources_touched:
+    - resource: "PostgreSQL"
+      action: "Row Locking"
+      notes: "High concurrency potential"
+      
+  resource_physics:
+    - resource: "Database Connections"
+      constraint: "Race Conditions"
+      risk: "Two agents claim same task"
+      mitigation: "SELECT ... FOR UPDATE SKIP LOCKED"
+    - resource: "Task State"
+      constraint: "Stalled Jobs"
+      risk: "Agent crashes, task remains 'running' forever"
+      mitigation: "Timeout/Heartbeat mechanism (Future) or Manual Reset"
+      
+  verification:
+    - action: "Concurrency Test"
+      method: "Spawn 5 workers trying to dequeue simultaneously"
+
+history:
+  - ts: "2025-12-07T22:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Focus on ACID-compliant Task Queue."
+
+requiredActions:
+  - "Migration: Create `tasks` table (id, payload, status, worker_id, timestamps)"
+  - "Service: `TaskQueueService.enqueue(type, payload)`"
+  - "Service: `TaskQueueService.dequeue(workerId)` using SKIP LOCKED"
+  - "Service: `TaskQueueService.complete(taskId, result)`"
+  - "Service: `TaskQueueService.fail(taskId, error)`"
+
+verificationChecklist:
+  - "[ ] [TDD] Enqueue/Dequeue Logic (Red)"
+  - "[ ] [Green] Tasks are locked correctly (no double claims)"
+  - "[ ] [Green] Completed tasks persist results"
+

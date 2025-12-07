@@ -1,0 +1,51 @@
+# Subtask Log: 5-4 (Output Parsers)
+id: "5-4"
+title: "Output Parsers (XML)"
+status: pending
+branch: "subtask/5-4-output-parsers"
+
+constraint_discovery:
+  subtask_id: "5-4"
+  owner: "Orion"
+  concern: "Communication Reliability"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "Parse Text"
+      description: "Extract tool calls from LLM chat"
+      
+  resources_touched:
+    - resource: "LLM Output"
+      action: "Regex Matching"
+      
+  resource_physics:
+    - resource: "Text Structure"
+      constraint: "Ambiguity"
+      risk: "LLM forgets closing tag or malforms XML"
+      mitigation: "Robust Regex + Fallback to text"
+    - resource: "Code Blocks"
+      constraint: "Escaping"
+      risk: "Code inside XML might break tags"
+      mitigation: "CDATA sections or careful escaping"
+      
+  verification:
+    - action: "Fuzz Test"
+      method: "Feed parser garbage + valid XML, ensure no crashes"
+
+history:
+  - ts: "2025-12-07T22:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Focus on robust XML parsing for tool calls."
+
+requiredActions:
+  - "Logic: `XmlOutputParser` class"
+  - "Logic: `extractToolCalls(text)` regex/parser"
+  - "Logic: `formatToolResult(result)` for context"
+  - "Prompting: Update System Prompts to enforce XML format"
+
+verificationChecklist:
+  - "[ ] [TDD] Parses valid XML tool calls"
+  - "[ ] [TDD] Handles multiple tool calls in one message"
+  - "[ ] [TDD] Handles partial/malformed XML gracefully"
+

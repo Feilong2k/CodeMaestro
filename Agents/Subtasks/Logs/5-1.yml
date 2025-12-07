@@ -1,0 +1,60 @@
+# Subtask Log: 5-1 (Tool Registry & Safety)
+id: "5-1"
+title: "Tool Registry & Safety (RBAC)"
+status: pending
+branch: "subtask/5-1-tool-registry"
+
+constraint_discovery:
+  subtask_id: "5-1"
+  owner: "Orion"
+  concern: "Security & Safety"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "File Write"
+      description: "Agents writing code/configs to disk"
+    - action: "Shell Execute"
+      description: "Running npm commands, tests, etc."
+      
+  resources_touched:
+    - resource: "File System"
+      action: "Access Control"
+      notes: "Must prevent access outside project root"
+    - resource: "System Shell"
+      action: "Command Injection Prevention"
+      
+  resource_physics:
+    - resource: "File System"
+      constraint: "Path Traversal"
+      risk: "Agent writes to /etc/hosts or overwrites .git/"
+      mitigation: "Strict `path.resolve(cwd)` checks. Reject `..`."
+    - resource: "Permissions"
+      constraint: "Role Boundaries"
+      risk: "Devon edits Tests, Tara edits Prod Code"
+      mitigation: "RBAC Middleware in Tool Registry"
+      
+  verification:
+    - action: "Security Test"
+      method: "Attempt to write to `../outside.txt` (Should Fail)"
+    - action: "Role Test"
+      method: "Devon attempts to write `tests/foo.js` (Should Fail)"
+
+history:
+  - ts: "2025-12-07T22:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Focus on Sandboxing and RBAC for tools."
+
+requiredActions:
+  - "Create `backend/src/tools/ToolRegistry.js`"
+  - "Implement `FileTool` with Path Traversal Protection"
+  - "Implement `ShellTool` with Command Whitelist"
+  - "Implement RBAC Middleware (check `agent.role` against `tool.permissions`)"
+  - "Define Safe Zones: Devon->src/, Tara->tests/, Orion->all"
+
+verificationChecklist:
+  - "[ ] [TDD] Path Traversal Tests (Red)"
+  - "[ ] [TDD] Role Permission Tests (Red)"
+  - "[ ] [Green] Tools reject unsafe paths"
+  - "[ ] [Green] Tools reject unauthorized roles"
+
