@@ -193,7 +193,7 @@ subtasks:
 
   - id: "4-3"
     title: "Split-Brain Foundation (Model Adapter)"
-    status: in_progress
+    status: completed
     branch: "subtask/4-3-split-brain-foundation"
     log: "Agents/Subtasks/Logs/4-3.yml"
     dependencies: ["4-0"]
@@ -201,7 +201,7 @@ subtasks:
 
   - id: "4-4"
     title: "Split-Brain Routing Logic"
-    status: pending
+    status: in_progress
     branch: "subtask/4-4-split-brain-routing"
     log: "Agents/Subtasks/Logs/4-4.yml"
     dependencies: ["4-3"]
