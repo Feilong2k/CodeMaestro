@@ -21,9 +21,26 @@ Enable Agents to autonomously execute tasks through a `Think -> Act -> Observe` 
     *   Input validation (Zod schemas).
     *   Safety checks (Path traversal prevention).
     *   **Role-Based Access Control (RBAC):**
-        *   **Tara:** Can edit `tests/`, `__tests__/`. Read-only `src/`.
-        *   **Devon:** Can edit `src/`, `package.json`. Read-only `tests/`.
-        *   **Orion:** Can edit `Agents/`, `Docs/`. Git `merge/push`.
+        *   **Tara:**
+            *   Write Access: `/tests`, `/__tests__`
+            *   Git: `status`, `commit`
+        *   **Devon:**
+            *   Write Access: `/src`, `package.json`
+            *   Git: `status`, `commit`
+        *   **Orion:**
+            *   Write Access: `/Agents`, `/Docs`, `manifest.yml`, plus orchestration folders.
+            *   Git: `status`, `merge`, `push`
+            *   *Note:* Can use `mkdir` for structure.
+    *   **Minimum Toolset:**
+        *   `readFile` (All)
+        *   `writeFile` (Role-restricted)
+        *   `listDir` (All)
+        *   `mkdir` (Role-restricted write access)
+        *   `exec` (All)
+        *   `git status` (All)
+        *   `git commit` (Tara + Devon)
+        *   `git merge` (Orion only)
+        *   `git push` (Orion only)
     *   Standardized output format `{ success: boolean, data: any, error: string }`.
 
 ### 5-2: Task Queue System (Postgres)

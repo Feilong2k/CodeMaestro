@@ -47,10 +47,15 @@ history:
 
 requiredActions:
   - "Create `backend/src/tools/ToolRegistry.js`"
-  - "Implement `FileTool` with Path Traversal Protection"
-  - "Implement `ShellTool` with Command Whitelist"
-  - "Implement RBAC Middleware (check `agent.role` against `tool.permissions`)"
-  - "Define Safe Zones: Devon->src/, Tara->tests/, Orion->all"
+  - "Implement `FileTool` (readFile, writeFile, listDir, mkdir) with Path Traversal Protection"
+  - "Implement `ShellTool` (exec) with Command Whitelist"
+  - "Implement `GitTool` (status, commit, merge, push) with Role Checks"
+  - "Implement RBAC Middleware: Verify `agent.role` against `tool.permissions` and `path`"
+  - "Define Permission Rules:"
+    - "readFile, listDir, exec, git status: ALL"
+    - "writeFile, mkdir: Role-based (Tara->tests/, Devon->src/, Orion->Agents/)"
+    - "git commit: Tara + Devon"
+    - "git merge, git push: Orion only"
 
 verificationChecklist:
   - "[ ] [TDD] Path Traversal Tests (Red)"
