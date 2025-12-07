@@ -1,0 +1,20 @@
+{
+  "task": "4-6",
+  "role": "developer",
+  "goal": "Implement the Workflow Engine (Green Phase).",
+  "requirements": [
+    "Implement 'WorkflowEngine' class in 'backend/src/services/workflowEngine.js'.",
+    "Method: 'loadWorkflow(name)' - Cache workflow definition (including metadata) in memory.",
+    "Method: 'transition(currentState, event, context)' - The core logic.",
+    "Logic: Handle 'auto_actions' from metadata (e.g., Committed -> GIT_PUSH).",
+    "Logic: Implement 'Three-Tier Planning' Toggle (DeepSeek->GPT->Gemini).",
+    "Implement 'Step-by-Step' mode check (Manual Approval).",
+    "Implement 'Bug Escalation Rule' (If context.escalatedFrom === 'devon', force strategic).",
+    "API Endpoint: '/api/workflow/transition' to trigger state changes."
+  ],
+  "files": [
+    "backend/src/services/workflowEngine.js",
+    "backend/src/routes/workflow.js"
+  ],
+  "context": "Tara has created tests. The DB is seeded with 5 workflows. Your Engine is the 'CPU' that executes these instructions. Be sure to handle the `metadata` column from the DB."
+}
