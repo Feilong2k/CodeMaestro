@@ -114,3 +114,10 @@ subtasks:
     owner: "Devon"
     priority: high
     dependencies: ["5-3"]
+
+  - id: "5-5"
+    title: "Project Management Tools (CRUD)"
+    status: pending
+    owner: "Devon"
+    priority: medium
+    dependencies: ["5-1"]

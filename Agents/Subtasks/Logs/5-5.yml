@@ -1,0 +1,51 @@
+# Subtask Log: 5-5 (Project Management Tools)
+id: "5-5"
+title: "Project Management Tools (CRUD)"
+status: pending
+branch: "subtask/5-5-project-tools"
+
+constraint_discovery:
+  subtask_id: "5-5"
+  owner: "Devon"
+  concern: "Data Integrity"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "Create Project"
+      description: "mkdir + DB insert"
+    - action: "Delete Project"
+      description: "Soft delete in DB (status='deleted')"
+      
+  resources_touched:
+    - resource: "PostgreSQL"
+      action: "Schema Update"
+    - resource: "File System"
+      action: "Directory Creation"
+      
+  resource_physics:
+    - resource: "Project State"
+      constraint: "Sync"
+      risk: "Folder deleted but DB says active"
+      mitigation: "Atomic Transactions (if possible) or strict ordering (DB first)"
+
+history:
+  - ts: "2025-12-07T22:30:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Captures requirements for Project CRUD."
+
+requiredActions:
+  - "Migration: Update `projects` table"
+    - "Add `description` (TEXT)"
+    - "Add `github_url` (VARCHAR)"
+    - "Add `status` (ENUM: active, deleted, archived)"
+  - "Tool: Implement `ProjectTool`"
+    - "create(name, description, githubUrl): mkdir + DB Insert"
+    - "delete(name): DB Update (Soft Delete)"
+    - "list(status='active'): DB Select"
+  - "UI: Update Dashboard to filter out deleted projects"
+
+verificationChecklist:
+  - "[ ] [TDD] Soft delete hides project from list"
+  - "[ ] [TDD] Create project sets correct schema fields"
+
