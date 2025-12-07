@@ -1,7 +1,7 @@
 # Subtask Log: 4-10 (Workflow API & Viewer)
 id: "4-10"
 title: "Workflow API & Viewer UI"
-status: pending
+status: in_progress
 branch: "subtask/4-10-workflow-api-viewer"
 
 constraint_discovery:
@@ -49,6 +49,22 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized. Separated from 4-8 to focus on Infrastructure and UI."
+  - ts: "2025-12-07T13:10:00Z"
+    role: orchestrator
+    action: CONSTRAINT_CHECK
+    message: "Phase Zero executed. Constraints identified: File System (Concurrency), Network Port (Tests). Mitigation: Serialized Commits, Port Check."
+  - ts: "2025-12-07T13:15:00Z"
+    role: orchestrator
+    action: ASSIGNMENT
+    message: "Assigned to Tara for Red Phase (Unit Tests). Goal: Create failing tests for Workflow API."
+  - ts: "2025-12-07T19:27:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for Workflow API (Red phase). Coverage: GET /api/workflows, GET /api/workflows/:id, PUT /api/workflows/:id, error handling."
+  - ts: "2025-12-07T19:28:00Z"
+    role: tester
+    action: HANDOFF
+    message: "Committed failing unit tests (Red phase). Ready for Devon to implement the Workflow API routes and UI."
 
 requiredActions:
   - "API: `GET /api/workflows` (List)"
@@ -59,7 +75,7 @@ requiredActions:
   - "UI: Add 'Workflows' tab to Main Navigation"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] API returns correct list of workflows"
   - "[ ] UI displays workflows in a list"
@@ -67,4 +83,3 @@ verificationChecklist:
   - "[ ] Update endpoint is secured (or mock secured for MVP)"
 
 openQuestions: []
-
