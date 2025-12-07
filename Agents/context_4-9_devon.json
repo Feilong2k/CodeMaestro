@@ -1,0 +1,19 @@
+{
+  "task": "4-9",
+  "role": "implementer",
+  "goal": "Implement the Orchestrator Service (Green Phase).",
+  "requirements": [
+    "Implement `OrchestratorService` class.",
+    "Method `acquireLock(taskId, concern, agentId)`: DB transaction to lock concern.",
+    "Method `releaseLock(taskId, concern)`: Release lock.",
+    "Method `checkTerritory(agentId, concern, filePath)`: Validate file access.",
+    "Method `checkProtectedPath(filePath)`: Validate protected path access.",
+    "Method `assignNextTask(agentId)`: Find highest priority unlocked task/concern.",
+    "Integrate with `WorkflowEngine` to advance state."
+  ],
+  "files": [
+    "backend/src/services/orchestrator.js"
+  ],
+  "context": "You are building the 'Driver' of the system. Use `backend/src/services/workflowEngine.js` for state transitions and `backend/src/db/connection.js` for data."
+}
+

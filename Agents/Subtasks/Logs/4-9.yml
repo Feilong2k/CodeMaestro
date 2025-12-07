@@ -1,0 +1,50 @@
+# Subtask Log: 4-9 (Orchestrator Automation)
+id: "4-9"
+title: "Orchestrator Automation (Concern-Based Locking & Branching)"
+status: in_progress
+branch: "subtask/4-9-orchestrator-automation"
+
+history:
+  - ts: "2023-12-07T20:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized for Orchestrator Automation. This phase implements the core logic for autonomous agent coordination."
+  - ts: "2023-12-07T20:30:00Z"
+    role: orchestrator
+    action: NOTE_ADDED
+    message: "Reprioritized to immediately follow 4-6 for foundational stability."
+  - ts: "2025-12-07T11:10:00Z"
+    role: orchestrator
+    action: ASSIGNMENT
+    message: "Assigned to Tara for Red Phase (Unit Tests). Goal: Define failing tests for Locking, Branching, Territory, and Protected Paths."
+
+requiredActions:
+  - "DB: Implement `subtasks` table as source of truth (sync with manifest.yml on startup)"
+  - "DB: Create `locks` table (task_id, concern, agent_id, locked_at)"
+  - "Logic: `OrchestratorService.assignNextTask()`: Implements Concern-Based Locking (Rule 2)"
+  - "Logic: `OrchestratorService.startTask()`: Implements Agent Assignment (Rule 3) and Branch Automation (Rule 4)"
+  - "Logic: `OrchestratorService.completeTask()`: Handles Handoffs (Rule 3) and unlocks concerns"
+  - "Logic: `OrchestratorService.handleFailure()`: Implements Promotion/Escalation Rules (Rule 5)"
+  - "Logic: `OrchestratorService.enforceTransition()`: Integrates with 4-6 Engine for State Machine Transitions (Rule 6)"
+  - "Logic: `OrchestratorService.enforceTerritory()`: Implements Territory Rules (Rule 3 in Operational_Rules.md)"
+  - "Logic: `OrchestratorService.checkProtectedPath()`: Implements Protected Paths Registry (Rule 4 in Operational_Rules.md)"
+  - "Logging: Full Activity Logging (Rule 7) for all Orchestrator actions"
+  - "Integration: Agent Framework calls OrchestratorService for task lifecycle management"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests - REQUIRED for this task"
+  - "[ ] `manifest.yml` is synced to DB on startup"
+  - "[ ] Concern-based locks prevent concurrent work on same concern/task"
+  - "[ ] Agents are assigned based on role, status, and concern"
+  - "[ ] Git branches are automatically created/checked out for tasks"
+  - "[ ] Task failures trigger correct escalation path"
+  - "[ ] State machine transitions are enforced by Orchestrator"
+  - "[ ] All Orchestrator actions are logged with full metadata"
+  - "[ ] Agents cannot write to protected paths without explicit approval/lock"
+  - "[ ] Environment contract changes are managed"
+
+dependencies: ["4-6"]
+openQuestions: []
