@@ -1,20 +1,25 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let ContextPruner;
 try {
-  ContextPruner = require('../../../src/services/ai/ContextPruner');
+  ContextPruner = require('../../../services/ai/ContextPruner');
 } catch (error) {
   // This is expected in the Red phase. We'll create a dummy object that throws for all methods.
   ContextPruner = {};
 }
 
 // Mock the AiService or LLM calls
-jest.mock('../../../src/services/aiService', () => ({
+jest.mock('../../services/aiService', () => ({
   callLLM: jest.fn()
 }));
 
-const aiService = require('../../../src/services/aiService');
+let aiService;
+try {
+  aiService = require('../../services/aiService');
+} catch (e) {
+  aiService = { callLLM: jest.fn() };
+}
 
 // Helper to ensure we have a method to test, otherwise skip the test.
 function requireContextPruner() {
@@ -162,6 +167,29 @@ describe('Context Pruner', () => {
       // In this case, there are no critical messages, so the method might return an empty array.
       // We'll just check it's an array.
       expect(Array.isArray(result)).toBe(true);
+    });
+  });
+
+  describe('checkRateLimit(agentId)', () => {
+    test('should allow requests spaced by more than 1 second', async () => {
+      const pruner = requireContextPruner();
+      
+      expect(pruner.checkRateLimit('agent1')).toBe(true);
+      
+      // Wait > 1 second
+      await new Promise(r => setTimeout(r, 1100));
+      
+      expect(pruner.checkRateLimit('agent1')).toBe(true);
+    });
+
+    test('should block requests spaced by less than 1 second', () => {
+      const pruner = requireContextPruner();
+      
+      // First request ok
+      expect(pruner.checkRateLimit('agent2')).toBe(true);
+      
+      // Immediate second request blocked
+      expect(pruner.checkRateLimit('agent2')).toBe(false);
     });
   });
 
