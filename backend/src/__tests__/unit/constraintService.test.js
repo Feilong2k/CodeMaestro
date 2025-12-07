@@ -1,4 +1,4 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let ConstraintService;
@@ -20,6 +20,10 @@ const fs = require('fs');
 function requireConstraintService() {
   if (Object.keys(ConstraintService).length === 0) {
     throw new Error('ConstraintService module not found. Tests are expected to fail.');
+  }
+  // If the class is available, create a new instance for each test.
+  if (ConstraintService.ConstraintService) {
+    return new ConstraintService.ConstraintService();
   }
   return ConstraintService;
 }
