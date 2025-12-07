@@ -25,6 +25,14 @@ history:
     role: orchestrator
     action: NOTE_ADDED
     message: "Added requirement: Load `metadata` from DB and handle `auto_actions` (e.g., Committed -> Pushed)."
+  - ts: "2025-12-06T21:48:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for WorkflowEngine (Red phase). Coverage: loadWorkflow, transition, auto_actions, three-tier planning, pause/resume, bug escalation."
+  - ts: "2025-12-06T21:57:00Z"
+    role: tester
+    action: TESTS_REFINED
+    message: "Refined test file to use proper Jest mocking, added sad path tests, and removed implementation assumptions. All 7 requirements from context covered."
 
 requiredActions:
   - "Engine: `WorkflowEngine` class to load JSON (States, Transitions, Metadata)"
@@ -38,7 +46,7 @@ requiredActions:
   - "Integration: Agent loop calls Engine before acting"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Integration Tests - REQUIRED for this task"
