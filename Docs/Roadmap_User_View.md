@@ -4,57 +4,34 @@
 
 ---
 
-## Phase 1: The "Control Panel" (Days 1–3)
-**Objective:** Build the dashboard where you will sit and give orders. It won't "work" yet, but it will look real.
+## Phase 1: The "Control Panel" (Completed)
+**Objective:** Build the dashboard where you sit and give orders.
+*   **Outcome:** A dark-mode dashboard with Chat, Activity Log, and Project Context switching.
 
-1.  **Visual Shell:** A dark-mode web page with 2 main panels + Header:
-    *   **Header:** Project Dropdown (Context Switcher) + "New Project" button + **Plan/Act Safety Toggle**.
-        *   *Detail:* The "Act" side is grayed out/locked until planning is complete.
-    *   **Chat (Left):** Where you talk to Orion.
-    *   **Activity Log (Right):** Where you see agents working ("Tara is testing...").
-        *   *Detail:* Rows are clickable to show raw output (e.g., error messages).
-    *   **Status (Bottom/Overlay):** A traffic light system (Planning, Working, Done).
-2.  **Interaction:** You can switch "Projects" in the dropdown and see the name change.
-3.  **Outcome:** A clean, spacious interface focused on the work.
+## Phase 2: The "Engine Room" (Completed)
+**Objective:** Install the logic that makes the system run safely.
+*   **Outcome:** Backend logic (Node/Express) enforcing rules like "Cannot Act without a Plan."
 
-## Phase 2: The "Engine Room" (Days 4–6)
-**Objective:** Install the logic that makes the buttons work and defines the "Rules of the Road."
+## Phase 3: The "Split-Brain" (Completed)
+**Objective:** Make the AI smarter and cost-effective.
+*   **Outcome:**
+    *   **Strategic Brain (Gemini):** Handles planning and complex logic.
+    *   **Tactical Brain (DeepSeek/GPT):** Handles coding and fast tasks.
 
-1.  **The Rulebook (XState):** We program the "Traffic Laws" into the backend.
-    *   *Rule:* "Cannot switch to Act mode unless Plan is approved."
-    *   *Rule:* "Cannot commit code if tests fail."
-2.  **The Workers:** We set up the digital desks for Orion, Tara, and Devon.
-    *   We verify they can talk to the system.
-3.  **Outcome:** When you click "Start", the status light actually changes because the backend *logic* is now running.
+## Phase 4: The "Nervous System" (Current Focus)
+**Objective:** Automate the coordination between agents so you don't have to micromanage.
+*   **Dynamic Workflows:** The system follows "State Machines" (Rules of the Road) stored in the DB.
+*   **Orchestrator Automation:** "Orion" automatically assigns tasks, locks files, and manages branches.
+*   **Persistent Memory:** The system remembers your preferences and project context.
+*   **Workflow Viewer:** A UI to visualize exactly what the agents are doing and where they are in the process.
 
-## Phase 3: The "Brain" (Days 7–9)
-**Objective:** Connect the Chat so Orion actually answers back and remembers what you said.
+## Phase 5: The "Hands" (Next Up)
+**Objective:** Give the agents the ability to actually *do* the work autonomously.
+*   **Tool Execution:** Agents can write files, run terminal commands, and execute Git commits.
+*   **The Loop:** A continuous cycle of `Code -> Test -> Fix` that runs until the task is done.
+*   **Task Queue:** A prioritized list of work that agents pull from automatically.
 
-1.  **Project Setup:** You click "New Project", give it a name, and it saves.
-2.  **Chat Connection:** You type "I want a trading app", and Orion replies "Okay, drafting requirements...".
-3.  **Outcome:** A working chat interface that remembers your project details.
-
-## Phase 4: The "Hands" (Days 10–12)
-**Objective:** Give the agents the ability to write files on your computer.
-
-1.  **File Writer:** When you say "Go", Orion generates the actual code files for a simple "Hello World" app.
-2.  **Test Runner:** You see a green checkmark appear in the dashboard when the code works.
-3.  **Outcome:** The system can build a *tiny* real app (like a blank webpage) and prove it works.
-
-## Phase 5: The "Autopilot" Loop (Days 13–15)
-**Objective:** Connect it all into the continuous loop you envisioned.
-
-1.  **The Loop (Subtasks):**
-    *   You: "Build the Login Page."
-    *   Orion: "Okay, starting Subtask 1..."
-    *   *Agents Cycle:* Code -> Test -> Code -> Test (Auto-saving progress).
-2.  **The Gate (Task Completion):**
-    *   Orion: "All subtasks done. Final tests Green. Ready to finish?"
-    *   You: "Approve."
-    *   *Orion executes final save (Git) and marks task Complete.*
-3.  **Outcome:** The full "Cybernetic Factory" experience. You give orders, agents execute the messy work, you sign off on the result.
-
----
-
-## Technical Reference (For Future)
-*See `Docs/CodeMaestro_MVP_Consolidated.md` for the engineering details behind this.*
+## Phase 6: The "Evolution" (Future)
+**Objective:** The system improves itself.
+*   **Self-Correction:** Agents analyze their own mistakes and update their prompt reflexes.
+*   **Maestro Studio:** A visual editor for you to create new workflows and rules.

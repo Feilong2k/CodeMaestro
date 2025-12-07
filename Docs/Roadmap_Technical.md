@@ -1,90 +1,44 @@
-# CodeMaestro Development Roadmap (Technical)
+# CodeMaestro Technical Roadmap
 
-**Goal:** Implement the "Cybernetic Factory" architecture to support the User Roadmap.
-
----
-
-## Phase 1: The "Control Panel" (Frontend Shell)
-**Focus:** Vue 3 + Tailwind/CSS Grid + Pinia State (Mocked).
-
-1.  **Project Shell:**
-    *   `App.vue`: CSS Grid layout (Header, Sidebar/Chat, Main/Log, Footer/Status).
-    *   `TopBar.vue`: Project Dropdown (mock list), Plan/Act Toggle (UI only).
-2.  **Chat Interface:**
-    *   `ChatPanel.vue`: Scrollable list, Markdown rendering (`markdown-it`), Input area (autosizing).
-    *   `useChatStore`: Pinia store for message history.
-3.  **Activity Monitor:**
-    *   `ActivityLog.vue`: List of events with color-coded tags.
-    *   `LogItem.vue`: Click-to-expand details (JSON view).
-4.  **Mock Data:**
-    *   Seed Pinia with fake projects and sample chat history to validate UX.
-
-## Phase 2: The "Engine Room" (Backend Foundation)
-**Focus:** Node/Express + XState + API Contract.
-
-1.  **Server Setup:**
-    *   Express scaffolding with JSON body parser and CORS.
-    *   `logger.middleware.js`: Request/Response logging with Trace IDs.
-2.  **State Machine (XState):**
-    *   `orchestrator.machine.js`: Define states:
-        *   `idle` (Start)
-        *   `planning` (Drafting FRD)
-        *   `awaiting_plan_approval` (Human Gate 1)
-        *   `implementing` (The TDD Loop: Code <-> Test)
-        *   `verifying` (Final Full Suite Run)
-        *   `awaiting_commit_approval` (Human Gate 2)
-    *   Define transitions and guards.
-3.  **Control API:**
-    *   `POST /api/control/transition`: Endpoint to send events to the machine.
-    *   `SSE /api/stream`: Server-Sent Events to push state changes to Frontend.
-4.  **Agent Stubs:**
-    *   Classes for `Orion`, `Tara`, `Devon` that currently just log "I am here".
-
-## Phase 3: The "Brain" (LLM Integration)
-**Focus:** OpenAI/DeepSeek API + Context Management.
-
-1.  **LLM Adapter:**
-    *   `llm.service.js`: Generic wrapper for API calls with retries/timeouts.
-2.  **Orion Agent:**
-    *   `agents/orion.js`: Logic to construct the "Architect" system prompt.
-    *   `context.manager.js`: Helper to build the prompt context (Project Brief + History).
-3.  **Chat API:**
-    *   `POST /api/chat`: Connects Frontend -> Orion Agent -> LLM -> Frontend.
-4.  **Project Persistence:**
-    *   `project.service.js`: CRUD for Projects (FileSystem or MongoDB Lite).
-
-## Phase 4: The "Hands" (Tooling Integration)
-**Focus:** File System (fs/promises) + Child Processes (exec).
-
-1.  **File Ops:**
-    *   `file.service.js`: Safe wrapper for `writeFile`, `readFile`, `mkdir`.
-    *   **Safety:** Path traversal protection (must be inside project root).
-2.  **Devon Agent (Writer):**
-    *   Implement `generateCode(requirements)` -> calls LLM -> parses code blocks -> calls `file.service`.
-3.  **Test Runner Adapter:**
-    *   `test.service.js`: Spawns `npm test` or `npx jest`.
-    *   Captures `stdout`/`stderr` and parses Pass/Fail result.
-4.  **Tara Agent (Verifier):**
-    *   Logic to interpret test failures and suggest fixes.
-
-## Phase 5: The "Autopilot" (Orchestration Loop)
-**Focus:** Connecting the loop + Git Operations.
-
-1.  **The Loop Logic:**
-    *   Update XState machine to auto-cycle in `implementing` state (Write -> Test -> Fail -> Refactor -> Pass).
-    *   Auto-transition to `verifying` when subtask requirements met.
-2.  **Git Adapter:**
-    *   `git.service.js`: Wrappers for `git init`, `add`, `commit`, `status`.
-    *   **Subtask Logic:** Auto-commits on Green tests during `implementing`.
-3.  **Approval Gate:**
-    *   Implement `awaiting_commit_approval` state.
-    *   Unlock `POST /api/git/squash` (or final commit) only when in this state.
-4.  **E2E Integration:**
-    *   Verify the full flow: User Prompt -> Plan -> Agents Work (Loop) -> Final Review -> Done.
+**Status:** Living Document aligned with `Agents/Subtasks/manifest.yml`
 
 ---
 
-## References
-*   **User View:** `Docs/Roadmap_User_View.md`
-*   **Architecture:** `Docs/CodeMaestro_MVP_Consolidated.md`
+## Phase 4: Orchestration & Intelligence (The Brain)
 
+This phase builds the autonomous "Manager" layer (Orion) that coordinates "Worker" agents.
+
+| ID | Feature | Status | Tech Stack | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **4-1** | **Split-Brain Foundation** | ✅ Done | Node.js, Adapter Pattern | Infrastructure to route prompts to Gemini (Strategic) vs DeepSeek (Tactical). |
+| **4-3** | **Routing Logic** | ✅ Done | Regex/Classification | Logic to analyze user intent and select the correct model/agent. |
+| **4-4** | **Escalation Protocol** | ✅ Done | Event Bus | Rules for when a Tactical agent fails and needs Strategic help. |
+| **4-5** | **Dynamic Workflows (Data)** | ✅ Done | PostgreSQL, JSONB | Schema (`workflows` table) to store State Machines instead of hardcoded rules. |
+| **4-6** | **Workflow Engine** | ✅ Done | XState-lite | The execution engine that transitions states (Start -> Plan -> Code -> Review). |
+| **4-9** | **Orchestrator Automation** | ✅ Done | Locking Service | **Critical:** Implements "Concern-Based Locking" to prevent agent conflicts. |
+| **4-7** | **Persistent Memory** | ✅ Done | PostgreSQL, Vector | Long-term storage for User Preferences, Project Context, and "Reflexes". |
+| **4-10** | **Workflow API & Viewer** | ✅ Done | Vue.js, Express | **UI:** Read-only view of active workflows and their current states. |
+| **4-11** | **Context Pruning** | 🚧 Pending | Tokenizer, Summarization | **Optimization:** Smartly compressing chat history to save tokens/cost. |
+| **4-12** | **Constraint Enforcement** | 🚧 Pending | "Phase Zero" Logic | **Safety:** Automated checks for physical constraints (Ports, Git Locks). |
+
+---
+
+## Phase 5: Autonomous Execution (The Hands)
+
+This phase builds the `AgentExecutor` that allows LLMs to interact with the OS.
+
+| ID | Feature | Status | Tech Stack | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **5-1** | **Tool Registry** | 📅 Next | JSON Schema | Defining valid tools (`fs.write`, `exec`, `git.commit`) for Agents. |
+| **5-2** | **Agent Loop** | 📅 Planned | `while(true)` | The recursive loop: `Observation -> Thought -> Action -> Result`. |
+| **5-3** | **Task Queue System** | 📅 Planned | Redis/PG | A persistent queue for "Fire and Forget" task assignment. |
+| **5-4** | **Output Parsers** | 📅 Planned | Regex/AST | Robust parsing of LLM code blocks into file writes. |
+
+---
+
+## Phase 6: Ecosystem & Evolution
+
+| ID | Feature | Status | Tech Stack | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **6-1** | **Maestro Studio** | 🔮 Future | Vue.js Builder | Drag-and-drop UI to create new Workflows. |
+| **6-2** | **Self-Evolution** | 🔮 Future | Meta-Prompting | System analyzes failure logs and updates its own System Prompts. |
