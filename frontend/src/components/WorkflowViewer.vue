@@ -103,6 +103,27 @@
       </div>
     </div>
 
+    <!-- Visualization -->
+    <div class="bg-bg-layer rounded-xl border border-line-base overflow-hidden">
+      <button @click="showVisualization = !showVisualization"
+              class="w-full flex items-center justify-between p-6 text-left hover:bg-bg-elevated transition-colors">
+        <h3 class="text-lg font-semibold text-text-primary font-matrix-sans">Visualization</h3>
+        <svg class="w-5 h-5 text-text-secondary transition-transform" :class="{ 'rotate-180': showVisualization }"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+      <div v-if="showVisualization" class="p-6 border-t border-line-base">
+        <div v-if="workflow.definition" class="space-y-4">
+          <p class="text-text-secondary font-matrix-sans">This diagram shows the workflow states and transitions.</p>
+          <MermaidGraph :definition="workflow.definition" height="400px" />
+        </div>
+        <div v-else class="text-center py-8 text-text-muted font-matrix-sans">
+          No definition available for visualization.
+        </div>
+      </div>
+    </div>
+
     <!-- Raw JSON View (Collapsible) -->
     <div class="bg-bg-layer rounded-xl border border-line-base overflow-hidden">
       <button @click="showRawJson = !showRawJson"
@@ -135,6 +156,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { getWorkflow } from '../api/workflows'
+import MermaidGraph from './MermaidGraph.vue'
 
 const props = defineProps({
   workflowId: {
@@ -148,6 +170,7 @@ const emit = defineEmits(['close'])
 const workflow = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const showVisualization = ref(true)
 const showRawJson = ref(false)
 
 async function fetchWorkflow() {

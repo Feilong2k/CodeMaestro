@@ -81,7 +81,7 @@ subtasks:
 
   - id: "4-13"
     title: "Workflow Visualization (Mermaid)"
-    status: pending
+    status: completed
     owner: "Devon"
     priority: medium
     dependencies: ["4-10"]
