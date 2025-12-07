@@ -1,0 +1,24 @@
+{
+  "task": "4-12",
+  "role": "developer",
+  "goal": "Implement ConstraintService to pass unit tests (Green Phase).",
+  "phase": "green",
+  "branch": "subtask/4-12-constraint-logic",
+  "worktree_path": "../CM-devon",
+  "requirements": [
+    "Implement `backend/src/services/constraintService.js`.",
+    "Method `validatePathSafety(path)`: Must throw error if path contains `..`, starts with `/`, or is outside project root.",
+    "Method `validateGitLock(repoPath)`: Must throw error if `.git/index.lock` exists in the repo.",
+    "Method `validateRateLimit(agentId)`: Implement simple in-memory throttle (1 request per second per agent).",
+    "Ensure all methods throw clear errors on violation."
+  ],
+  "constraints": [
+    "Use `fs.existsSync` for file checks.",
+    "Use `path.normalize` and `path.resolve` for path safety.",
+    "Do not allow race conditions in rate limiter (sync logic is fine for Node.js event loop)."
+  ],
+  "files": [
+    "backend/src/services/constraintService.js"
+  ]
+}
+
