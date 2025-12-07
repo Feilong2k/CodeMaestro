@@ -9,7 +9,7 @@ class AiService {
   }
 
   /**
-   * Generate AI response based on mode.
+   * Generate AI response based on mode with automatic escalation.
    * @param {string} prompt
    * @param {string} [mode='tactical'] - 'strategic' or 'tactical'
    * @returns {Promise<string>}
@@ -17,11 +17,23 @@ class AiService {
   async generate(prompt, mode = 'tactical') {
     if (mode === 'strategic') {
       return this.strategicAdapter.generate(prompt);
-    } else if (mode === 'tactical') {
-      return this.tacticalAdapter.generate(prompt);
-    } else {
-      throw new Error(`Invalid AI mode: ${mode}`);
-    }
+    } 
+    
+    if (mode === 'tactical') {
+      // 1. Try Tactical first
+      const response = await this.tacticalAdapter.generate(prompt);
+
+      // 2. Check for Escalation Signal
+      if (response && response.trim() === 'ESCALATE_TO_STRATEGIC') {
+        console.log('[AiService] Tactical model requested escalation. Switching to Strategic.');
+        // 3. Fallback to Strategic
+        return this.strategicAdapter.generate(prompt);
+      }
+
+      return response;
+    } 
+    
+    throw new Error(`Invalid AI mode: ${mode}`);
   }
 }
 
