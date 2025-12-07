@@ -3,7 +3,7 @@ const { describe, test, expect, beforeEach } = require('@jest/globals');
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let ContextPruner;
 try {
-  ContextPruner = require('../../../services/ai/ContextPruner');
+  ContextPruner = require('../../services/ai/ContextPruner');
 } catch (error) {
   // This is expected in the Red phase. We'll create a dummy object that throws for all methods.
   ContextPruner = {};
