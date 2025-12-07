@@ -17,6 +17,10 @@ history:
     role: orchestrator
     action: NOTE_ADDED
     message: "Added requirement for Three-Tier Planning Pipeline (DeepSeek->GPT->Gemini)."
+  - ts: "2023-12-07T17:15:00Z"
+    role: orchestrator
+    action: NOTE_ADDED
+    message: "Refined Three-Tier Planning to be TOGGLEABLE (Standard vs Deep_Dive strategy)."
 
 requiredActions:
   - "Engine: `WorkflowEngine` class to load JSON and manage state"
@@ -24,7 +28,7 @@ requiredActions:
   - "Logic: Implement 'Step-by-Step' mode (manual confirmation gate)"
   - "Logic: Implement Global 'PAUSE' state (blocks all task pulls)"
   - "Logic: Implement 'Bug Escalation Rule' (If Devon escalates a bug -> Force Strategic Mode)"
-  - "Logic: Implement 'Three-Tier Planning' (DeepSeek Draft -> GPT Critique -> Gemini Synthesis)"
+  - "Logic: Implement 'Three-Tier Planning' with Toggle (Default: Standard, Option: Deep_Dive)"
   - "API: `/api/workflow/next-step` endpoint"
   - "Integration: Agent loop calls Engine before acting"
 
@@ -39,6 +43,6 @@ verificationChecklist:
   - "[ ] Step-by-Step mode waits for user signal"
   - "[ ] Pause button halts system execution"
   - "[ ] Escalated bugs automatically route to Strategic Brain"
-  - "[ ] Planning phase utilizes Multi-Model Pipeline"
+  - "[ ] Planning phase supports toggleable strategies (Standard vs Deep_Dive)"
 
 openQuestions: []
