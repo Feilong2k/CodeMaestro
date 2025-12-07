@@ -1,0 +1,24 @@
+{
+  "task": "4-11",
+  "role": "developer",
+  "goal": "Implement ContextPruner class to pass unit tests (Green Phase).",
+  "phase": "green",
+  "branch": "subtask/4-11-context-pruning",
+  "worktree_path": "../CM-devon",
+  "requirements": [
+    "Implement `backend/src/services/ai/ContextPruner.js`.",
+    "Method `prune(messages, tokenLimit)`: Reduce message count to fit within limit, removing oldest non-critical messages first.",
+    "Method `summarize(messages)`: Call `aiService.callLLM` to generate a summary of the provided messages.",
+    "Method `preserveCritical(messages)`: Filter and return messages that MUST be kept (role='system', or content includes 'Active subtask').",
+    "Ensure `ContextPruner` handles empty arrays and edge cases gracefully."
+  ],
+  "constraints": [
+    "Use `aiService` for LLM interactions.",
+    "Do not use real token counting libraries if possible (keep it simple, e.g., character count approximation or message count for MVP) to avoid heavy dependencies, unless `tiktoken` is already available.",
+    "Critical messages (System Prompts, Active Task Context) must NEVER be pruned."
+  ],
+  "files": [
+    "backend/src/services/ai/ContextPruner.js"
+  ]
+}
+
