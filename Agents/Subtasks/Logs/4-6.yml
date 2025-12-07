@@ -9,12 +9,17 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized."
+  - ts: "2023-12-07T14:30:00Z"
+    role: orchestrator
+    action: NOTE_ADDED
+    message: "Added requirement for Bug Escalation routing rule."
 
 requiredActions:
   - "Engine: `WorkflowEngine` class to load JSON and manage state"
   - "Logic: Implement `transition(currentState, event)` with Guards"
   - "Logic: Implement 'Step-by-Step' mode (manual confirmation gate)"
   - "Logic: Implement Global 'PAUSE' state (blocks all task pulls)"
+  - "Logic: Implement 'Bug Escalation Rule' (If Devon escalates a bug -> Force Strategic Mode)"
   - "API: `/api/workflow/next-step` endpoint"
   - "Integration: Agent loop calls Engine before acting"
 
@@ -24,6 +29,6 @@ verificationChecklist:
   - "[ ] Context/Variables are preserved across steps"
   - "[ ] Step-by-Step mode waits for user signal"
   - "[ ] Pause button halts system execution"
+  - "[ ] Escalated bugs automatically route to Strategic Brain"
 
 openQuestions: []
-
