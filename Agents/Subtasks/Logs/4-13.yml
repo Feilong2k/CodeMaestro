@@ -1,0 +1,50 @@
+# Subtask Log: 4-13 (Workflow Visualization)
+id: "4-13"
+title: "Workflow Visualization (Mermaid)"
+status: pending
+branch: "subtask/4-13-workflow-visualization"
+
+constraint_discovery:
+  subtask_id: "4-13"
+  owner: "Devon"
+  concern: "Implementation"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "NPM Install"
+      description: "Install mermaid.js"
+    - action: "Vue Component Edit"
+      description: "Modify WorkflowViewer.vue"
+      
+  resources_touched:
+    - resource: "Frontend Bundle"
+      action: "Import Mermaid"
+      notes: "Adds size to bundle (~1MB? Lazy load if possible)"
+      
+  resource_physics:
+    - resource: "Browser DOM"
+      constraint: "Render time"
+      risk: "Large workflows might lag"
+      
+  verification:
+    - action: "Render"
+      method: "Manual Visual Inspection"
+
+history:
+  - ts: "2025-12-07T15:45:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Goal: Add Mermaid.js visualization to Workflow Viewer."
+
+requiredActions:
+  - "Logic: Create `frontend/src/utils/mermaidGenerator.js` (JSON -> Mermaid String)"
+  - "UI: Install `mermaid` package"
+  - "UI: Create `frontend/src/components/MermaidGraph.vue` wrapper"
+  - "UI: Integrate into `WorkflowViewer.vue`"
+
+verificationChecklist:
+  - "[ ] [TDD] Logic Test for Generator (Red/Green)"
+  - "[ ] Mermaid graph renders correctly"
+  - "[ ] States and Transitions match JSON"
+  - "[ ] No console errors on render"
+

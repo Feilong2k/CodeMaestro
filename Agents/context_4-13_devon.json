@@ -1,0 +1,25 @@
+{
+  "task": "4-13",
+  "role": "developer",
+  "goal": "Implement Mermaid Visualization for Workflows (Green Phase).",
+  "phase": "green",
+  "branch": "subtask/4-13-workflow-visualization",
+  "worktree_path": "../CM-devon",
+  "requirements": [
+    "Install `mermaid` npm package.",
+    "Implement `frontend/src/utils/mermaidGenerator.js` to pass tests.",
+    "Create `frontend/src/components/MermaidGraph.vue` component.",
+    "Integrate Graph into `WorkflowViewer.vue`.",
+    "Ensure graph updates when workflow data changes."
+  ],
+  "constraints": [
+    "**Performance:** Lazy load mermaid if possible (optional).",
+    "**concerns:** Frontend Implementation only."
+  ],
+  "files": [
+    "frontend/src/utils/mermaidGenerator.js",
+    "frontend/src/components/MermaidGraph.vue",
+    "frontend/src/views/WorkflowViewer.vue"
+  ]
+}
+
