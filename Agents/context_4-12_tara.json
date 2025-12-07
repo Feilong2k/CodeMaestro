@@ -1,0 +1,22 @@
+{
+  "task": "4-12",
+  "role": "tester",
+  "goal": "Create unit tests for Constraint Enforcement Logic (Red Phase).",
+  "phase": "red",
+  "branch": "subtask/4-12-constraint-logic",
+  "worktree_path": "../CM-tara",
+  "requirements": [
+    "Test `ConstraintService.validatePathSafety(path)`: Reject '../', '/', and paths outside project root.",
+    "Test `ConstraintService.validateGitLock(repoPath)`: Reject action if `.git/index.lock` exists.",
+    "Test `ConstraintService.validateRateLimit(agentId)`: Integrate 4-11 logic or create new limiter.",
+    "Create `backend/src/__tests__/unit/constraintService.test.js`."
+  ],
+  "constraints": [
+    "Mock `fs.existsSync` for Git Lock checks.",
+    "Do not assume the backend is running; focus on logic tests."
+  ],
+  "files": [
+    "backend/src/__tests__/unit/constraintService.test.js"
+  ]
+}
+
