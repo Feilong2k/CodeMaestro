@@ -71,3 +71,10 @@ subtasks:
     owner: "Devon"
     priority: medium
     dependencies: ["4-2"]
+
+  - id: "4-12"
+    title: "Constraint Enforcement Logic"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["4-9"]

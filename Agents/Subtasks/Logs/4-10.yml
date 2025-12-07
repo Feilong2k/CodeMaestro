@@ -4,6 +4,46 @@ title: "Workflow API & Viewer UI"
 status: pending
 branch: "subtask/4-10-workflow-api-viewer"
 
+constraint_discovery:
+  subtask_id: "4-10"
+  owner: "Devon"
+  concern: "Implementation"
+  date: "2025-12-07"
+
+  atomic_actions:
+    - action: "Create API Routes"
+      description: "Modify backend/src/app.js or routes/index.js"
+    - action: "Create Vue Components"
+      description: "Add new files to frontend/src/views/ and components/"
+    - action: "Run Unit Tests"
+      description: "Execute backend/src/__tests__/unit/workflowApi.test.js"
+
+  resources_touched:
+    - resource: "File System"
+      action: "Write Code"
+      notes: "Standard file writes"
+    - resource: "Network Port"
+      action: "Test API"
+      notes: "Express server port (default 3000)"
+
+  resource_physics:
+    - resource: "File System"
+      constraint: "No concurrent writes to same file"
+      risk: "Conflict if another agent touches app.js"
+    - resource: "Network Port"
+      constraint: "Single listener"
+      risk: "Port already in use if server running"
+
+  verification:
+    - action: "Write Code"
+      method: "Orion Concern Lock (Implementation)"
+    - action: "Test API"
+      method: "Check if server running before test"
+
+  mitigation:
+    - violation: "Port in use"
+      plan: "Kill existing node process or use different test port"
+
 history:
   - ts: "2025-12-07T13:00:00Z"
     role: orchestrator
