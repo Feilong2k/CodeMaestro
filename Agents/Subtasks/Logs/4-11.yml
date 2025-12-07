@@ -50,6 +50,7 @@ requiredActions:
   - "Integration: Update `AiService` to use `ContextPruner` before sending prompts"
   - "Config: Add token limits/thresholds to `config/ai.js`"
   - "Tool: Create `scripts/debug-pruner.js` CLI to manually verify pruning output"
+  - "NOTE: Automatic integration with Task Queue deferred to Phase 5"
 
 verificationChecklist:
   - "[ ] [TDD] Failing Unit Tests created (Red)"
