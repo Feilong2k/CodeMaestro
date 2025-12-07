@@ -21,14 +21,24 @@ history:
     role: orchestrator
     action: NOTE_ADDED
     message: "Refined Three-Tier Planning to be TOGGLEABLE (Standard vs Deep_Dive strategy)."
+  - ts: "2023-12-07T17:30:00Z"
+    role: orchestrator
+    action: NOTE_ADDED
+    message: "Added requirement: Load `metadata` from DB and handle `auto_actions` (e.g., Committed -> Pushed)."
+  - ts: "2023-12-07T18:00:00Z"
+    role: orchestrator
+    action: NOTE_ADDED
+    message: "Added requirement: Lite Activity Logging (Model Name in Logs)."
 
 requiredActions:
-  - "Engine: `WorkflowEngine` class to load JSON and manage state"
+  - "Engine: `WorkflowEngine` class to load JSON (States, Transitions, Metadata)"
   - "Logic: Implement `transition(currentState, event)` with Guards"
+  - "Logic: Implement `auto_actions` handler (e.g., if metadata.auto_actions[state] exists, execute it)"
   - "Logic: Implement 'Step-by-Step' mode (manual confirmation gate)"
   - "Logic: Implement Global 'PAUSE' state (blocks all task pulls)"
   - "Logic: Implement 'Bug Escalation Rule' (If Devon escalates a bug -> Force Strategic Mode)"
   - "Logic: Implement 'Three-Tier Planning' with Toggle (Default: Standard, Option: Deep_Dive)"
+  - "Logic: Implement 'Lite Logging' (Capture Model Name in Log Metadata)"
   - "API: `/api/workflow/next-step` endpoint"
   - "Integration: Agent loop calls Engine before acting"
 
@@ -37,6 +47,8 @@ verificationChecklist:
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Integration Tests - REQUIRED for this task"
+  - "[ ] Engine correctly loads and respects `metadata` (timeouts, retry_limit, auto_actions)"
+  - "[ ] `Committed` state triggers auto-push via `auto_actions`"
   - "[ ] Engine blocks invalid transitions"
   - "[ ] Engine returns correct next step"
   - "[ ] Context/Variables are preserved across steps"
@@ -44,5 +56,6 @@ verificationChecklist:
   - "[ ] Pause button halts system execution"
   - "[ ] Escalated bugs automatically route to Strategic Brain"
   - "[ ] Planning phase supports toggleable strategies (Standard vs Deep_Dive)"
+  - "[ ] Logs contain model name metadata"
 
 openQuestions: []
