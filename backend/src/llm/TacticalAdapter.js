@@ -23,11 +23,25 @@ class TacticalAdapter extends ModelAdapter {
     const lowerPrompt = prompt.toLowerCase();
     
     // In a real LLM call, we would prepend a system prompt:
-    // "You are a tactical assistant. If the request requires high-level architectural planning, 
-    // deep reasoning, or is beyond your scope, respond with exactly: ESCALATE_TO_STRATEGIC"
+    // "You are a tactical assistant. 
+    // Only escalate if the answer requires:
+    // - System-wide architectural changes
+    // - Multi-file refactors
+    // - Security implications
+    // - Scalability planning
+    // - Fundamental design decisions
+    // If so, respond with exactly: ESCALATE_TO_STRATEGIC (or ESCALATE_TO_COUNCIL)"
     
-    // Simulation: triggers for demo
-    if (lowerPrompt.includes('analyze complexity') || lowerPrompt.includes('architectural review')) {
+    // Simulation: triggers for demo (Refined criteria)
+    const complexTriggers = [
+      'analyze complexity', 
+      'architectural review',
+      'security audit',      // Security implication
+      'scale to millions',   // Scalability
+      'rewrite core'         // Fundamental design
+    ];
+
+    if (complexTriggers.some(trigger => lowerPrompt.includes(trigger))) {
       return 'ESCALATE_TO_STRATEGIC';
     }
 
