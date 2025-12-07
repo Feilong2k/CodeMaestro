@@ -1,7 +1,7 @@
 # Subtask Log: 4-4 (Split-Brain Routing Logic)
 id: "4-4"
 title: "Split-Brain Routing Logic"
-status: pending
+status: in_progress
 branch: "subtask/4-4-split-brain-routing"
 
 history:
@@ -9,17 +9,22 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized."
+  - ts: "2023-12-07T12:00:00Z"
+    role: orchestrator
+    action: UPDATED
+    message: "Status changed to in_progress. Started implementation."
 
 requiredActions:
   - "Logic: Implement `TaskRouter` class"
   - "Rules: Define Regex/Keyword rules (e.g., 'fix bug' -> Tactical, 'plan' -> Strategic)"
   - "API: `/api/router/classify` endpoint"
   - "Integration: Connect Chat Interface to Router"
+  - "Demo: Create `backend/demo/demo_4-4.js` to simulate task routing"
 
 verificationChecklist:
   - "[ ] Router correctly classifies 'Create architecture' as Strategic"
   - "[ ] Router correctly classifies 'Fix typo' as Tactical"
   - "[ ] Chat uses the correct model based on routing"
+  - "[ ] Demo script outputs correct classifications"
 
 openQuestions: []
-
