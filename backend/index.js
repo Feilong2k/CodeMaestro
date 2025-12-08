@@ -9,6 +9,7 @@ const patternsRouter = require('./src/routes/patterns');
 const workflowsRouter = require('./src/routes/workflows');
 const taskRouter = require('./src/routes/router');
 const featuresRouter = require('./src/routes/features');
+const tasksRouter = require('./src/routes/tasks');
 const { healthCheck, runMigrations } = require('./src/db/connection');
 const socketService = require('./src/socket');
 
@@ -43,6 +44,7 @@ app.use('/api/patterns', patternsRouter);
 app.use('/api/workflows', workflowsRouter);
 app.use('/api/router', taskRouter);
 app.use('/api/features', featuresRouter);
+app.use('/api/tasks', tasksRouter);
 
 // Global JSON error handler (including body parser errors)
 app.use((err, req, res, next) => {
