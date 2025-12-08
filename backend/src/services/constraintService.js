@@ -7,6 +7,8 @@ class ConstraintService {
   constructor() {
     // Store granted tokens: token -> { agent, command, used, reason, createdAt }
     this.grants = new Map();
+    // Allowed test file extensions for Tara
+    this.TEST_EXTENSIONS = new Set(['.test.js', '.spec.js', '.test.ts', '.spec.ts']);
   }
 
   /**
@@ -26,23 +28,17 @@ class ConstraintService {
 
     // Devon: can write to src/ directories, but not to __tests__ directories
     if (agentRole === 'Devon') {
-      return normalizedPath.includes('src') && !normalizedPath.includes('__tests__');
+      return this._isSrcPath(normalizedPath) && !this._isTestPath(normalizedPath);
     }
 
     // Tara: can write to __tests__ directories, but not to src/ directories
     if (agentRole === 'Tara') {
-      // Block any path containing 'src' (unless it's a test file inside src? but spec says no)
-      if (normalizedPath.includes('src')) {
+      // Block any path containing 'src'
+      if (this._isSrcPath(normalizedPath)) {
         return false;
       }
       // Allow if it's a test directory or test file extension
-      return (
-        normalizedPath.includes('__tests__') ||
-        normalizedPath.endsWith('.test.js') ||
-        normalizedPath.endsWith('.spec.js') ||
-        normalizedPath.endsWith('.spec.ts') ||
-        normalizedPath.endsWith('.test.ts')
-      );
+      return this._isTestPath(normalizedPath);
     }
 
     // Default: deny
@@ -119,6 +115,36 @@ class ConstraintService {
   isCommandAllowedWithToken(agentRole, command, token) {
     return this.validateGrant(agentRole, command, token);
   }
+
+  // Private helper methods
+
+  /**
+   * Check if path is a source path (contains 'src').
+   * @private
+   */
+  _isSrcPath(normalizedPath) {
+    return normalizedPath.includes('src');
+  }
+
+  /**
+   * Check if path is a test path (contains __tests__ or has test extension).
+   * @private
+   */
+  _isTestPath(normalizedPath) {
+    // Check for __tests__ directory
+    if (normalizedPath.includes('__tests__')) {
+      return true;
+    }
+    // Check for test file extensions
+    for (const ext of this.TEST_EXTENSIONS) {
+      if (normalizedPath.endsWith(ext)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
-module.exports = new ConstraintService();
+// Export a singleton instance
+const instance = new ConstraintService();
+module.exports = instance;

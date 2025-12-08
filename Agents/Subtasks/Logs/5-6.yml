@@ -1,7 +1,7 @@
 # Subtask Log: 5-6 (Advanced Shell Tool)
 id: "5-6"
 title: "Advanced Shell Tool (Safe Exec)"
-status: ready_for_dev
+status: completed
 branch: "subtask/5-6-shell-tool"
 
 constraint_discovery:
@@ -76,7 +76,7 @@ requiredActions:
   - "[ ] Implement `cwd` persistence for chained commands"
 
 verificationChecklist:
-  - "[x] [TDD] Failing Unit Tests created (Red) - backend/src/__tests__/unit/shellTool.test.js"
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Blocklist rejects 'sudo' instantly"

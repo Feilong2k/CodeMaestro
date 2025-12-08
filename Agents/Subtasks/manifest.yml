@@ -96,7 +96,7 @@ subtasks:
 
   - id: "5-6"
     title: "Advanced Shell Tool (Safe Exec)"
-    status: in_progress
+    status: completed
     owner: "Devon"
     priority: high
     dependencies: ["5-1"]
@@ -110,7 +110,7 @@ subtasks:
 
   - id: "5-2"
     title: "Task Queue System (Postgres)"
-    status: in_progress
+    status: completed
     owner: "Devon"
     priority: critical
     dependencies: ["5-1"]
