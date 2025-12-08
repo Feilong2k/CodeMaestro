@@ -48,7 +48,11 @@ history:
 requiredActions:
   - "Create `backend/src/tools/ToolRegistry.js`"
   - "Implement `FileTool` (readFile, writeFile, listDir, mkdir) with Path Traversal Protection"
-  - "Implement `ShellTool` (exec) with Command Whitelist"
+  - "Implement `ShellTool` (exec) with Command Whitelist & Blocklist"
+    - "Blocklist (Hard Fail): sudo, chmod, chown, ssh, ftp, curl, wget"
+    - "Whitelist (Allowed): npm, git, ls, dir, cp, mv, rm (restricted), grep, find, ps"
+    - "Orion Override: Allow non-whitelisted commands via Tokenized Grant (if not in Blocklist)"
+    - "Auto-Splitter: Handle `&&` chains by maintaining `cwd` state across sequential commands"
   - "Implement `GitTool` (status, commit, merge, push) with Role Checks"
   - "Implement RBAC Middleware: Verify `agent.role` against `tool.permissions` and `path`"
   - "Define Permission Rules:"
@@ -60,6 +64,8 @@ requiredActions:
 verificationChecklist:
   - "[ ] [TDD] Path Traversal Tests (Red)"
   - "[ ] [TDD] Role Permission Tests (Red)"
+  - "[ ] [TDD] Blocklist rejects 'sudo' instantly"
+  - "[ ] [TDD] Auto-splitter executes 'cd && ls' in correct directory"
   - "[ ] [Green] Tools reject unsafe paths"
   - "[ ] [Green] Tools reject unauthorized roles"
 
