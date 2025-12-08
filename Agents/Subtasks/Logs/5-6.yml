@@ -1,0 +1,48 @@
+# Subtask Log: 5-6 (Advanced Shell Tool)
+id: "5-6"
+title: "Advanced Shell Tool (Safe Exec)"
+status: pending
+branch: "subtask/5-6-shell-tool"
+
+constraint_discovery:
+  subtask_id: "5-6"
+  owner: "Devon"
+  concern: "System Safety"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "Execute Command"
+      description: "Run shell process"
+      
+  resources_touched:
+    - resource: "System Shell"
+      action: "Execution"
+      
+  resource_physics:
+    - resource: "Command Injection"
+      constraint: "Safety"
+      risk: "Malicious commands"
+      mitigation: "Strict Whitelist + Blocklist"
+    - resource: "Command Chaining"
+      constraint: "State"
+      risk: "`cd` lost between commands"
+      mitigation: "Auto-Splitter with persisted CWD"
+
+history:
+  - ts: "2025-12-07T23:45:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Focus on Shell Safety and Logic."
+
+requiredActions:
+  - "[ ] Implement `ShellTool` class"
+  - "[ ] Implement `Blocklist` check (sudo, chmod, ssh, curl...)"
+  - "[ ] Implement `Whitelist` check (npm, git, ls, grep...)"
+  - "[ ] Implement `Auto-Splitter` for `&&` chains"
+  - "[ ] Implement `cwd` persistence for chained commands"
+
+verificationChecklist:
+  - "[ ] [TDD] Blocklist rejects 'sudo' instantly"
+  - "[ ] [TDD] Whitelist allows 'npm test'"
+  - "[ ] [TDD] Auto-splitter executes 'cd && ls' in correct directory"
+

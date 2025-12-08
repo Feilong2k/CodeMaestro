@@ -88,11 +88,25 @@ subtasks:
 
   # Phase 5: Autonomous Execution
   - id: "5-1"
-    title: "Tool Registry & Safety (RBAC)"
+    title: "Tool Registry Core (File & Git)"
     status: pending
     owner: "Devon"
     priority: critical
     dependencies: ["4-11"]
+
+  - id: "5-6"
+    title: "Advanced Shell Tool (Safe Exec)"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["5-1"]
+
+  - id: "5-7"
+    title: "RBAC & Orion Override System"
+    status: pending
+    owner: "Orion"
+    priority: high
+    dependencies: ["5-1"]
 
   - id: "5-2"
     title: "Task Queue System (Postgres)"

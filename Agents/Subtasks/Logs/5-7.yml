@@ -1,0 +1,51 @@
+# Subtask Log: 5-7 (RBAC & Orion Override)
+id: "5-7"
+title: "RBAC & Orion Override System"
+status: pending
+branch: "subtask/5-7-rbac-override"
+
+constraint_discovery:
+  subtask_id: "5-7"
+  owner: "Orion"
+  concern: "Policy Enforcement"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "Check Permission"
+      description: "Verify Agent Role vs Resource"
+    - action: "Grant Override"
+      description: "Issue temporary token"
+      
+  resources_touched:
+    - resource: "Tool Registry"
+      action: "Middleware Interception"
+      
+  resource_physics:
+    - resource: "Security Policy"
+      constraint: "Ownership"
+      risk: "Devon edits Tests"
+      mitigation: "Role-based checks"
+    - resource: "Override Logic"
+      constraint: "Race Condition"
+      risk: "Grant used by wrong agent"
+      mitigation: "Tokenized Grants (UUID)"
+
+history:
+  - ts: "2025-12-07T23:45:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Focus on Permissions and Escalation."
+
+requiredActions:
+  - "[ ] Implement RBAC Middleware in `ToolRegistry`"
+  - "[ ] Define Permission Matrix (Tara->tests, Devon->src, Orion->all)"
+  - "[ ] Implement `ConstraintService.grantOneTimeAccess(taskId, command)`"
+  - "[ ] Implement `ConstraintService.validateGrant(token)`"
+  - "[ ] Update `ShellTool` to check for Override Token on failure"
+
+verificationChecklist:
+  - "[ ] [TDD] Devon blocked from writing to `tests/`"
+  - "[ ] [TDD] Tara blocked from writing to `src/`"
+  - "[ ] [TDD] Non-whitelisted command fails initially"
+  - "[ ] [TDD] Non-whitelisted command passes with valid Grant Token"
+
