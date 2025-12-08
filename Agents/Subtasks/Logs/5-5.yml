@@ -33,19 +33,24 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized. Captures requirements for Project CRUD."
+  - ts: "2025-12-08T03:48:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for ProjectTool (Red phase). Tests cover CRUD operations, soft delete, and directory creation."
+  - ts: "2025-12-08T03:49:00Z"
+    role: tester
+    action: HANDOFF
+    message: "Committed failing unit tests (Red phase). Ready for Devon to implement ProjectTool and migration (Green phase)."
 
 requiredActions:
-  - "Migration: Update `projects` table"
-    - "Add `description` (TEXT)"
-    - "Add `github_url` (VARCHAR)"
-    - "Add `status` (ENUM: active, deleted, archived)"
-  - "Tool: Implement `ProjectTool`"
-    - "create(name, description, githubUrl): mkdir + DB Insert"
-    - "delete(name): DB Update (Soft Delete)"
-    - "list(status='active'): DB Select"
-  - "UI: Update Dashboard to filter out deleted projects"
+  - "[ ] Migration: Update `projects` table"
+  - "[ ] Tool: Implement `ProjectTool`"
+  - "[ ] UI: Update Dashboard to filter out deleted projects"
 
 verificationChecklist:
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests - REQUIRED for this task"
   - "[ ] [TDD] Soft delete hides project from list"
   - "[ ] [TDD] Create project sets correct schema fields"
-
