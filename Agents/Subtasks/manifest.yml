@@ -117,7 +117,7 @@ subtasks:
 
   - id: "5-3"
     title: "The Agent Loop (Executor)"
-    status: in_progress
+    status: completed
     owner: "Devon2"
     priority: critical
     dependencies: ["5-2"]
@@ -125,7 +125,7 @@ subtasks:
   - id: "5-4"
     title: "Output Parsers (XML)"
     status: pending
-    owner: "Devon"
+    owner: "Devon2"
     priority: high
     dependencies: ["5-3"]
 
