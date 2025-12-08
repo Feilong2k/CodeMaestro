@@ -1,102 +1,150 @@
-const fs = require('fs');
-const path = require('path');
+const crypto = require('crypto');
 
 /**
- * ConstraintService - Enforces safety and rate limits for agent operations
+ * Constraint Service for RBAC and one-time override tokens.
  */
 class ConstraintService {
   constructor() {
-    // In-memory store for rate limiting: agentId -> lastRequestTimestamp
-    this.rateLimitMap = new Map();
-    // Rate limit window in milliseconds (1 second)
-    this.RATE_LIMIT_WINDOW_MS = 1000;
+    // Store granted tokens: token -> { agent, command, used, reason, createdAt }
+    this.grants = new Map();
+    // Allowed test file extensions for Tara
+    this.TEST_EXTENSIONS = new Set(['.test.js', '.spec.js', '.test.ts', '.spec.ts']);
   }
 
   /**
-   * Validates that a file path is safe to use.
-   * Rejects paths containing '..', absolute paths, and paths outside the project root.
-   * @param {string} inputPath - The path to validate
-   * @throws {Error} If the path is unsafe
+   * RBAC: Check if an agent can write to a given path.
+   * @param {string} agentRole - 'Devon', 'Tara', or 'Orion'
+   * @param {string} path - File path
+   * @returns {boolean} True if allowed
    */
-  validatePathSafety(inputPath) {
-    if (!inputPath || typeof inputPath !== 'string') {
-      throw new Error('Path must be a non-empty string');
+  canWrite(agentRole, path) {
+    // Normalize path separators
+    const normalizedPath = path.replace(/\\/g, '/');
+
+    // Orion can write anywhere
+    if (agentRole === 'Orion') {
+      return true;
     }
 
-    // Check for directory traversal patterns
-    if (inputPath.includes('..')) {
-      throw new Error('Unsafe path: outside project root (contains parent directory traversal)');
+    // Devon: can write to src/ directories, but not to __tests__ directories
+    if (agentRole === 'Devon') {
+      return this._isSrcPath(normalizedPath) && !this._isTestPath(normalizedPath);
     }
 
-    // Check for absolute paths (starting with / or drive letter)
-    const isAbsolute = path.isAbsolute(inputPath);
-    if (isAbsolute) {
-      throw new Error('Unsafe path: absolute paths are not allowed');
+    // Tara: can write to __tests__ directories, but not to src/ directories
+    if (agentRole === 'Tara') {
+      // Block any path containing 'src'
+      if (this._isSrcPath(normalizedPath)) {
+        return false;
+      }
+      // Allow if it's a test directory or test file extension
+      return this._isTestPath(normalizedPath);
     }
 
-    // Normalize the path and resolve relative to the current working directory
-    const normalized = path.normalize(inputPath);
-    const resolved = path.resolve(process.cwd(), normalized);
-
-    // Ensure the resolved path is within the current working directory
-    const cwd = process.cwd();
-    if (!resolved.startsWith(cwd)) {
-      throw new Error('Unsafe path: outside project root');
-    }
-
-    // All checks passed
+    // Default: deny
+    return false;
   }
 
   /**
-   * Validates that a Git repository does not have an active lock file.
-   * @param {string} repoPath - Path to the Git repository
-   * @throws {Error} If .git/index.lock exists
+   * Generate a one-time access token for a command.
+   * @param {string} agentRole - Agent requesting the token
+   * @param {string} command - Command to be allowed
+   * @param {string} reason - Reason for the override
+   * @returns {string} UUID token
    */
-  validateGitLock(repoPath) {
-    // Allow empty repoPath (no repository to check)
-    if (repoPath === undefined || repoPath === null) {
-      throw new Error('Repository path must be a string');
-    }
-    if (typeof repoPath !== 'string') {
-      throw new Error('Repository path must be a string');
-    }
-    if (repoPath === '') {
-      // Empty path means no repository, so no lock to check
-      return;
-    }
-
-    const lockPath = path.posix.join(repoPath, '.git', 'index.lock');
-    if (fs.existsSync(lockPath)) {
-      throw new Error(`Git lock detected at ${lockPath}. Another Git operation may be in progress.`);
-    }
+  grantOneTimeAccess(agentRole, command, reason) {
+    const token = crypto.randomUUID();
+    this.grants.set(token, {
+      agent: agentRole,
+      command,
+      reason,
+      used: false,
+      createdAt: Date.now(),
+    });
+    return token;
   }
 
   /**
-   * Enforces a rate limit of 1 request per second per agent.
-   * @param {string} agentId - Unique identifier for the agent
-   * @throws {Error} If the rate limit is exceeded
+   * Validate a grant token for a specific agent and command.
+   * Marks the token as used if valid.
+   * @param {string} agentRole - Agent using the token
+   * @param {string} command - Command being executed
+   * @param {string} token - The token to validate
+   * @returns {boolean} True if token is valid and not yet used
    */
-  validateRateLimit(agentId) {
-    if (!agentId || typeof agentId !== 'string') {
-      throw new Error('Agent ID must be a non-empty string');
+  validateGrant(agentRole, command, token) {
+    const grant = this.grants.get(token);
+    if (!grant) {
+      return false;
     }
+    if (grant.used) {
+      return false;
+    }
+    if (grant.agent !== agentRole) {
+      return false;
+    }
+    if (grant.command !== command) {
+      return false;
+    }
+    // Mark as used
+    grant.used = true;
+    this.grants.set(token, grant);
+    return true;
+  }
 
-    const now = Date.now();
-    const lastRequest = this.rateLimitMap.get(agentId);
+  /**
+   * Check if a command is allowed without a token.
+   * Currently, no commands are allowed without a token (non-whitelisted).
+   * @param {string} agentRole - Agent role
+   * @param {string} command - Command to check
+   * @returns {boolean} True if allowed
+   */
+  isCommandAllowed(agentRole, command) {
+    // No whitelist implemented; all commands require a token.
+    // In the future, we can add a whitelist per agent.
+    return false;
+  }
 
-    if (lastRequest !== undefined) {
-      const timeSinceLastRequest = now - lastRequest;
-      if (timeSinceLastRequest < this.RATE_LIMIT_WINDOW_MS) {
-        throw new Error(`Rate limit exceeded for agent ${agentId}. Please wait ${this.RATE_LIMIT_WINDOW_MS - timeSinceLastRequest}ms.`);
+  /**
+   * Check if a command is allowed with a token.
+   * @param {string} agentRole - Agent role
+   * @param {string} command - Command to check
+   * @param {string} token - Token to validate
+   * @returns {boolean} True if token is valid and command matches
+   */
+  isCommandAllowedWithToken(agentRole, command, token) {
+    return this.validateGrant(agentRole, command, token);
+  }
+
+  // Private helper methods
+
+  /**
+   * Check if path is a source path (contains 'src').
+   * @private
+   */
+  _isSrcPath(normalizedPath) {
+    return normalizedPath.includes('src');
+  }
+
+  /**
+   * Check if path is a test path (contains __tests__ or has test extension).
+   * @private
+   */
+  _isTestPath(normalizedPath) {
+    // Check for __tests__ directory
+    if (normalizedPath.includes('__tests__')) {
+      return true;
+    }
+    // Check for test file extensions
+    for (const ext of this.TEST_EXTENSIONS) {
+      if (normalizedPath.endsWith(ext)) {
+        return true;
       }
     }
-
-    // Update the last request time
-    this.rateLimitMap.set(agentId, now);
+    return false;
   }
 }
 
-// Export a singleton instance and the class
+// Export a singleton instance
 const instance = new ConstraintService();
 module.exports = instance;
-module.exports.ConstraintService = ConstraintService;
