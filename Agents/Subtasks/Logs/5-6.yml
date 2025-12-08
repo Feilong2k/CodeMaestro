@@ -1,7 +1,7 @@
 # Subtask Log: 5-6 (Advanced Shell Tool)
 id: "5-6"
 title: "Advanced Shell Tool (Safe Exec)"
-status: in_progress
+status: completed
 branch: "subtask/5-6-shell-tool"
 
 constraint_discovery:
