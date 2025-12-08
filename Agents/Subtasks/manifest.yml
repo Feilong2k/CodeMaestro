@@ -145,7 +145,7 @@ subtasks:
 
   - id: "5-8"
     title: "Task Dashboard UI"
-    status: in_progress
+    status: completed
     owner: "Devon1"
     priority: medium
     dependencies: ["5-2"]
