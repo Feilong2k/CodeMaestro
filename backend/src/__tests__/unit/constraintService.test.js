@@ -1,9 +1,9 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let ConstraintService;
 try {
-  ConstraintService = require('../../../src/services/ConstraintService');
+  ConstraintService = require('../../../src/services/constraintService');
 } catch (error) {
   // This is expected in the Red phase. We'll create a dummy object that throws for all methods.
   ConstraintService = {};
@@ -11,7 +11,7 @@ try {
 
 // Helper to ensure we have a method to test, otherwise skip the test.
 function requireConstraintService() {
-  if (Object.keys(ConstraintService).length === 0) {
+  if (!ConstraintService || typeof ConstraintService.canWrite !== 'function') {
     throw new Error('ConstraintService module not found. Tests are expected to fail.');
   }
   return ConstraintService;
