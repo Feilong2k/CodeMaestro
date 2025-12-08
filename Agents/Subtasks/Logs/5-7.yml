@@ -1,7 +1,7 @@
 # Subtask Log: 5-7 (RBAC & Orion Override)
 id: "5-7"
 title: "RBAC & Orion Override System"
-status: in_progress
+status: pending_tests
 branch: "subtask/5-7-rbac-override"
 
 constraint_discovery:
