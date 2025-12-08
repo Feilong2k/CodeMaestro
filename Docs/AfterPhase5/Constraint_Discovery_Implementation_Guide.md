@@ -405,6 +405,75 @@ Gaps MUST Be Clarified:
 Status: APPROVED / CONDITIONALLY APPROVED / BLOCKED
 ```
 
+---
+
+### Current Protocol (Tier 3 - Subtask Level)
+
+This is the YAML-based format embedded in subtask logs. Used for single-concern work.
+
+```yaml
+constraint_discovery:
+  subtask_id: "5-X"
+  owner: "Devon"              # Agent responsible
+  concern: "Area of Focus"    # e.g., "Data Integrity", "File Safety"
+  date: "YYYY-MM-DD"
+  
+  # What actions will be performed?
+  atomic_actions:
+    - action: "Action Name"
+      description: "What it does"
+    - action: "Another Action"
+      description: "What it does"
+      
+  # What resources will be touched?
+  resources_touched:
+    - resource: "Resource Name"    # e.g., "PostgreSQL", "File System"
+      action: "Read/Write/Lock"
+      notes: "Risk or concern"
+      
+  # Physical constraints and mitigations
+  resource_physics:
+    - resource: "Resource Name"
+      constraint: "Physical Limitation"  # e.g., "Race Conditions"
+      risk: "What could go wrong"
+      mitigation: "How to prevent it"
+```
+
+**Real Example (from 5-2 Task Queue):**
+
+```yaml
+constraint_discovery:
+  subtask_id: "5-2"
+  owner: "Devon"
+  concern: "Data Integrity & Concurrency"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "Enqueue Task"
+      description: "Add new job to DB"
+    - action: "Dequeue Task"
+      description: "Worker claims job (Locking)"
+    - action: "Complete Task"
+      description: "Mark job as done with result"
+    - action: "Fail Task"
+      description: "Mark job as failed with error"
+      
+  resources_touched:
+    - resource: "PostgreSQL"
+      action: "Row Locking"
+      notes: "High concurrency potential"
+      
+  resource_physics:
+    - resource: "Database Connections"
+      constraint: "Race Conditions"
+      risk: "Two agents claim same task"
+      mitigation: "SELECT ... FOR UPDATE SKIP LOCKED"
+    - resource: "Task State"
+      constraint: "Stalled Jobs"
+      risk: "Agent crashes, task remains 'running' forever"
+      mitigation: "Timeout/Heartbeat mechanism (Future) or Manual Reset"
+```
+
 ================================================================================
 ## PROTOCOL SELECTION CHEATSHEET
 ================================================================================
