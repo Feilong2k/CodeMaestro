@@ -45,7 +45,6 @@ requiredActions:
   - "Prompting: Update System Prompts to enforce XML format"
 
 verificationChecklist:
-  - "[ ] [TDD] Parses valid XML tool calls"
-  - "[ ] [TDD] Handles multiple tool calls in one message"
-  - "[ ] [TDD] Handles partial/malformed XML gracefully"
-
+  - "[x] [TDD] Parses valid XML tool calls"
+  - "[x] [TDD] Handles multiple tool calls in one message"
+  - "[x] [TDD] Handles partial/malformed XML gracefully"

@@ -57,7 +57,6 @@ requiredActions:
   - "Safety: Integrate Context Pruner (4-11)"
 
 verificationChecklist:
-  - "[ ] [TDD] Loop executes tools based on plan"
-  - "[ ] [TDD] Step Budget kills infinite loop"
+  - "[x] [TDD] Loop executes tools based on plan"
+  - "[x] [TDD] Step Budget kills infinite loop"
   - "[ ] [Green] Task marked failed if loop aborts"
-

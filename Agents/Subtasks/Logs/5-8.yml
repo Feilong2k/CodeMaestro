@@ -60,7 +60,7 @@ requiredActions:
   - "[ ] [TDD] Refactor (Cleanup)"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] Dashboard loads without error"
