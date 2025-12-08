@@ -1,4 +1,4 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let GitTool;
@@ -18,8 +18,8 @@ const child_process = require('child_process');
 
 // Helper to ensure we have a method to test, otherwise skip the test.
 function requireGitTool() {
-  if (Object.keys(GitTool).length === 0) {
-    throw new Error('GitTool module not found. Tests are expected to fail.');
+  if (!GitTool || typeof GitTool.status !== 'function') {
+    throw new Error('GitTool module not found or does not export status. Tests are expected to fail.');
   }
   return GitTool;
 }
@@ -27,112 +27,148 @@ function requireGitTool() {
 describe('Git Tool', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock that works with the promise-based GitTool (which uses exec with three arguments: command, options, callback)
+    child_process.exec.mockImplementation((command, options, callback) => {
+      // Determine which parameter is the callback
+      const actualCallback = typeof callback === 'function' ? callback : (typeof options === 'function' ? options : null);
+      if (actualCallback) {
+        // Node.js exec callback expects (error, stdout, stderr)
+        actualCallback(null, '', '');
+      }
+    });
   });
 
   describe('status()', () => {
-    test('should call git status command', () => {
+    test('should call git status command', async () => {
       const tool = requireGitTool();
 
-      // Mock exec to call callback with success
-      child_process.exec.mockImplementation((command, callback) => {
-        callback(null, { stdout: 'On branch main', stderr: '' });
+      // Override the default mock for this test
+      child_process.exec.mockImplementationOnce((command, options, callback) => {
+        // The tool passes options, so callback is the third argument
+        if (typeof callback === 'function') {
+          callback(null, { stdout: 'On branch main', stderr: '' });
+        } else if (typeof options === 'function') {
+          options(null, { stdout: 'On branch main', stderr: '' });
+        }
       });
 
-      const result = tool.status();
+      // The tool's status returns a promise
+      const result = await tool.status();
 
-      // We expect the function to return a promise or the result, but we don't know the exact shape.
-      // We'll just check that exec was called with a command containing 'git status'
+      // Check that exec was called with a command containing 'git status'
       expect(child_process.exec).toHaveBeenCalledWith(
         expect.stringContaining('git status'),
+        expect.objectContaining({ cwd: expect.any(String) }),
         expect.any(Function)
       );
+      expect(result.stdout).toBe('On branch main');
     });
   });
 
   describe('add(files)', () => {
-    test('should call git add with given files', () => {
+    test('should call git add with given files', async () => {
       const tool = requireGitTool();
 
-      child_process.exec.mockImplementation((command, callback) => {
-        callback(null, { stdout: '', stderr: '' });
+      child_process.exec.mockImplementationOnce((command, options, callback) => {
+        if (typeof callback === 'function') {
+          callback(null, { stdout: '', stderr: '' });
+        } else if (typeof options === 'function') {
+          options(null, { stdout: '', stderr: '' });
+        }
       });
 
       const files = ['file1.txt', 'file2.js'];
-      tool.add(files);
+      await tool.add(files);
 
       expect(child_process.exec).toHaveBeenCalledWith(
         expect.stringContaining('git add'),
+        expect.objectContaining({ cwd: expect.any(String) }),
         expect.any(Function)
       );
       // The command should include the file names
-      expect(child_process.exec.mock.calls[0][0]).toContain('file1.txt');
-      expect(child_process.exec.mock.calls[0][0]).toContain('file2.js');
+      const call = child_process.exec.mock.calls[0];
+      expect(call[0]).toContain('file1.txt');
+      expect(call[0]).toContain('file2.js');
     });
 
     test('should block dangerous arguments (e.g., rm -rf)', () => {
       const tool = requireGitTool();
-
       // We expect the tool to validate arguments and throw if dangerous
       // Since we don't know the exact implementation, we'll test that the function exists.
       // In the Green phase, we'll have more specific tests.
       expect(typeof tool.add).toBe('function');
-      // We can also call it with safe arguments and ensure it doesn't throw (if implemented).
-      // For now, we'll just note that the test will be expanded later.
     });
   });
 
   describe('commit(message)', () => {
-    test('should call git commit with message', () => {
+    test('should call git commit with message', async () => {
       const tool = requireGitTool();
 
-      child_process.exec.mockImplementation((command, callback) => {
-        callback(null, { stdout: 'commit hash', stderr: '' });
+      child_process.exec.mockImplementationOnce((command, options, callback) => {
+        if (typeof callback === 'function') {
+          callback(null, { stdout: 'commit hash', stderr: '' });
+        } else if (typeof options === 'function') {
+          options(null, { stdout: 'commit hash', stderr: '' });
+        }
       });
 
       const message = 'Test commit';
-      tool.commit(message);
+      await tool.commit(message);
 
       expect(child_process.exec).toHaveBeenCalledWith(
         expect.stringContaining('git commit'),
+        expect.objectContaining({ cwd: expect.any(String) }),
         expect.any(Function)
       );
-      expect(child_process.exec.mock.calls[0][0]).toContain(message);
+      const call = child_process.exec.mock.calls[0];
+      expect(call[0]).toContain(message);
     });
   });
 
   describe('push()', () => {
-    test('should call git push', () => {
+    test('should call git push', async () => {
       const tool = requireGitTool();
 
-      child_process.exec.mockImplementation((command, callback) => {
-        callback(null, { stdout: 'pushed', stderr: '' });
+      child_process.exec.mockImplementationOnce((command, options, callback) => {
+        if (typeof callback === 'function') {
+          callback(null, { stdout: 'pushed', stderr: '' });
+        } else if (typeof options === 'function') {
+          options(null, { stdout: 'pushed', stderr: '' });
+        }
       });
 
-      tool.push();
+      await tool.push();
 
       expect(child_process.exec).toHaveBeenCalledWith(
         expect.stringContaining('git push'),
+        expect.objectContaining({ cwd: expect.any(String) }),
         expect.any(Function)
       );
     });
   });
 
   describe('checkout(branch)', () => {
-    test('should call git checkout with branch name', () => {
+    test('should call git checkout with branch name', async () => {
       const tool = requireGitTool();
 
-      child_process.exec.mockImplementation((command, callback) => {
-        callback(null, { stdout: 'Switched to branch', stderr: '' });
+      child_process.exec.mockImplementationOnce((command, options, callback) => {
+        if (typeof callback === 'function') {
+          callback(null, { stdout: 'Switched to branch', stderr: '' });
+        } else if (typeof options === 'function') {
+          options(null, { stdout: 'Switched to branch', stderr: '' });
+        }
       });
 
       const branch = 'feature/new-branch';
-      tool.checkout(branch);
+      await tool.checkout(branch);
 
       expect(child_process.exec).toHaveBeenCalledWith(
         expect.stringContaining('git checkout'),
+        expect.objectContaining({ cwd: expect.any(String) }),
         expect.any(Function)
       );
-      expect(child_process.exec.mock.calls[0][0]).toContain(branch);
+      const call = child_process.exec.mock.calls[0];
+      expect(call[0]).toContain(branch);
     });
   });
 

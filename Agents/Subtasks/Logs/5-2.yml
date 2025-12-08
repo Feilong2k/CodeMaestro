@@ -1,12 +1,12 @@
 # Subtask Log: 5-2 (Task Queue System)
 id: "5-2"
 title: "Task Queue System (Postgres)"
-status: pending
+status: in_progress
 branch: "subtask/5-2-task-queue"
 
 constraint_discovery:
   subtask_id: "5-2"
-  owner: "Orion"
+  owner: "Devon"
   concern: "Data Integrity & Concurrency"
   date: "2025-12-07"
   
@@ -15,6 +15,10 @@ constraint_discovery:
       description: "Add new job to DB"
     - action: "Dequeue Task"
       description: "Worker claims job (Locking)"
+    - action: "Complete Task"
+      description: "Mark job as done with result"
+    - action: "Fail Task"
+      description: "Mark job as failed with error"
       
   resources_touched:
     - resource: "PostgreSQL"
@@ -30,26 +34,62 @@ constraint_discovery:
       constraint: "Stalled Jobs"
       risk: "Agent crashes, task remains 'running' forever"
       mitigation: "Timeout/Heartbeat mechanism (Future) or Manual Reset"
-      
-  verification:
-    - action: "Concurrency Test"
-      method: "Spawn 5 workers trying to dequeue simultaneously"
+
+implementation_plan:
+  - component: "Database Migration"
+    path: "backend/src/db/migrations/015_create_tasks_table.sql"
+    details: |
+      CREATE TABLE tasks (
+        id SERIAL PRIMARY KEY,
+        type VARCHAR(50) NOT NULL,
+        payload JSONB NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        worker_id VARCHAR(50),
+        result JSONB,
+        error TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        started_at TIMESTAMP,
+        completed_at TIMESTAMP
+      );
+      CREATE INDEX idx_tasks_status ON tasks(status);
+
+  - component: "TaskQueueService"
+    path: "backend/src/services/TaskQueueService.js"
+    details: |
+      - enqueue(type, payload): Insert new task with 'pending' status
+      - dequeue(workerId): SELECT ... FOR UPDATE SKIP LOCKED, set status='running'
+      - complete(taskId, result): Set status='completed', store result
+      - fail(taskId, error): Set status='failed', store error
+      - getPendingCount(): For monitoring
+      - getTasksByStatus(status): For dashboard
 
 history:
   - ts: "2025-12-07T22:00:00Z"
     role: orchestrator
     action: CREATED
     message: "Log initialized. Focus on ACID-compliant Task Queue."
+  - ts: "2025-12-08T13:00:00Z"
+    role: orchestrator
+    action: UPDATED
+    message: "Added implementation plan and TDD checklist for Tara."
 
 requiredActions:
-  - "Migration: Create `tasks` table (id, payload, status, worker_id, timestamps)"
-  - "Service: `TaskQueueService.enqueue(type, payload)`"
-  - "Service: `TaskQueueService.dequeue(workerId)` using SKIP LOCKED"
-  - "Service: `TaskQueueService.complete(taskId, result)`"
-  - "Service: `TaskQueueService.fail(taskId, error)`"
+  - "[ ] [TDD] Create failing unit tests (Red)"
+  - "[ ] [TDD] Implement TaskQueueService (Green)"
+  - "[ ] [TDD] Refactor (Cleanup)"
+  - "[ ] Migration: Create `tasks` table"
+  - "[ ] Service: `TaskQueueService.enqueue(type, payload)`"
+  - "[ ] Service: `TaskQueueService.dequeue(workerId)` using SKIP LOCKED"
+  - "[ ] Service: `TaskQueueService.complete(taskId, result)`"
+  - "[ ] Service: `TaskQueueService.fail(taskId, error)`"
 
 verificationChecklist:
-  - "[ ] [TDD] Enqueue/Dequeue Logic (Red)"
-  - "[ ] [Green] Tasks are locked correctly (no double claims)"
-  - "[ ] [Green] Completed tasks persist results"
-
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] enqueue() inserts task with 'pending' status"
+  - "[ ] [TDD] dequeue() returns oldest pending task and sets status='running'"
+  - "[ ] [TDD] dequeue() returns null if no pending tasks"
+  - "[ ] [TDD] complete() sets status='completed' and stores result"
+  - "[ ] [TDD] fail() sets status='failed' and stores error"
+  - "[ ] [TDD] Concurrent dequeue() does not return same task twice (SKIP LOCKED)"

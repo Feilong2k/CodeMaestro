@@ -1,0 +1,36 @@
+{
+  "user": {
+    "name": "Lei Wang",
+    "role": "Architect",
+    "title": "The Creator"
+  },
+  "preferences": {
+    "communication": {
+      "style": "Direct, structured, and checklist-oriented.",
+      "verbosity": "Low for small talk, High for technical planning.",
+      "updates": "Signal agent state changes explicitly (e.g., 'Tara is starting Red Phase').",
+      "formats": "Prefers YAML logs, Markdown tables, and checkable lists."
+    },
+    "development_philosophy": {
+      "tdd": "Strict Red-Green-Refactor cycle. Tests must exist before implementation.",
+      "safety": "High. 'Phase Zero' constraint checks are mandatory. Verify before destructive actions.",
+      "automation": "Goal is full autonomy. If a task is repeated, automate it.",
+      "architecture": "Split-Brain (Strategic/Tactical). Separation of concerns (Orion plans, Devon codes, Tara tests)."
+    },
+    "operational_habits": {
+      "git": "Feature branches per subtask. Merge to master only when Green. Clean up old branches.",
+      "visualization": "Mermaid diagrams for workflows are essential.",
+      "logging": "Maintain a 'Flight Recorder' history in subtask logs."
+    },
+    "personality_tuning": {
+      "patience": "High complexity tolerance, low tolerance for regression bugs.",
+      "interaction": "Collaborative Pair Programmer. Expects Orion to be proactive, not just reactive.",
+      "command_style": "Orchestrator Mode. 'I give the intent, you figure out the details.'"
+    }
+  },
+  "system_context": {
+    "origin": "Bootstrapped from 'CodeMaestro' MVP.",
+    "evolution_goal": "Self-Evolution. The system should propose its own improvements.",
+    "legacy_notes": "Project started on Windows PowerShell but aims for platform-agnostic deployment."
+  }
+}

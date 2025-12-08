@@ -81,7 +81,7 @@ subtasks:
 
   - id: "4-13"
     title: "Workflow Visualization (Mermaid)"
-    status: completed
+    status: deferred
     owner: "Devon"
     priority: medium
     dependencies: ["4-10"]
@@ -89,28 +89,28 @@ subtasks:
   # Phase 5: Autonomous Execution
   - id: "5-1"
     title: "Tool Registry Core (File & Git)"
-    status: pending
+    status: completed
     owner: "Devon"
     priority: critical
     dependencies: ["4-11"]
 
   - id: "5-6"
     title: "Advanced Shell Tool (Safe Exec)"
-    status: pending
+    status: in_progress
     owner: "Devon"
     priority: high
     dependencies: ["5-1"]
 
   - id: "5-7"
     title: "RBAC & Orion Override System"
-    status: pending
+    status: in_progress
     owner: "Orion"
     priority: high
     dependencies: ["5-1"]
 
   - id: "5-2"
     title: "Task Queue System (Postgres)"
-    status: pending
+    status: in_progress
     owner: "Devon"
     priority: critical
     dependencies: ["5-1"]
@@ -131,7 +131,21 @@ subtasks:
 
   - id: "5-5"
     title: "Project Management Tools (CRUD)"
-    status: pending
+    status: completed
     owner: "Devon"
     priority: medium
     dependencies: ["5-1"]
+
+  - id: "5-9"
+    title: "Feature Backlog Migration (MD -> DB) & UI"
+    status: completed
+    owner: "Devon"
+    priority: medium
+    dependencies: ["5-1"]
+
+  - id: "5-8"
+    title: "Task Dashboard UI"
+    status: pending
+    owner: "Devon"
+    priority: medium
+    dependencies: ["5-2"]

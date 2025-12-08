@@ -1,4 +1,4 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let FeaturesService;
@@ -42,8 +42,7 @@ describe('Features Service', () => {
       const features = await service.getAllFeatures();
 
       expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT'),
-        expect.anything()
+        expect.stringContaining('SELECT')
       );
       expect(features).toEqual(mockFeatures);
     });

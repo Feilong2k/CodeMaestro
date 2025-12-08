@@ -1,0 +1,27 @@
+{
+  "subtask_id": "5-1",
+  "role": "Tara",
+  "goal": "Create unit tests for the Tool Registry and Core Safety Tools (Phase 5-1)",
+  "context": {
+    "feature": "Tool Registry Core",
+    "requirements": [
+      "Verify ToolRegistry correctly returns allowed tools for each role (Devon, Tara, Orion)",
+      "Verify FileSystemTool prevents access outside the project root (Path Traversal Protection)",
+      "Verify FileSystemTool allows read/write within allowed directories",
+      "Verify GitTool exposes required methods (status, add, commit, push, checkout)",
+      "Verify DatabaseTool is only accessible to Orion",
+      "Verify DatabaseTool has methods: savePattern, updateWorkflow, searchLogs"
+    ],
+    "constraints": [
+      "Use Jest for testing",
+      "Mock filesystem operations where appropriate to avoid messing up actual files",
+      "Mock child_process for GitTool tests"
+    ],
+    "files_to_create": [
+      "backend/src/__tests__/unit/toolRegistry.test.js",
+      "backend/src/__tests__/unit/fileSystemTool.test.js",
+      "backend/src/__tests__/unit/gitTool.test.js",
+      "backend/src/__tests__/unit/databaseTool.test.js"
+    ]
+  }
+}

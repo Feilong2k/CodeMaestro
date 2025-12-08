@@ -1,0 +1,27 @@
+{
+  "environment": {
+    "os": "win32",
+    "node_version": "20.x",
+    "database": "postgresql",
+    "disk_usage": "unknown",
+    "gpu_available": false
+  },
+  "active_constraints": [
+    {
+      "id": "port_conflict",
+      "status": "potential",
+      "description": "Port 3000 often used by other processes. Check before binding."
+    },
+    {
+      "id": "git_lock",
+      "status": "clear",
+      "description": "Ensure index.lock is cleared before git operations."
+    },
+    {
+      "id": "api_rate_limit",
+      "status": "normal",
+      "description": "Standard tier limits apply."
+    }
+  ]
+}
+

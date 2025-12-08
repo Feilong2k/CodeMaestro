@@ -1,13 +1,7 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 
-// The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
-let DatabaseTool;
-try {
-  DatabaseTool = require('../../../src/tools/DatabaseTool');
-} catch (error) {
-  // This is expected in the Red phase. We'll create a dummy object that throws for all methods.
-  DatabaseTool = {};
-}
+// Import the module (it exists now)
+const DatabaseTool = require('../../../src/tools/DatabaseTool');
 
 // Mock the database connection
 jest.mock('../../../src/db/connection', () => ({
@@ -16,121 +10,132 @@ jest.mock('../../../src/db/connection', () => ({
 
 const db = require('../../../src/db/connection');
 
-// Helper to ensure we have a method to test, otherwise skip the test.
-function requireDatabaseTool() {
-  if (Object.keys(DatabaseTool).length === 0) {
-    throw new Error('DatabaseTool module not found. Tests are expected to fail.');
-  }
-  return DatabaseTool;
-}
-
 describe('Database Tool', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock: return empty result
+    db.query.mockResolvedValue({ rows: [], rowCount: 0 });
   });
 
   describe('savePattern(pattern)', () => {
-    test('should throw error if role is not Orion', () => {
-      const tool = requireDatabaseTool();
-
-      // We expect the tool to check the role and throw if not Orion.
-      // Since we don't know the exact implementation, we'll test that the function exists.
-      // In the Green phase, we'll test that it throws when called by non-Orion.
-      expect(typeof tool.savePattern).toBe('function');
+    test('should throw error if role is not Orion', async () => {
+      // Create a tool instance with a non-Orion role
+      const nonOrionTool = new DatabaseTool.DatabaseTool('Devon');
+      await expect(nonOrionTool.savePattern({ name: 'test', definition: {} }))
+        .rejects.toThrow('DatabaseTool is only accessible to Orion');
     });
 
-    test('should call database query to insert pattern for Orion', () => {
-      const tool = requireDatabaseTool();
+    test('should call database query to insert pattern for Orion', async () => {
+      // The default exported instance is for Orion
+      const tool = DatabaseTool; // This is the default Orion instance
 
-      // Mock the database query to return success
-      db.query.mockResolvedValue({ rows: [{ id: 1 }] });
+      const mockRow = { id: 1, name: 'Test Pattern', definition: {}, created_at: new Date() };
+      db.query.mockResolvedValueOnce({ rows: [mockRow] });
 
       const pattern = { name: 'Test Pattern', definition: {} };
-      // We assume the tool method returns a promise or result.
-      // We'll just call it and check that the db.query was called.
-      // Note: the tool might require an Orion role, so we might need to set up a mock role.
-      // Since we don't know, we'll just call the function and see if it crashes.
-      // In the Red phase, it's okay if it throws because the module doesn't exist.
-      // We'll catch the error and mark the test as passed (since we expect it to fail).
-      try {
-        tool.savePattern(pattern);
-        // If it doesn't throw, we can check that db.query was called.
-        expect(db.query).toHaveBeenCalledWith(
-          expect.stringContaining('INSERT'),
-          expect.arrayContaining([pattern.name, pattern.definition])
-        );
-      } catch (error) {
-        // Expected in Red phase
-      }
+      const result = await tool.savePattern(pattern);
+
+      // Check that db.query was called with correct SQL and values
+      expect(db.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT'),
+        [pattern.name, expect.any(String)] // definition is stringified JSON
+      );
+      expect(result).toEqual(mockRow);
+    });
+
+    test('should throw error if pattern missing name or definition', async () => {
+      const tool = DatabaseTool;
+      await expect(tool.savePattern({})).rejects.toThrow('Pattern must have name and definition');
+      await expect(tool.savePattern({ name: 'test' })).rejects.toThrow('Pattern must have name and definition');
+      await expect(tool.savePattern({ definition: {} })).rejects.toThrow('Pattern must have name and definition');
     });
   });
 
   describe('updateWorkflow(name, definition)', () => {
-    test('should throw error if role is not Orion', () => {
-      const tool = requireDatabaseTool();
-
-      // Similar to savePattern, we expect role checking.
-      expect(typeof tool.updateWorkflow).toBe('function');
+    test('should throw error if role is not Orion', async () => {
+      const nonOrionTool = new DatabaseTool.DatabaseTool('Tara');
+      await expect(nonOrionTool.updateWorkflow('test', {}))
+        .rejects.toThrow('DatabaseTool is only accessible to Orion');
     });
 
-    test('should call database query to update workflow for Orion', () => {
-      const tool = requireDatabaseTool();
+    test('should call database query to update workflow for Orion', async () => {
+      const tool = DatabaseTool;
 
-      db.query.mockResolvedValue({ rowCount: 1 });
+      const mockRow = { id: 1, name: 'workflow1', definition: {}, updated_at: new Date() };
+      db.query.mockResolvedValueOnce({ rows: [mockRow], rowCount: 1 });
 
       const name = 'workflow1';
       const definition = { states: {} };
-      try {
-        tool.updateWorkflow(name, definition);
-        expect(db.query).toHaveBeenCalledWith(
-          expect.stringContaining('UPDATE'),
-          expect.arrayContaining([name, definition])
-        );
-      } catch (error) {
-        // Expected in Red phase
-      }
+      const result = await tool.updateWorkflow(name, definition);
+
+      expect(db.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE'),
+        [name, expect.any(String)] // definition stringified
+      );
+      expect(result).toEqual(mockRow);
+    });
+
+    test('should throw error if workflow not found', async () => {
+      const tool = DatabaseTool;
+      db.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+      await expect(tool.updateWorkflow('nonexistent', {}))
+        .rejects.toThrow('Workflow "nonexistent" not found');
     });
   });
 
   describe('searchLogs(query)', () => {
-    test('should throw error if role is not Orion', () => {
-      const tool = requireDatabaseTool();
-
-      expect(typeof tool.searchLogs).toBe('function');
+    test('should throw error if role is not Orion', async () => {
+      const nonOrionTool = new DatabaseTool.DatabaseTool('Devon');
+      await expect(nonOrionTool.searchLogs('test'))
+        .rejects.toThrow('DatabaseTool is only accessible to Orion');
     });
 
-    test('should call database query to search logs for Orion', () => {
-      const tool = requireDatabaseTool();
+    test('should call database query to search logs for Orion', async () => {
+      const tool = DatabaseTool;
 
-      const mockResults = [{ id: 1, message: 'test log' }];
-      db.query.mockResolvedValue({ rows: mockResults });
+      const mockRows = [
+        { id: 1, level: 'info', message: 'test log', timestamp: new Date(), metadata: {} }
+      ];
+      db.query.mockResolvedValueOnce({ rows: mockRows });
 
       const query = 'test';
-      try {
-        tool.searchLogs(query);
-        expect(db.query).toHaveBeenCalledWith(
-          expect.stringContaining('SELECT'),
-          expect.arrayContaining([query])
-        );
-      } catch (error) {
-        // Expected in Red phase
-      }
+      const results = await tool.searchLogs(query);
+
+      expect(db.query).toHaveBeenCalledWith(
+        expect.stringContaining('SELECT'),
+        [`%${query}%`]
+      );
+      expect(results).toEqual(mockRows);
+    });
+
+    test('should return empty array if system_logs table does not exist', async () => {
+      const tool = DatabaseTool;
+      // Simulate missing table error
+      db.query.mockRejectedValueOnce(new Error('relation "system_logs" does not exist'));
+      const results = await tool.searchLogs('test');
+      expect(results).toEqual([]);
+    });
+
+    test('should throw error for non-string query', async () => {
+      const tool = DatabaseTool;
+      await expect(tool.searchLogs('')).rejects.toThrow('Search query must be a non-empty string');
+      await expect(tool.searchLogs(123)).rejects.toThrow('Search query must be a non-empty string');
     });
   });
 
   describe('Orion-only access', () => {
     test('should have method savePattern', () => {
-      const tool = requireDatabaseTool();
+      const tool = DatabaseTool;
       expect(typeof tool.savePattern).toBe('function');
     });
 
     test('should have method updateWorkflow', () => {
-      const tool = requireDatabaseTool();
+      const tool = DatabaseTool;
       expect(typeof tool.updateWorkflow).toBe('function');
     });
 
     test('should have method searchLogs', () => {
-      const tool = requireDatabaseTool();
+      const tool = DatabaseTool;
       expect(typeof tool.searchLogs).toBe('function');
     });
   });

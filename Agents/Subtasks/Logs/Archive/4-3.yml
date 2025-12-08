@@ -1,0 +1,21 @@
+# Subtask Log: 4-3 (Split-Brain Foundation)
+status: completed
+assigned_to: Devon (Implementation) / Tara (Tests)
+dependencies: [4-0]
+started_at: 2023-12-07
+completed_at: 2023-12-07
+outcome: "Split-Brain Foundation implemented with Strategic and Tactical adapters."
+
+tasks:
+  - [x] Create `backend/src/services/ai/` directory structure
+  - [x] Implement `config/ai.js` (API keys, model definitions)
+  - [x] Create `StrategicAdapter.js` (Gemini/Orion logic)
+  - [x] Create `TacticalAdapter.js` (DeepSeek/Devon logic)
+  - [x] Implement `AiService.js` (Factory/Facade pattern)
+  - [x] Add Unit Tests for Adapters (Tara)
+  - [x] Create Demo Script (`backend/demo/demo_4-3.js`) to prove it works
+
+notes:
+  - "Implemented a deterministic router foundation."
+  - "Strategic Adapter connects to Gemini."
+  - "Tactical Adapter connects to DeepSeek."

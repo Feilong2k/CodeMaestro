@@ -1,0 +1,47 @@
+# Subtask Log: 4-7 (Persistent Memory)
+id: "4-7"
+title: "Persistent Memory (Reflexes)"
+status: completed
+branch: "subtask/4-7-persistent-memory"
+
+history:
+  - ts: "2025-12-07T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized."
+  - ts: "2025-12-06T22:11:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for MemoryService (Red phase). Coverage: saveContext, getContext, searchContext, session history, user preferences."
+  - ts: "2025-12-07T13:30:00Z"
+    role: orchestrator
+    action: HANDOFF
+    message: "Tests verified. Handoff to Devon for Implementation."
+  - ts: "2025-12-07T14:00:00Z"
+    role: implementer
+    action: IMPLEMENTATION_COMPLETE
+    message: "Implemented MemoryService with `memories` table migration. Tests passed (Green)."
+  - ts: "2025-12-07T14:05:00Z"
+    role: orchestrator
+    action: VERIFICATION
+    message: "Verified tests passing. Task completed."
+
+requiredActions:
+  - "DB: Add `type='reflex'` and `type='preference'` to Patterns (or new table?)"
+  - "Logic: `MemoryService` class with save/get/search."
+  - "Logic: `ContextInjector` middleware (Deferred to 4-11? Or basic version here?)"
+  - "Logic: `ReflexMonitor` to watch for triggers (Deferred)."
+
+verificationChecklist:
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[x] MemoryService can save and retrieve JSON data"
+  - "[x] MemoryService handles User Preferences specifically"
+
+# ==========================================
+# DEVON INSTRUCTIONS
+# ==========================================
+# Implement `backend/src/services/memoryService.js` to pass `backend/src/__tests__/unit/memoryService.test.js`.
+# Use `pool` from `../db/connection`.
+# If `pgvector` is not available, implement `searchContext` using simple text search (`ILIKE`) for now.

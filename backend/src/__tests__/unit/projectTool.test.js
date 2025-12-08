@@ -1,10 +1,11 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let ProjectTool;
 try {
   ProjectTool = require('../../../src/tools/ProjectTool');
 } catch (error) {
+  console.error('Failed to load ProjectTool:', error);
   // This is expected in the Red phase. We'll create a dummy object that throws for all methods.
   ProjectTool = {};
 }
@@ -37,7 +38,7 @@ describe('Project Tool', () => {
   });
 
   describe('createProject(projectData)', () => {
-    test('should insert project into database and create directory', () => {
+    test('should insert project into database and create directory', async () => {
       const tool = requireProjectTool();
 
       // Mock database query to return a new project ID
@@ -52,7 +53,7 @@ describe('Project Tool', () => {
       };
 
       // We expect the tool to return the created project
-      const result = tool.createProject(projectData);
+      const result = await tool.createProject(projectData);
 
       // Should call database insert with correct fields
       expect(db.query).toHaveBeenCalledWith(
@@ -63,7 +64,7 @@ describe('Project Tool', () => {
       expect(fs.mkdirSync).toHaveBeenCalledWith(projectData.path, { recursive: true });
     });
 
-    test('should handle duplicate project names gracefully', () => {
+    test('should handle duplicate project names gracefully', async () => {
       const tool = requireProjectTool();
 
       // Mock database query to throw duplicate key error
@@ -76,18 +77,18 @@ describe('Project Tool', () => {
       };
 
       // Should throw or return error
-      expect(() => tool.createProject(projectData)).toThrow(/duplicate|already exists/i);
+      await expect(tool.createProject(projectData)).rejects.toThrow(/duplicate|already exists/i);
     });
   });
 
   describe('deleteProject(projectId)', () => {
-    test('should soft delete project (set status = "deleted")', () => {
+    test('should soft delete project (set status = "deleted")', async () => {
       const tool = requireProjectTool();
 
       db.query.mockResolvedValue({ rowCount: 1 });
 
       const projectId = 42;
-      tool.deleteProject(projectId);
+      await tool.deleteProject(projectId);
 
       // Should update status to 'deleted' rather than hard delete
       expect(db.query).toHaveBeenCalledWith(
@@ -96,19 +97,19 @@ describe('Project Tool', () => {
       );
     });
 
-    test('should not delete non-existent project', () => {
+    test('should not delete non-existent project', async () => {
       const tool = requireProjectTool();
 
       db.query.mockResolvedValue({ rowCount: 0 });
 
       const projectId = 999;
       // Should throw or return false
-      expect(() => tool.deleteProject(projectId)).toThrow(/not found/i);
+      await expect(tool.deleteProject(projectId)).rejects.toThrow(/not found/i);
     });
   });
 
   describe('listProjects()', () => {
-    test('should return only active projects (excluding deleted)', () => {
+    test('should return only active projects (excluding deleted)', async () => {
       const tool = requireProjectTool();
 
       const mockProjects = [
@@ -117,7 +118,7 @@ describe('Project Tool', () => {
       ];
       db.query.mockResolvedValue({ rows: mockProjects });
 
-      const projects = tool.listProjects();
+      const projects = await tool.listProjects();
 
       // Should query with status filter
       expect(db.query).toHaveBeenCalledWith(
@@ -127,24 +128,24 @@ describe('Project Tool', () => {
       expect(projects).toEqual(mockProjects);
     });
 
-    test('should return empty array if no active projects', () => {
+    test('should return empty array if no active projects', async () => {
       const tool = requireProjectTool();
 
       db.query.mockResolvedValue({ rows: [] });
 
-      const projects = tool.listProjects();
+      const projects = await tool.listProjects();
       expect(projects).toEqual([]);
     });
   });
 
   describe('getProject(projectId)', () => {
-    test('should return project details', () => {
+    test('should return project details', async () => {
       const tool = requireProjectTool();
 
       const mockProject = { id: 1, name: 'Test Project', status: 'active' };
       db.query.mockResolvedValue({ rows: [mockProject] });
 
-      const project = tool.getProject(1);
+      const project = await tool.getProject(1);
       expect(project).toEqual(mockProject);
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('SELECT'),
@@ -152,25 +153,25 @@ describe('Project Tool', () => {
       );
     });
 
-    test('should return null for non-existent project', () => {
+    test('should return null for non-existent project', async () => {
       const tool = requireProjectTool();
 
       db.query.mockResolvedValue({ rows: [] });
 
-      const project = tool.getProject(999);
+      const project = await tool.getProject(999);
       expect(project).toBeNull();
     });
   });
 
   describe('updateProject(projectId, updates)', () => {
-    test('should update project fields', () => {
+    test('should update project fields', async () => {
       const tool = requireProjectTool();
 
       db.query.mockResolvedValue({ rowCount: 1 });
 
       const projectId = 1;
       const updates = { name: 'Updated Name', description: 'New description' };
-      tool.updateProject(projectId, updates);
+      await tool.updateProject(projectId, updates);
 
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('UPDATE'),

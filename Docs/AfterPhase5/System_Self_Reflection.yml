@@ -1,0 +1,71 @@
+# CodeMaestro Self-Improvement Context Map
+# "The Index" for Autonomous Evolution
+
+version: 1.2
+last_updated: 2025-12-08
+
+meta:
+  purpose: "To provide the AI with a complete map of its own internal state, history, and goals, enabling informed self-improvement."
+  instruction: "Read this file first when initiating a self-improvement cycle."
+  mvp_rule: "For Phase 5 MVP, humans update these files manually. The AI treats them as READ-ONLY sources of truth."
+
+context_sources:
+  
+  # 1. THE BRAIN (Decision History & Reasoning)
+  # Where to look to understand 'Why was this decided?'
+  # NOTE: Future state moves these to PostgreSQL (Phase 5-2). For now, we read files.
+  decisions:
+    active_logs: "Agents/Subtasks/Logs/*.yml"  # Detailed reasoning for current/recent tasks
+    manifest: "Agents/Subtasks/manifest.yml"    # The high-level state of the project
+    architecture_decisions: "Docs/Phase4_Architecture.md" # Major structural choices
+    operational_rules: "Docs/Operational_Rules.md" # Rules of engagement
+    
+  # 2. THE BODY (Solution Library & Muscle Memory)
+  # Where to look to understand 'How do I solve X?'
+  capabilities:
+    patterns_db: "SELECT * FROM patterns"       # Reusable code solutions (e.g., 'SafeFileWriter', 'RetryLogic')
+    tool_registry: "backend/src/tools/registry.js" # What tools are available to me?
+    api_docs: "backend/src/api/*.js"            # How do I interact with the outside world?
+
+  # 3. THE CONSTITUTION (Rules & Constraints)
+  # Where to look to understand 'What am I allowed to do?'
+  governance:
+    core_spec: "Docs/CodeMaestro_MVP_Consolidated.md" # The immutable definition of 'What CodeMaestro Is'
+    evolution_rules: "Docs/AfterPhase5/Self_Evolution_Workflow.md" # The process for changing myself
+    safety_constraints: 
+      - "backend/src/services/constraintService.js" # The code that enforces rules
+      - "Agents/Subtasks/Logs/5-1.yml"             # The documentation of safety logic
+
+  # 4. THE VISION (Future Goals)
+  # Where to look to understand 'What should I build next?'
+  direction:
+    features_db: "SELECT * FROM features WHERE status = 'pending' ORDER BY priority DESC" # The roadmap
+    user_context: "SELECT * FROM memories WHERE type = 'user_preference'" # What does the user like/dislike?
+    
+  # 5. THE REALITY (Current Environment & Limits)
+  # Where to look to understand 'What is blocking me right now?'
+  environment:
+    current_constraints: "Docs/AfterPhase5/constraints.json" # e.g., 'Port 3000 busy', 'No GPU', 'Disk 90%'
+  
+  # 6. THE MISSION (Immediate Definition of Done)
+  # Where to look to understand 'Did I succeed today?'
+  focus:
+    current_objective: "Docs/AfterPhase5/objective.yml" # The specific goal and acceptance criteria for THIS cycle
+
+self_improvement_workflow:
+  # The loop the AI must follow to improve itself
+  steps:
+    1. "OBSERVE": Read `manifest.yml`, `objective.yml`, and `constraints.json`.
+    2. "REFLECT": Query `decisions` and `patterns_db` for prior art.
+    3. "PLAN": Create a new Subtask Log in `Agents/Subtasks/Logs/`.
+    4. "ACT": Create a feature branch (e.g., `feature/self-optimize-query`).
+    5. "VERIFY": Ensure changes adhere to `governance` and satisfy `objective.yml`.
+    6. "EVOLVE": Merge changes and update `patterns_db` with the new capability.
+
+critical_files_to_index:
+  # If you are an LLM reading this, index these specific files into your context window immediately.
+  - "Agents/Subtasks/manifest.yml"
+  - "Docs/CodeMaestro_MVP_Consolidated.md"
+  - "Docs/AfterPhase5/Self_Evolution_Workflow.md"
+  - "Docs/AfterPhase5/constraints.json"
+  - "Docs/AfterPhase5/objective.yml"

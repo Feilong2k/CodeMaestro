@@ -1,7 +1,7 @@
 # Subtask Log: 5-7 (RBAC & Orion Override)
 id: "5-7"
 title: "RBAC & Orion Override System"
-status: pending
+status: in_progress
 branch: "subtask/5-7-rbac-override"
 
 constraint_discovery:
@@ -14,11 +14,15 @@ constraint_discovery:
     - action: "Check Permission"
       description: "Verify Agent Role vs Resource"
     - action: "Grant Override"
-      description: "Issue temporary token"
+      description: "Issue temporary token for non-whitelisted command"
+    - action: "Validate Grant"
+      description: "Check if token is valid for this command"
       
   resources_touched:
     - resource: "Tool Registry"
       action: "Middleware Interception"
+    - resource: "ConstraintService"
+      action: "Token Management"
       
   resource_physics:
     - resource: "Security Policy"
@@ -30,22 +34,69 @@ constraint_discovery:
       risk: "Grant used by wrong agent"
       mitigation: "Tokenized Grants (UUID)"
 
+implementation_plan:
+  - component: "Permission Matrix"
+    path: "backend/src/tools/registry.js"
+    details: |
+      PERMISSION_MATRIX = {
+        Tara: { 
+          canWrite: ['**/__tests__/**', '**/*.test.js', '**/*.spec.js'],
+          canRead: ['**/*']
+        },
+        Devon: {
+          canWrite: ['backend/src/**', 'frontend/src/**', '!**/__tests__/**'],
+          canRead: ['**/*']
+        },
+        Orion: {
+          canWrite: ['**/*'],
+          canRead: ['**/*']
+        }
+      }
+
+  - component: "Override System"
+    path: "backend/src/services/constraintService.js"
+    details: |
+      - grantOneTimeAccess(agentId, command, reason): Creates UUID token, stores in memory
+      - validateGrant(agentId, command, token): Checks token validity, invalidates after use
+      - Token expires after 5 minutes OR single use
+
+  - component: "ShellTool Integration"
+    path: "backend/src/tools/ShellTool.js"
+    details: |
+      - On non-whitelisted command failure, check for override token
+      - If valid token, execute command
+      - Log all override usages for audit
+
 history:
   - ts: "2025-12-07T23:45:00Z"
     role: orchestrator
     action: CREATED
     message: "Log initialized. Focus on Permissions and Escalation."
+  - ts: "2025-12-08T13:00:00Z"
+    role: orchestrator
+    action: UPDATED
+    message: "Added implementation plan and TDD checklist for Tara."
 
 requiredActions:
+  - "[ ] [TDD] Create failing unit tests (Red)"
+  - "[ ] [TDD] Implement RBAC and Override (Green)"
+  - "[ ] [TDD] Refactor (Cleanup)"
   - "[ ] Implement RBAC Middleware in `ToolRegistry`"
   - "[ ] Define Permission Matrix (Tara->tests, Devon->src, Orion->all)"
-  - "[ ] Implement `ConstraintService.grantOneTimeAccess(taskId, command)`"
-  - "[ ] Implement `ConstraintService.validateGrant(token)`"
+  - "[ ] Implement `ConstraintService.grantOneTimeAccess(agentId, command, reason)`"
+  - "[ ] Implement `ConstraintService.validateGrant(agentId, command, token)`"
   - "[ ] Update `ShellTool` to check for Override Token on failure"
 
 verificationChecklist:
-  - "[ ] [TDD] Devon blocked from writing to `tests/`"
-  - "[ ] [TDD] Tara blocked from writing to `src/`"
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Devon blocked from writing to `tests/` directory"
+  - "[ ] [TDD] Tara blocked from writing to `src/` directory"
+  - "[ ] [TDD] Orion can write to any directory"
+  - "[ ] [TDD] grantOneTimeAccess() returns valid UUID token"
+  - "[ ] [TDD] validateGrant() returns true for valid token"
+  - "[ ] [TDD] validateGrant() returns false for expired/used token"
   - "[ ] [TDD] Non-whitelisted command fails initially"
   - "[ ] [TDD] Non-whitelisted command passes with valid Grant Token"
-
+  - "[ ] [TDD] Token can only be used once (single use)"

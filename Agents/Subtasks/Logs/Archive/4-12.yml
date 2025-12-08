@@ -1,0 +1,63 @@
+# Subtask Log: 4-12 (Constraint Enforcement Logic)
+id: "4-12"
+title: "Constraint Enforcement Logic (Safety Engine)"
+status: completed
+branch: "subtask/4-12-constraint-logic"
+
+constraint_discovery:
+  subtask_id: "4-12"
+  owner: "Devon"
+  concern: "Safety & Reliability"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "Validation Check"
+      description: "Pre-flight check before critical actions"
+      
+  resources_touched:
+    - resource: "Shared State"
+      action: "Modification"
+      
+  resource_physics:
+    - resource: "High Risk Ops"
+      constraint: "Data Corruption"
+      risk: "Concurrent edits, race conditions"
+      mitigation: "Centralized Validation Service"
+    - resource: "Time"
+      constraint: "Latency/Rate Limits"
+      risk: "API abuse"
+      mitigation: "Token Budget / Rate Limiter"
+
+history:
+  - ts: "2025-12-07T22:15:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Scoped to High Risk constraints only."
+  - ts: "2025-12-07T22:27:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for ConstraintService (Red phase). Coverage: validatePathSafety, validateGitLock, validateRateLimit, integration."
+  - ts: "2025-12-07T22:28:00Z"
+    role: tester
+    action: HANDOFF
+    message: "Committed failing unit tests (Red phase). Ready for Devon to implement the ConstraintService class and integration."
+  - ts: "2025-12-07T23:23:00Z"
+    role: devon
+    action: IMPLEMENTATION
+    message: "Implemented ConstraintService with three validation methods: validatePathSafety, validateGitLock, validateRateLimit. All unit tests pass (Green phase). Code refactored for clarity."
+  - ts: "2025-12-07T23:30:00Z"
+    role: orchestrator
+    action: COMPLETED
+    message: "Verified implementation via unit tests. ConstraintService is ready for Phase 5 integration."
+
+requiredActions:
+  - "Logic: Create `ConstraintService`"
+  - "Logic: Implement `validateGitLock()` (Prevent concurrent commits)"
+  - "Logic: Implement `validatePathSafety(path)` (Prevent traversal)"
+  - "Logic: Implement `validateRateLimit(agentId)` (Time constraint)"
+  - "Integration: Inject `ConstraintService` into `ToolRegistry` (Phase 5)"
+
+verificationChecklist:
+  - "[x] [TDD] Path validation rejects '../'"
+  - "[x] [TDD] Git lock validation fails if lock exists"
+  - "[x] [TDD] Rate limit throttles rapid requests"

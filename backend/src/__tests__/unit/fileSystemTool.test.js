@@ -1,4 +1,4 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let FileSystemTool;
@@ -22,8 +22,8 @@ const fs = require('fs');
 
 // Helper to ensure we have a method to test, otherwise skip the test.
 function requireFileSystemTool() {
-  if (Object.keys(FileSystemTool).length === 0) {
-    throw new Error('FileSystemTool module not found. Tests are expected to fail.');
+  if (!FileSystemTool || typeof FileSystemTool.safeRead !== 'function') {
+    throw new Error('FileSystemTool module not found or does not export safeRead. Tests are expected to fail.');
   }
   return FileSystemTool;
 }
@@ -98,8 +98,14 @@ describe('FileSystem Tool', () => {
     test('should allow writing within allowed directories', () => {
       const tool = requireFileSystemTool();
 
-      // Mock fs.existsSync for parent directory
-      fs.existsSync.mockReturnValue(true);
+      // Mock fs.existsSync to return true for the parent directory and false for the file
+      fs.existsSync.mockImplementation((path) => {
+        if (path === 'src/tools/test-output.txt') {
+          return false; // file does not exist
+        }
+        // For parent directory (or any other path) return true
+        return true;
+      });
 
       const safePath = 'src/tools/test-output.txt';
       const content = 'test content';
@@ -123,6 +129,49 @@ describe('FileSystem Tool', () => {
 
       // Should have attempted to create directory
       expect(fs.mkdirSync).toHaveBeenCalledWith(expect.stringContaining('src/tools/newdir'), { recursive: true });
+    });
+
+    test('should throw error if overwriting existing file without flag', () => {
+      const tool = requireFileSystemTool();
+
+      // Mock fs.existsSync to return true for the file (file exists)
+      fs.existsSync.mockImplementation((path) => {
+        if (path === 'src/tools/existing.txt') {
+          return true;
+        }
+        return true; // parent directory exists
+      });
+
+      const safePath = 'src/tools/existing.txt';
+      const content = 'new content';
+
+      // Should throw because file exists and overwrite not set
+      expect(() => tool.safeWrite(safePath, content))
+        .toThrow(/already exists.*overwrite.*true/i);
+
+      // Should not call writeFileSync
+      expect(fs.writeFileSync).not.toHaveBeenCalled();
+    });
+
+    test('should allow overwriting with overwrite flag', () => {
+      const tool = requireFileSystemTool();
+
+      // Mock fs.existsSync to return true for the file (file exists)
+      fs.existsSync.mockImplementation((path) => {
+        if (path === 'src/tools/existing.txt') {
+          return true;
+        }
+        return true; // parent directory exists
+      });
+
+      const safePath = 'src/tools/existing.txt';
+      const content = 'new content';
+
+      // Call with overwrite true
+      tool.safeWrite(safePath, content, { overwrite: true });
+
+      // Should call writeFileSync
+      expect(fs.writeFileSync).toHaveBeenCalledWith(safePath, content, 'utf8');
     });
   });
 
