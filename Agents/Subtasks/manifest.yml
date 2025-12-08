@@ -103,8 +103,8 @@ subtasks:
 
   - id: "5-7"
     title: "RBAC & Orion Override System"
-    status: in_progress
-    owner: "Orion"
+    status: completed
+    owner: "Devon"
     priority: high
     dependencies: ["5-1"]
 
@@ -117,8 +117,8 @@ subtasks:
 
   - id: "5-3"
     title: "The Agent Loop (Executor)"
-    status: pending
-    owner: "Devon"
+    status: in_progress
+    owner: "Devon2"
     priority: critical
     dependencies: ["5-2"]
 
@@ -145,7 +145,7 @@ subtasks:
 
   - id: "5-8"
     title: "Task Dashboard UI"
-    status: pending
-    owner: "Devon"
+    status: in_progress
+    owner: "Devon1"
     priority: medium
     dependencies: ["5-2"]
