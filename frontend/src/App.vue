@@ -13,7 +13,7 @@ import Workflows from './views/Workflows.vue'
 import TaskDashboard from './views/TaskDashboard.vue'
 
 const appStore = useAppStore()
-const { currentView } = storeToRefs(appStore)
+const { currentView, showTaskDashboard } = storeToRefs(appStore)
 
 const healthStatus = ref('Checking backend...')
 const error = ref(null)
@@ -47,7 +47,7 @@ onMounted(checkHealth)
       <MainLayout>
         <!-- Default slot (main content) -->
         <template #default>
-          <TaskDashboard v-if="currentView === 'dashboard'" />
+          <ChatPanel v-if="currentView === 'dashboard'" />
           <PatternManager v-else-if="currentView === 'patterns'" />
           <Workflows v-else-if="currentView === 'workflows'" />
           <ChatPanel v-else-if="currentView === 'chat'" />
@@ -62,6 +62,12 @@ onMounted(checkHealth)
       </MainLayout>
       <!-- StatusBar fixed at bottom, outside MainLayout -->
       <StatusBar />
+      
+      <!-- Task Dashboard Modal -->
+      <TaskDashboard 
+        v-if="showTaskDashboard" 
+        @close="appStore.closeTaskDashboard()" 
+      />
     </div>
   </div>
 </template>

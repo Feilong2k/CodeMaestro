@@ -22,9 +22,9 @@
           <span class="mx-2">•</span>
           <!-- Task status (Clickable) -->
           <button 
-            @click="showTaskQueue = true"
+            @click="appStore.toggleTaskDashboard()"
             class="hover:text-accent-primary transition-colors focus:outline-none"
-            title="View Task Queue"
+            title="View Task Dashboard"
           >
             {{ taskStatusText }}
           </button>
@@ -84,11 +84,13 @@
 import { computed, ref } from 'vue'
 import { useAgentsStore } from '../stores/agents'
 import { useTasksStore } from '../stores/tasks'
+import { useAppStore } from '../stores/appStore'
 import { useSocket } from '../composables/useSocket'
 import TrafficLight from './TrafficLight.vue'
 
 const agentsStore = useAgentsStore()
 const tasksStore = useTasksStore()
+const appStore = useAppStore()
 const socket = useSocket()
 
 const showTaskQueue = ref(false)

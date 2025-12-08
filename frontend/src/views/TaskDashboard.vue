@@ -1,11 +1,15 @@
 <template>
-  <div class="task-dashboard">
-    <div class="header">
-      <h1 class="title">Task Queue Dashboard</h1>
-      <p class="subtitle">
-        Monitor and manage background tasks in the CodeMaestro system.
-      </p>
-    </div>
+  <div class="task-dashboard-overlay" @click.self="$emit('close')">
+    <div class="task-dashboard-modal">
+      <div class="header">
+        <div>
+          <h1 class="title">Task Queue Dashboard</h1>
+          <p class="subtitle">
+            Monitor and manage background tasks in the CodeMaestro system.
+          </p>
+        </div>
+        <button class="close-button" @click="$emit('close')">✕</button>
+      </div>
 
     <!-- Stats Cards -->
     <div v-if="stats" class="stats-grid">
@@ -142,6 +146,7 @@
           <button class="modal-btn confirm" @click="confirmClearCompleted">Delete All</button>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>
@@ -360,10 +365,74 @@ export default {
 </script>
 
 <style scoped>
-.task-dashboard {
+.task-dashboard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
   padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+}
+
+.task-dashboard-modal {
+  background: var(--bg-base, #0a0f14);
+  border: 1px solid var(--line-base, #1e2a35);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.task-dashboard-modal .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--line-base, #1e2a35);
+  position: sticky;
+  top: 0;
+  background: var(--bg-base, #0a0f14);
+  z-index: 10;
+}
+
+.close-button {
+  background: transparent;
+  border: 1px solid var(--line-base, #1e2a35);
+  color: var(--text-secondary, #8b9cb3);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background: var(--accent-error, #ef4444);
+  border-color: var(--accent-error, #ef4444);
+  color: white;
+}
+
+.task-dashboard-modal .header {
+  margin-bottom: 0;
+}
+
+.task-dashboard-modal > *:not(.header) {
+  padding: 0 2rem;
+}
+
+.task-dashboard-modal > *:last-child {
+  padding-bottom: 2rem;
 }
 
 .header {
