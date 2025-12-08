@@ -1,71 +1,148 @@
-# Subtask Log: 5-1 (Tool Registry & Safety)
+# Subtask Log: 5-1 (Tool Registry & Safety - Core)
 id: "5-1"
-title: "Tool Registry & Safety (RBAC)"
-status: pending
-branch: "subtask/5-1-tool-registry"
+title: "Tool Registry & Safety (Core)"
+status: in_progress
+branch: "subtask/5-1-tool-registry-core"
 
 constraint_discovery:
   subtask_id: "5-1"
   owner: "Orion"
-  concern: "Security & Safety"
-  date: "2025-12-07"
-  
+  concern: "Safety"
+  date: "2025-12-08"
+
   atomic_actions:
-    - action: "File Write"
-      description: "Agents writing code/configs to disk"
-    - action: "Shell Execute"
-      description: "Running npm commands, tests, etc."
-      
+    - action: "Create Tool Registry"
+      description: "Central dictionary of allowed tools per agent role"
+    - action: "Implement FileSystem Tools"
+      description: "Safe wrappers for fs operations (read/write/list)"
+    - action: "Implement Git Tools"
+      description: "Safe wrappers for git operations"
+    - action: "Implement Database Tools"
+      description: "Safe wrappers for DB operations (Orion only)"
+
   resources_touched:
-    - resource: "File System"
-      action: "Access Control"
-      notes: "Must prevent access outside project root"
-    - resource: "System Shell"
-      action: "Command Injection Prevention"
-      
+    - resource: "ToolRegistry"
+      constraint: "Must be extensible but secure"
+    - resource: "FileSystem"
+      constraint: "Path traversal protection"
+
   resource_physics:
-    - resource: "File System"
-      constraint: "Path Traversal"
-      risk: "Agent writes to /etc/hosts or overwrites .git/"
-      mitigation: "Strict `path.resolve(cwd)` checks. Reject `..`."
-    - resource: "Permissions"
-      constraint: "Role Boundaries"
-      risk: "Devon edits Tests, Tara edits Prod Code"
-      mitigation: "RBAC Middleware in Tool Registry"
-      
+    - resource: "Agent Capabilities"
+      constraint: "Role-based restriction"
+      risk: "Agents using tools they shouldn't (e.g., Devon modifying DB directly)"
+
   verification:
-    - action: "Security Test"
-      method: "Attempt to write to `../outside.txt` (Should Fail)"
-    - action: "Role Test"
-      method: "Devon attempts to write `tests/foo.js` (Should Fail)"
+    - action: "Unit Tests"
+      method: "Verify tool instantiation and permission checks"
+
+implementation_plan:
+  - component: "ToolRegistry"
+    path: "backend/src/tools/registry.js"
+    details: |
+      - Exports `getToolsForRole(role)` function.
+      - Maps roles (Devon, Tara, Orion) to allowed tool definitions.
+      - Tool definition includes `name`, `description`, `parameters`, `handler`.
+
+  - component: "FileSystemTool"
+    path: "backend/src/tools/FileSystemTool.js"
+    details: |
+      - `safeRead(path)`: Checks if path is within project root.
+      - `safeWrite(path, content)`: Checks path, ensures directory exists.
+      - `safeList(path)`: Lists directory contents.
+      - Usage of `path.resolve` and `process.cwd()` for safety.
+
+  - component: "GitTool"
+    path: "backend/src/tools/GitTool.js"
+    details: |
+      - Wraps `simple-git` or controlled `child_process.exec`.
+      - Methods: `status()`, `add(files)`, `commit(message)`, `push()`, `checkout(branch)`.
+      - Enforces whitelist of args (e.g., no `; rm -rf`).
+
+  - component: "DatabaseTool"
+    path: "backend/src/tools/DatabaseTool.js"
+    details: |
+      - **Restricted to Orion.**
+      - `savePattern(pattern)`: Inserts into patterns table.
+      - `updateWorkflow(name, definition)`: Updates workflow engine.
+      - `searchLogs(query)`: Searches structured logs.
 
 history:
-  - ts: "2025-12-07T22:00:00Z"
+  - ts: "2025-12-08T00:00:00Z"
     role: orchestrator
     action: CREATED
-    message: "Log initialized. Focus on Sandboxing and RBAC for tools."
+    message: "Log initialized. Splitting Phase 5-1 into manageable chunks. This log focuses on the Core Registry and File/Git/DB tools."
+  - ts: "2025-12-08T00:05:00Z"
+    role: system
+    action: CHECKLIST_UPDATE
+    message: "Added TDD verification checklist."
+  - ts: "2025-12-08T00:06:00Z"
+    role: orchestrator
+    action: STARTED
+    message: "Tara initialized for Red Phase (Tests)."
+  - ts: "2025-12-08T03:34:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for Tool Registry, FileSystemTool, GitTool, and DatabaseTool (Red phase). Tests cover role-based access, path safety, command whitelisting, and Orion-only restrictions."
+  - ts: "2025-12-08T03:35:00Z"
+    role: tester
+    action: HANDOFF
+    message: "Committed failing unit tests (Red phase). Ready for Devon/Orion to implement the Tool Registry and tool implementations (Green phase)."
 
 requiredActions:
-  - "Create `backend/src/tools/ToolRegistry.js`"
-  - "Implement `FileTool` (readFile, writeFile, listDir, mkdir) with Path Traversal Protection"
-  - "Implement `ShellTool` (exec) with Command Whitelist & Blocklist"
-    - "Blocklist (Hard Fail): sudo, chmod, chown, ssh, ftp, curl, wget"
-    - "Whitelist (Allowed): npm, git, ls, dir, cp, mv, rm (restricted), grep, find, ps"
-    - "Orion Override: Allow non-whitelisted commands via Tokenized Grant (if not in Blocklist)"
-    - "Auto-Splitter: Handle `&&` chains by maintaining `cwd` state across sequential commands"
-  - "Implement `GitTool` (status, commit, merge, push) with Role Checks"
-  - "Implement RBAC Middleware: Verify `agent.role` against `tool.permissions` and `path`"
-  - "Define Permission Rules:"
-    - "readFile, listDir, exec, git status: ALL"
-    - "writeFile, mkdir: Role-based (Tara->tests/, Devon->src/, Orion->Agents/)"
-    - "git commit: Tara + Devon"
-    - "git merge, git push: Orion only"
+  - "[ ] Create `backend/src/tools/registry.js` (The Manifest)"
+  - "[ ] Implement `backend/src/tools/FileSystemTool.js` (read/write/list with path safety)"
+  - "[ ] Implement `backend/src/tools/GitTool.js` (status/add/commit/push/checkout)"
+  - "[ ] Implement `backend/src/tools/DatabaseTool.js` (Orion Only: savePattern, updateWorkflow, searchLogs)"
+  - "[ ] Define `RoleCapabilities` map (Who can use what)"
 
 verificationChecklist:
-  - "[ ] [TDD] Path Traversal Tests (Red)"
-  - "[ ] [TDD] Role Permission Tests (Red)"
-  - "[ ] [TDD] Blocklist rejects 'sudo' instantly"
-  - "[ ] [TDD] Auto-splitter executes 'cd && ls' in correct directory"
-  - "[ ] [Green] Tools reject unsafe paths"
-  - "[ ] [Green] Tools reject unauthorized roles"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests - REQUIRED for this task"
+  - "[ ] Coverage > 80%"
+  - "[ ] [TDD] ToolRegistry returns correct tools for 'Devon', 'Tara', 'Orion'"
+  - "[ ] [TDD] FileSystemTool throws error for path traversal ('../')"
+  - "[ ] [TDD] GitTool allows whitelisted commands (status, add, commit)"
+  - "[ ] [TDD] GitTool blocks dangerous args (e.g., rm -rf)"
+  - "[ ] [TDD] DatabaseTool throws error if role is not 'Orion'"
 
+whitelists:
+  commands:
+    - "git status"
+    - "git add"
+    - "git commit"
+    - "git push"
+    - "git checkout"
+    - "git branch"
+    - "npm test"
+    - "npm install"
+    - "ls"
+    - "dir"
+    - "mkdir"
+    - "grep"
+    - "find"
+    - "cp"
+    - "mv"
+    - "rm"
+    - "ps"
+
+blocklists:
+  commands:
+    - "rm -rf /"
+    - "sudo"
+    - "chmod"
+    - "chown"
+    - "ssh"
+    - "ftp"
+    - "curl"
+    - "wget"
+    - "&&"
+
+special_features:
+  orion_override:
+    description: "Orion can grant one-time tokens for non-whitelisted commands if deemed safe."
+    mechanism: "Token-based grant system."
+  auto_splitter:
+    description: "ShellTool automatically detects '&&' and executes commands sequentially."
+    constraint: "Must maintain cwd context between split commands."
