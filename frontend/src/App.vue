@@ -10,6 +10,7 @@ import ActivityLog from './components/ActivityLog.vue'
 import StatusBar from './components/StatusBar.vue'
 import PatternManager from './components/PatternManager.vue'
 import Workflows from './views/Workflows.vue'
+import TaskDashboard from './views/TaskDashboard.vue'
 
 const appStore = useAppStore()
 const { currentView } = storeToRefs(appStore)
@@ -46,8 +47,11 @@ onMounted(checkHealth)
       <MainLayout>
         <!-- Default slot (main content) -->
         <template #default>
-          <PatternManager v-if="currentView === 'patterns'" />
+          <TaskDashboard v-if="currentView === 'dashboard'" />
+          <PatternManager v-else-if="currentView === 'patterns'" />
           <Workflows v-else-if="currentView === 'workflows'" />
+          <ChatPanel v-else-if="currentView === 'chat'" />
+          <!-- Fallback: if currentView is something else, show chat -->
           <ChatPanel v-else />
         </template>
 
