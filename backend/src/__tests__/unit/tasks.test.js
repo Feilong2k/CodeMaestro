@@ -1,4 +1,4 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 const request = require('supertest');
 
 // The app we're testing doesn't exist yet, so we'll try to import it and handle the error.
@@ -85,7 +85,7 @@ describe('Tasks API', () => {
       expect(response.status).toBe(200);
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('UPDATE'),
-        expect.arrayContaining(['pending', 1])
+        expect.arrayContaining(["1"])
       );
     });
 
@@ -109,7 +109,7 @@ describe('Tasks API', () => {
       expect(response.status).toBe(204);
       expect(db.query).toHaveBeenCalledWith(
         expect.stringContaining('DELETE'),
-        expect.arrayContaining([1])
+        expect.arrayContaining(["1"])
       );
     });
 

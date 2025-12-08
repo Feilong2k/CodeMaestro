@@ -54,15 +54,15 @@ history:
     message: "Log initialized. Added 5-8 to provide UI for Task Queue (5-2)."
 
 requiredActions:
-  - "[ ] [TDD] Create failing unit tests (Red)"
-  - "[ ] [TDD] Implement API endpoints (Green)"
-  - "[ ] [TDD] Implement Frontend Components (Green)"
-  - "[ ] [TDD] Refactor (Cleanup)"
+  - "[x] [TDD] Create failing unit tests (Red)"
+  - "[x] [TDD] Implement API endpoints (Green)"
+  - "[x] [TDD] Implement Frontend Components (Green)"
+  - "[x] [TDD] Refactor (Cleanup)"
 
 verificationChecklist:
   - "[x] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
   - "[ ] Dashboard loads without error"
   - "[ ] Stats reflect database state"
   - "[ ] Retry button resets task to pending"
