@@ -208,6 +208,192 @@ Orion uses project context to provide smarter suggestions.
 
 ---
 
+### 6-6: Automatic Pattern Harvesting
+**Owner:** Devon
+**Priority:** Medium
+
+**Description:**
+Automatically detect and save reusable patterns discovered during development.
+
+**Trigger:** Agent debrief phase after task completion
+
+**Flow:**
+```
+1. Agent completes a task
+2. Debrief phase: "Did we learn anything reusable?"
+3. Agent proposes pattern: { title, problem, solution, tags }
+4. Orion reviews and approves/rejects
+5. If approved → POST /api/patterns
+6. Pattern Library updated automatically
+```
+
+**Implementation:**
+- File: `backend/src/services/PatternHarvester.js`
+- Methods:
+  - `detectPattern(taskResult)` - Analyze task for reusable patterns
+  - `proposePattern(pattern)` - Create pattern proposal
+  - `approvePattern(patternId)` - Orion approves pattern
+
+**Pattern Detection Heuristics:**
+- Code that solves a recurring problem
+- Workarounds for LLM limitations (like XML escaping)
+- Error handling patterns
+- Common utility functions
+
+**Tests:**
+- [ ] Pattern detected from task result
+- [ ] Pattern proposal created with correct format
+- [ ] Orion approval triggers save
+- [ ] Pattern appears in Pattern Library
+
+**Note:** First pattern to add: "XML Entity Escaping" from subtask 5-4 (see Pending Patterns below)
+
+---
+
+### 6-7: Integration & E2E Test Suite
+**Owner:** Tara
+**Priority:** High
+
+**Description:**
+Add integration tests that verify the full stack (Frontend → API → Service → DB) works together.
+
+**Why Needed:**
+Unit tests mock dependencies and don't catch:
+- Route registration issues
+- Database connection problems
+- API response format mismatches
+- CORS configuration errors
+
+**Test Types:**
+
+**A. Integration Tests (Backend)**
+```
+backend/src/__tests__/integration/
+├── projects.integration.test.js    - Projects API with real DB
+├── patterns.integration.test.js    - Patterns API with real DB
+├── tasks.integration.test.js       - Tasks API with real DB
+└── features.integration.test.js    - Features API with real DB
+```
+
+**B. E2E Tests (Full Stack)**
+```
+e2e/
+├── dashboard.spec.js       - Dashboard loads, shows data
+├── patterns.spec.js        - Create/view patterns
+├── projects.spec.js        - Project CRUD flow
+└── workflows.spec.js       - Workflow visualization
+```
+
+**Implementation:**
+- Integration: Jest + Supertest + Real PostgreSQL (test DB)
+- E2E: Playwright (browser automation)
+
+**Setup:**
+```bash
+# Test database
+DATABASE_URL_TEST=postgresql://localhost/codemaestro_test
+
+# Run integration tests
+npm run test:integration
+
+# Run E2E tests
+npm run test:e2e
+```
+
+**Tests:**
+- [ ] Integration tests connect to real test DB
+- [ ] All API endpoints return expected status codes
+- [ ] E2E tests run in CI/CD pipeline
+- [ ] Test coverage includes happy path + error cases
+
+---
+
+### 6-8: API Contract Tests
+**Owner:** Tara
+**Priority:** Medium
+
+**Description:**
+Ensure Frontend and Backend agree on API request/response formats.
+
+**Problem Solved:**
+| Frontend Expects | Backend Returns | Result |
+|------------------|-----------------|--------|
+| `{ data: [...] }` | `[...]` | 💥 Crash |
+| `{ id: 123 }` | `{ _id: 123 }` | 💥 Undefined |
+| `createdAt` | `created_at` | 💥 Missing field |
+
+**Implementation:**
+
+**A. Define Contracts (Shared)**
+```javascript
+// shared/contracts/projects.contract.js
+module.exports = {
+  'GET /api/projects': {
+    response: {
+      status: 200,
+      body: {
+        type: 'array',
+        items: {
+          required: ['id', 'name', 'status'],
+          properties: {
+            id: { type: 'number' },
+            name: { type: 'string' },
+            status: { enum: ['active', 'deleted'] }
+          }
+        }
+      }
+    }
+  },
+  'POST /api/projects': {
+    request: {
+      body: { required: ['name'] }
+    },
+    response: {
+      status: 201,
+      body: { required: ['id', 'name'] }
+    }
+  }
+};
+```
+
+**B. Backend Contract Tests**
+```javascript
+// backend/src/__tests__/contract/projects.contract.test.js
+const contract = require('shared/contracts/projects.contract');
+
+test('GET /api/projects matches contract', async () => {
+  const res = await request(app).get('/api/projects');
+  expect(res.status).toBe(contract['GET /api/projects'].response.status);
+  expect(res.body).toMatchSchema(contract['GET /api/projects'].response.body);
+});
+```
+
+**C. Frontend Contract Validation**
+```javascript
+// frontend/src/api/client.js
+import { validateResponse } from 'shared/contracts/validator';
+
+async function get(endpoint) {
+  const response = await axios.get(endpoint);
+  if (process.env.NODE_ENV === 'development') {
+    validateResponse(endpoint, response); // Throws if mismatch
+  }
+  return response;
+}
+```
+
+**Tools:**
+- JSON Schema validation (ajv)
+- Or Pact for consumer-driven contracts
+
+**Tests:**
+- [ ] All API endpoints have contracts defined
+- [ ] Backend tests validate against contracts
+- [ ] Frontend validates responses in dev mode
+- [ ] Contract violations logged/alerted
+
+---
+
 ## Dependency Graph
 
 ```
@@ -216,6 +402,11 @@ Orion uses project context to provide smarter suggestions.
                     └── 6-4 (Onboarding Flow) ── 6-5 (Smart Suggestions)
 
 6-2 (Response Panel) ── Independent, can parallel with 6-1
+
+6-6 (Pattern Harvesting) ── Independent, can parallel
+
+6-7 (Integration/E2E) ── Independent, run after any feature is done
+6-8 (Contract Tests) ── Independent, can define contracts early
 ```
 
 ---
@@ -229,6 +420,9 @@ Orion uses project context to provide smarter suggestions.
 - [ ] **6-3:** Orion loads context on project switch
 - [ ] **6-4:** New projects can be onboarded with context
 - [ ] **6-5:** Orion references context in responses
+- [ ] **6-6:** Pattern Harvesting auto-saves patterns
+- [ ] **6-7:** Integration & E2E tests passing
+- [ ] **6-8:** API Contract tests defined and validated
 
 ### Integration Test:
 1. Create new project "Test-Phase6"
