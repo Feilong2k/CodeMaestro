@@ -1,197 +1,127 @@
-const { describe, test, expect, beforeEach } = require('@jest/globals');
+const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let ConstraintService;
 try {
-  ConstraintService = require('../../../src/services/constraintService');
+  ConstraintService = require('../../../src/services/ConstraintService');
 } catch (error) {
   // This is expected in the Red phase. We'll create a dummy object that throws for all methods.
   ConstraintService = {};
 }
-
-// Mock the fs module for Git lock checks
-jest.mock('fs', () => ({
-  existsSync: jest.fn()
-}));
-
-const fs = require('fs');
 
 // Helper to ensure we have a method to test, otherwise skip the test.
 function requireConstraintService() {
   if (Object.keys(ConstraintService).length === 0) {
     throw new Error('ConstraintService module not found. Tests are expected to fail.');
   }
-  // If the class is available, create a new instance for each test.
-  if (ConstraintService.ConstraintService) {
-    return new ConstraintService.ConstraintService();
-  }
   return ConstraintService;
 }
 
-describe('Constraint Service', () => {
+describe('Constraint Service (RBAC & Override)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('validatePathSafety(path)', () => {
-    test('should reject paths containing ../', () => {
+  describe('Permission Matrix (RBAC)', () => {
+    test('Devon should be blocked from writing to tests/ directory', () => {
       const service = requireConstraintService();
+      // Assuming there is a method canWrite(agentRole, path)
+      const canWrite = service.canWrite('Devon', 'backend/__tests__/unit/test.js');
+      expect(canWrite).toBe(false);
+    });
 
-      const unsafePaths = [
-        '../etc/passwd',
-        'some/../path',
-        '..',
-        'a/../../b'
-      ];
+    test('Tara should be blocked from writing to src/ directory', () => {
+      const service = requireConstraintService();
+      const canWrite = service.canWrite('Tara', 'backend/src/services/SomeService.js');
+      expect(canWrite).toBe(false);
+    });
 
-      unsafePaths.forEach(path => {
-        expect(() => service.validatePathSafety(path)).toThrow(/unsafe path/i);
+    test('Orion should be allowed to write to any directory', () => {
+      const service = requireConstraintService();
+      const paths = ['backend/src/foo.js', 'backend/__tests__/bar.js', 'frontend/src/Component.vue'];
+      paths.forEach(path => {
+        const canWrite = service.canWrite('Orion', path);
+        expect(canWrite).toBe(true);
       });
     });
 
-    test('should reject absolute paths starting with /', () => {
+    test('Tara should be allowed to write to test files', () => {
       const service = requireConstraintService();
-
-      const absolutePaths = [
-        '/etc/passwd',
-        '/home/user',
-        '//server/share'
-      ];
-
-      absolutePaths.forEach(path => {
-        expect(() => service.validatePathSafety(path)).toThrow(/unsafe path/i);
-      });
+      const canWrite = service.canWrite('Tara', 'backend/__tests__/unit/test.js');
+      expect(canWrite).toBe(true);
     });
 
-    test('should reject paths outside project root (using path traversal)', () => {
+    test('Devon should be allowed to write to src files', () => {
       const service = requireConstraintService();
-
-      // Assuming the project root is current directory or some configured root
-      const outsidePaths = [
-        '../../../../windows/system32',
-        '..\\..\\..\\windows\\system32' // Windows style
-      ];
-
-      outsidePaths.forEach(path => {
-        expect(() => service.validatePathSafety(path)).toThrow(/outside project root/i);
-      });
-    });
-
-    test('should accept safe relative paths', () => {
-      const service = requireConstraintService();
-
-      const safePaths = [
-        'src/services/constraintService.js',
-        'backend/__tests__/unit/constraintService.test.js',
-        'package.json',
-        'frontend/src/components/HelloWorld.vue'
-      ];
-
-      safePaths.forEach(path => {
-        // Should not throw
-        expect(() => service.validatePathSafety(path)).not.toThrow();
-      });
+      const canWrite = service.canWrite('Devon', 'backend/src/services/SomeService.js');
+      expect(canWrite).toBe(true);
     });
   });
 
-  describe('validateGitLock(repoPath)', () => {
-    test('should reject action if .git/index.lock exists', () => {
+  describe('Override System', () => {
+    test('grantOneTimeAccess should return a valid UUID token', () => {
       const service = requireConstraintService();
-
-      const repoPath = '/some/repo';
-      const lockPath = `${repoPath}/.git/index.lock`;
-
-      // Mock fs.existsSync to return true (lock exists)
-      fs.existsSync.mockReturnValue(true);
-
-      expect(() => service.validateGitLock(repoPath)).toThrow(/git lock/i);
-      expect(fs.existsSync).toHaveBeenCalledWith(lockPath);
+      const token = service.grantOneTimeAccess('Devon', 'sudo ls', 'emergency fix');
+      // Expect token to match UUID pattern
+      expect(token).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
     });
 
-    test('should allow action if .git/index.lock does not exist', () => {
+    test('validateGrant should return true for a valid token', () => {
       const service = requireConstraintService();
-
-      const repoPath = '/some/repo';
-      fs.existsSync.mockReturnValue(false);
-
-      // Should not throw
-      expect(() => service.validateGitLock(repoPath)).not.toThrow();
-      expect(fs.existsSync).toHaveBeenCalledWith(`${repoPath}/.git/index.lock`);
+      const token = service.grantOneTimeAccess('Devon', 'sudo ls', 'test');
+      const isValid = service.validateGrant('Devon', 'sudo ls', token);
+      expect(isValid).toBe(true);
     });
 
-    test('should handle empty repoPath', () => {
+    test('validateGrant should return false for expired/used token', () => {
       const service = requireConstraintService();
-
-      // With empty repoPath, the lock path would be '/.git/index.lock' which is unlikely.
-      // But we'll test that it doesn't crash.
-      fs.existsSync.mockReturnValue(false);
-      expect(() => service.validateGitLock('')).not.toThrow();
-    });
-  });
-
-  describe('validateRateLimit(agentId)', () => {
-    test('should throttle rapid requests', () => {
-      const service = requireConstraintService();
-
-      const agentId = 'tara';
-      
-      // First request should be allowed
-      expect(() => service.validateRateLimit(agentId)).not.toThrow();
-
-      // If we call rapidly many times, it should eventually throw
-      // We'll simulate rapid calls and see if the service throws.
-      // Since we don't know the exact rate limit, we'll just check that the function exists and can be called.
-      // In a real test, we would mock time and check that the rate limit works.
-      expect(typeof service.validateRateLimit).toBe('function');
+      const token = service.grantOneTimeAccess('Devon', 'sudo ls', 'test');
+      // First use should be valid
+      const firstCheck = service.validateGrant('Devon', 'sudo ls', token);
+      expect(firstCheck).toBe(true);
+      // Second use should be invalid (single use)
+      const secondCheck = service.validateGrant('Devon', 'sudo ls', token);
+      expect(secondCheck).toBe(false);
     });
 
-    test('should handle different agent IDs independently', () => {
+    test('validateGrant should return false for mismatched agent', () => {
       const service = requireConstraintService();
-
-      const agent1 = 'tara';
-      const agent2 = 'devon';
-
-      // Should not throw for different agents
-      expect(() => service.validateRateLimit(agent1)).not.toThrow();
-      expect(() => service.validateRateLimit(agent2)).not.toThrow();
+      const token = service.grantOneTimeAccess('Devon', 'sudo ls', 'test');
+      const isValid = service.validateGrant('Tara', 'sudo ls', token); // Different agent
+      expect(isValid).toBe(false);
     });
 
-    test('should reset after time window', () => {
+    test('validateGrant should return false for mismatched command', () => {
       const service = requireConstraintService();
-
-      // We'll mock Date or use jest.advanceTimersByTime if the service uses time-based rate limiting.
-      // For now, just ensure the function exists.
-      expect(typeof service.validateRateLimit).toBe('function');
-      // We'll leave detailed time-based testing for the implementation (Green phase).
-    });
-  });
-
-  describe('Integration: multiple validations', () => {
-    test('should pass when all constraints are satisfied', () => {
-      const service = requireConstraintService();
-
-      // Mock fs.existsSync to return false (no git lock)
-      fs.existsSync.mockReturnValue(false);
-
-      // Safe path, no git lock, and rate limit not exceeded
-      expect(() => {
-        service.validatePathSafety('src/services/constraintService.js');
-        service.validateGitLock('/some/repo');
-        service.validateRateLimit('tara');
-      }).not.toThrow();
+      const token = service.grantOneTimeAccess('Devon', 'sudo ls', 'test');
+      const isValid = service.validateGrant('Devon', 'sudo rm -rf /', token); // Different command
+      expect(isValid).toBe(false);
     });
 
-    test('should fail if any constraint is violated', () => {
+    test('Non-whitelisted command fails initially', () => {
       const service = requireConstraintService();
+      // Assuming there is a method isCommandAllowed(agentRole, command)
+      const allowed = service.isCommandAllowed('Devon', 'sudo ls');
+      expect(allowed).toBe(false);
+    });
 
-      // Mock git lock exists
-      fs.existsSync.mockReturnValue(true);
+    test('Non-whitelisted command passes with valid Grant Token', () => {
+      const service = requireConstraintService();
+      const token = service.grantOneTimeAccess('Devon', 'sudo ls', 'test');
+      // With token, the command should be allowed
+      const allowed = service.isCommandAllowedWithToken('Devon', 'sudo ls', token);
+      expect(allowed).toBe(true);
+    });
 
-      // Even with safe path, git lock should cause failure
-      expect(() => {
-        service.validatePathSafety('safe/path');
-        service.validateGitLock('/some/repo');
-      }).toThrow();
+    test('Token can only be used once (single use)', () => {
+      const service = requireConstraintService();
+      const token = service.grantOneTimeAccess('Devon', 'sudo ls', 'test');
+      // First use with token should pass
+      const first = service.isCommandAllowedWithToken('Devon', 'sudo ls', token);
+      expect(first).toBe(true);
+      // Second use with same token should fail
+      const second = service.isCommandAllowedWithToken('Devon', 'sudo ls', token);
+      expect(second).toBe(false);
     });
   });
 });

@@ -88,7 +88,7 @@ requiredActions:
   - "[ ] Update `ShellTool` to check for Override Token on failure"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Devon blocked from writing to `tests/` directory"
