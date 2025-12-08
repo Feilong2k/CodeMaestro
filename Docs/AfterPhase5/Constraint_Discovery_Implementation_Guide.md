@@ -295,14 +295,128 @@ constraint_analysis:
 ```
 
 ================================================================================
-## PROTOCOL FILES REFERENCE
+## COMPLETE PROTOCOL TEXTS
 ================================================================================
 
-| Protocol | File Location |
-|----------|---------------|
-| Full v4 | `Docs/Tests/Protocol_v3_Test_Prompt.md` (update to v4) |
-| LITE v3 | `Docs/Tests/Protocol_LITE_v3_Test_Prompt.md` |
-| Current | Embedded in subtask logs |
+### LITE v3 Protocol (Full Text)
+
+```
+Run this plan through Constraint Discovery Protocol (LITE v3):
+
+PART 1: ASSUMPTIONS AUDIT
+List ALL assumptions in the plan (minimum 10):
+
+| # | Assumption | Explicit/Implicit | What breaks if FALSE? | Risk |
+|---|------------|-------------------|----------------------|------|
+| 1 | ...        | ...               | ...                  | H/M/L|
+
+PART 2: SYSTEM CAPABILITIES CHECK
+For each system/tool mentioned:
+
+| System | What plan requires | Can it do that? | Limitations |
+|--------|-------------------|-----------------|-------------|
+| Git    | ...               | Yes/No          | ...         |
+
+PART 3: IMPOSSIBILITY SCAN
+Is anything PHYSICALLY IMPOSSIBLE?
+- Operations that contradict each other?
+- Resources used in mutually exclusive ways?
+- Timing requirements that cannot be met?
+
+PART 4: ASSUMPTION VERIFICATION (CRITICAL)
+For each MEDIUM/HIGH risk assumption:
+- Breaking condition: When does this assumption break?
+- Does it ACTUALLY APPLY to this plan?
+- Use CONCRETE details to verify.
+- Verdict: SAFE / AT RISK / BROKEN
+
+PART 5: FINAL VERDICT
+1. CONFIRMED SAFE assumptions: [list]
+2. AT RISK assumptions: [list with conditions]
+3. BROKEN assumptions: [list]
+4. OVERALL: FULLY FEASIBLE / CONDITIONALLY FEASIBLE / NOT FEASIBLE
+5. RECOMMENDED CHANGES: [if any]
+```
+
+---
+
+### Full v3 Protocol (Catches Worktree Trap)
+
+```
+Run this plan through Constraint Discovery Protocol (Full v3):
+
+PART 1: RESOURCE ANALYSIS
+| Resource | Current State | Who Uses It | Exclusive/Shared |
+|----------|--------------|-------------|------------------|
+
+PART 2: OPERATION ANALYSIS (CRITICAL)
+| Operation | Physical Change? | Locks? | 2 Actors Simultaneously? |
+|-----------|-----------------|--------|--------------------------|
+
+PART 3: ACTOR ANALYSIS
+| Actor | Resources They Touch | Same Resource Same Time? |
+|-------|---------------------|-------------------------|
+
+PART 4: ASSUMPTION AUDIT (minimum 10)
+| # | Assumption | Explicit/Implicit | Breaks if FALSE | Risk |
+|---|------------|-------------------|-----------------|------|
+
+PART 5: PHYSICAL VS LOGICAL CHECK (CRITICAL)
+For each "separation" claimed:
+| Claimed Separation | Mechanism | Physical/Logical | If Mechanism Fails? |
+|-------------------|-----------|------------------|---------------------|
+| "Different files" | File paths | Logical          | Same disk/locks      |
+| "Different branches" | Git refs | Logical        | SAME WORKING DIR!    |
+
+KEY: If two actors work "separately," do they share PHYSICAL resources?
+(disk, ports, memory, working directory)
+
+PART 6: FINAL VERDICT
+1. Physical constraints discovered: [list]
+2. Logical separations sharing physical resources: [HIGH RISK]
+3. VERDICT: SAFE / CONDITIONALLY SAFE / UNSAFE
+4. RECOMMENDED MITIGATIONS: [if any]
+```
+
+---
+
+### Full v4 Protocol (Gap Analysis + Conditional)
+
+```
+Run this plan through Constraint Discovery Protocol v4:
+
+PART 1-5: Same as Full v3 (above)
+
+PART 6: GAP ANALYSIS (CRITICAL)
+What is NOT SPECIFIED in this plan?
+| Gap | Possible Interpretations | Answer Under Each |
+|-----|-------------------------|-------------------|
+| ... | A: ... / B: ... / C: ... | A→X, B→Y, C→Z    |
+
+List ALL ambiguities. Do NOT assume intent.
+
+PART 7: CONDITIONAL VERDICT
+- IF [condition A] THEN [conclusion A]
+- IF [condition B] THEN [conclusion B]
+
+Gaps MUST Be Clarified:
+1. ...
+
+Status: APPROVED / CONDITIONALLY APPROVED / BLOCKED
+```
+
+================================================================================
+## PROTOCOL SELECTION CHEATSHEET
+================================================================================
+
+| Scenario | Protocol | Why |
+|----------|----------|-----|
+| "Is worktree needed?" | Full v3 | Physical vs Logical check |
+| "Can agents work parallel?" | Full v3 | Actor + Physical check |
+| "Should we change DB?" | Full v4 | Gap Analysis for ambiguity |
+| "New tool safe?" | LITE v3 | Assumption verification |
+| "Multi-subtask plan" | LITE v3 | System capabilities check |
+| "Single endpoint" | Current | Basic resource tracking |
 
 ================================================================================
 
