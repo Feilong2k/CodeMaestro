@@ -113,13 +113,47 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
         </svg>
       </button>
-      <div v-if="showVisualization" class="p-6 border-t border-line-base">
-        <div v-if="workflow.definition" class="space-y-4">
-          <p class="text-text-secondary font-matrix-sans">This diagram shows the workflow states and transitions.</p>
-          <MermaidGraph :definition="workflow.definition" height="400px" />
+      <div v-if="showVisualization" class="border-t border-line-base">
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-line-base">
+          <button @click="activeTab = 'diagram'"
+                  :class="activeTab === 'diagram' 
+                    ? 'border-b-2 border-accent-primary text-text-primary' 
+                    : 'text-text-secondary hover:text-text-primary'"
+                  class="flex-1 py-3 text-center font-medium font-matrix-sans transition-colors">
+            Diagram
+          </button>
+          <button @click="activeTab = 'description'"
+                  :class="activeTab === 'description'
+                    ? 'border-b-2 border-accent-primary text-text-primary'
+                    : 'text-text-secondary hover:text-text-primary'"
+                  class="flex-1 py-3 text-center font-medium font-matrix-sans transition-colors">
+            Description
+          </button>
         </div>
-        <div v-else class="text-center py-8 text-text-muted font-matrix-sans">
-          No definition available for visualization.
+
+        <!-- Tab Content -->
+        <div class="p-6">
+          <div v-if="workflow.definition" class="space-y-4">
+            <!-- Diagram Tab -->
+            <div v-if="activeTab === 'diagram'">
+              <p class="text-text-secondary font-matrix-sans mb-4">This diagram shows the workflow states and transitions.</p>
+              <MermaidGraph :definition="workflow.definition" height="400px" />
+            </div>
+
+            <!-- Description Tab -->
+            <div v-else-if="activeTab === 'description'">
+              <div class="prose prose-invert max-w-none">
+                <h4 class="text-lg font-semibold text-text-primary font-matrix-sans mb-4">Workflow Description</h4>
+                <div class="whitespace-pre-line text-text-secondary font-matrix-sans bg-bg-elevated p-4 rounded-lg border border-line-base">
+                  {{ textDescription }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-8 text-text-muted font-matrix-sans">
+            No definition available for visualization.
+          </div>
         </div>
       </div>
     </div>
@@ -154,9 +188,10 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { getWorkflow } from '../api/workflows'
 import MermaidGraph from './MermaidGraph.vue'
+import { generateTextDescription } from '../utils/textGenerator.js'
 
 const props = defineProps({
   workflowId: {
@@ -172,6 +207,11 @@ const loading = ref(true)
 const error = ref(null)
 const showVisualization = ref(true)
 const showRawJson = ref(false)
+const activeTab = ref('diagram')
+const textDescription = computed(() => {
+  if (!workflow.value?.definition) return ''
+  return generateTextDescription(workflow.value.definition)
+})
 
 async function fetchWorkflow() {
   loading.value = true
