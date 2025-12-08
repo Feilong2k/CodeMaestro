@@ -76,7 +76,7 @@ requiredActions:
   - "[ ] Implement `cwd` persistence for chained commands"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Blocklist rejects 'sudo' instantly"
