@@ -124,7 +124,7 @@ subtasks:
 
   - id: "5-4"
     title: "Output Parsers (XML)"
-    status: pending
+    status: completed
     owner: "Devon2"
     priority: high
     dependencies: ["5-3"]
