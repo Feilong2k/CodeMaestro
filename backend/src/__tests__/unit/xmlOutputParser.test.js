@@ -1,4 +1,4 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let XmlOutputParser;
@@ -22,9 +22,6 @@ function requireXmlOutputParser() {
 }
 
 describe('XML Output Parser', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
 
   describe('extractToolCalls(text)', () => {
     test('should parse valid XML tool calls', () => {
