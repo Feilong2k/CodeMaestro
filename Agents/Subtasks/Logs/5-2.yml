@@ -72,6 +72,14 @@ history:
     role: orchestrator
     action: UPDATED
     message: "Added implementation plan and TDD checklist for Tara."
+  - ts: "2025-12-08T08:30:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for TaskQueueService (Red phase). Tests cover enqueue, dequeue (SKIP LOCKED), complete, fail, and concurrency."
+  - ts: "2025-12-08T08:31:00Z"
+    role: tester
+    action: HANDOFF
+    message: "Committed failing unit tests (Red phase). Ready for Devon to implement TaskQueueService and migration (Green phase)."
 
 requiredActions:
   - "[ ] [TDD] Create failing unit tests (Red)"
@@ -84,7 +92,7 @@ requiredActions:
   - "[ ] Service: `TaskQueueService.fail(taskId, error)`"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] enqueue() inserts task with 'pending' status"
