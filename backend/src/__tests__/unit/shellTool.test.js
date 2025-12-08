@@ -1,4 +1,4 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 
 // The module we're testing doesn't exist yet, so we'll try to import it and handle the error.
 let ShellTool;
@@ -18,7 +18,7 @@ const { exec } = require('child_process');
 
 // Helper to ensure we have a method to test, otherwise skip the test.
 function requireShellTool() {
-  if (Object.keys(ShellTool).length === 0) {
+  if (!ShellTool || typeof ShellTool.validateCommand !== 'function') {
     throw new Error('ShellTool module not found. Tests are expected to fail.');
   }
   return ShellTool;
@@ -119,7 +119,8 @@ describe('Shell Tool', () => {
 
       const command = 'cd dir && ls';
       const result = await tool.execute(command);
-      expect(callCount).toBe(2);
+      // Only the 'ls' command should call exec, 'cd' is handled internally
+      expect(callCount).toBe(1);
     });
 
     test('should persist cwd across chained commands', async () => {
@@ -133,9 +134,10 @@ describe('Shell Tool', () => {
 
       const command = 'cd newdir && ls';
       await tool.execute(command);
-      // Check that the second command uses the cwd from the first (if cd changes cwd)
-      // This test might need adjustment based on actual implementation.
-      expect(execCalls[1].cwd).toBeDefined();
+      // Only one exec call for 'ls', after the cd
+      expect(execCalls).toHaveLength(1);
+      // The cwd for the ls command should be the updated directory (contains 'newdir')
+      expect(execCalls[0].cwd).toContain('newdir');
     });
   });
 
@@ -154,9 +156,10 @@ describe('Shell Tool', () => {
 
       const command = 'cd newdir && ls';
       await tool.execute(command);
-      // The second command should have a cwd that includes 'newdir' (or at least not be the same as initial)
-      // Since we don't know the absolute path, we just check that there are two calls.
-      expect(execCalls).toHaveLength(2);
+      // Only one exec call for 'ls', after the cd
+      expect(execCalls).toHaveLength(1);
+      // The cwd should include 'newdir' (or at least not be the same as the initial cwd)
+      expect(execCalls[0].cwd).toContain('newdir');
     });
   });
 });
