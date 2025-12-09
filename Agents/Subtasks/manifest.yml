@@ -189,7 +189,7 @@ subtasks:
 
   - id: "6-10"
     title: "SystemLogPanel WebSocket Wiring & Basic Events"
-    status: completed
+    status: in_progress
     owner: "Devon"
     priority: high
     dependencies: ["6-0"]
