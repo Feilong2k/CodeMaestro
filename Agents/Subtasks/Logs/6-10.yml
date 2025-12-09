@@ -1,7 +1,7 @@
 # Subtask Log: 6-10 (SystemLogPanel WebSocket Wiring & Basic Events)
 id: "6-10"
 title: "SystemLogPanel WebSocket Wiring & Basic Events"
-status: pending
+status: completed
 branch: "subtask/6-10-systemlog-websocket"
 
 phase: 6
@@ -104,6 +104,29 @@ requiredActions:
   - "[ ] [TDD] Implement WebSocket composable + systemLogStore and wire SystemLogPanel (Green)"
   - "[ ] [TDD] Add backend socket events and basic integration tests"
   - "[ ] [TDD] Refactor and cleanup placeholder data (no hard-coded wsConnected/messages)"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement the real WebSocket + SystemLog plumbing, without touching any
+      test files. All implementation work should stay within frontend/src/** and
+      backend/src/** (socket/index.js), respecting role boundaries.
+    steps:
+      - "Implement the WebSocket composable in frontend/src/composables/useWebSocket.js (or equivalent) to expose reactive connected state and events."
+      - "Implement the Pinia store in frontend/src/stores/systemLogStore.js for { connected, messages } and helper actions (setConnected, addMessage, clear)."
+      - "Refactor frontend/src/components/SystemLogPanel.vue to use systemLogStore (no local wsConnected ref or hard-coded messages)."
+      - "Update backend/src/socket/index.js to emit basic system_message events (connect, disconnect, optional server-start)."
+      - "Coordinate event names and payload shape with Tara so tests remain stable."
+
+  tara:
+    summary: |
+      Own tests for SystemLogPanel WebSocket behavior strictly in frontend/src/__tests__/**.
+      Do not modify implementation files under frontend/src/components or backend/src/**.
+    steps:
+      - "Extend frontend/src/__tests__/integration/MainLayout.integration.spec.js (or similar) to create failing tests that mock WebSocket events and assert SystemLogPanel updates (Red)."
+      - "Add tests that verify the status indicator reflects connected vs disconnected based on store state."
+      - "Optionally add a small unit/spec test for SystemLogPanel empty vs populated states, driven by the store."
+      - "After Devon implements the composable + store wiring, update tests as needed to assert live behavior (Green) and ensure coverage > 80% for new code."
 
 verificationChecklist:
   - "[x] [TDD] Failing integration tests created (Red)"
