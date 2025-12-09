@@ -7,6 +7,7 @@ const GitTool = require('./GitTool');
 const { DatabaseTool } = require('./DatabaseTool'); // Import the class, not instance
 const ShellTool = require('./ShellTool');
 const ProjectTool = require('./ProjectTool');
+const MemoryTool = require('./MemoryTool');
 
 /**
  * Role-based tool registry.
@@ -29,7 +30,8 @@ const roleCapabilities = {
     GitTool,
     DatabaseTool,
     ShellTool,
-    ProjectTool
+    ProjectTool,
+    MemoryTool
   }
 };
 
@@ -42,7 +44,8 @@ function getToolDescriptions() {
     GitTool: 'Git operations (commit, branch, push, pull) with safety checks',
     ShellTool: 'Execute shell commands with whitelist/blocklist safety',
     ProjectTool: 'CRUD operations for project management',
-    DatabaseTool: 'Direct database queries (Orion-only)'
+    DatabaseTool: 'Direct database queries (Orion-only)',
+    MemoryTool: 'Search past conversations and project memories'
   };
 }
 

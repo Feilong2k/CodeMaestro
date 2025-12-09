@@ -331,6 +331,29 @@ const functionDefinitions = [
         required: ["command"]
       }
     }
+  },
+
+  // ==================== MemoryTool ====================
+  {
+    type: "function",
+    function: {
+      name: "MemoryTool_search",
+      description: "Search past conversations and project memories. Use this when user asks about past discussions, decisions, or context from earlier in the project.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { 
+            type: "string", 
+            description: "Keywords to search for in past conversations" 
+          },
+          limit: {
+            type: "number",
+            description: "Max results to return (default: 5)"
+          }
+        },
+        required: ["query"]
+      }
+    }
   }
 ];
 

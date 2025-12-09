@@ -339,6 +339,12 @@ class OrionAgent extends BaseAgent {
             }
           }
           
+          // Special handling for MemoryTool - pass projectId in params
+          if (toolName === 'MemoryTool' && projectId) {
+            params.projectId = projectId;
+            console.log('[runFunctionCallingMode] MemoryTool using projectId:', projectId);
+          }
+          
           // Execute with action included in params
           const executeParams = { action, ...params };
           console.log('[runFunctionCallingMode] Executing with params:', executeParams);

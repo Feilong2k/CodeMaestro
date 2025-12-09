@@ -744,6 +744,180 @@ GET /api/activity/agent/:agentName   - Filter by agent
 
 ---
 
+---
+
+## 6-14: Tiered Memory Retrieval System
+
+**Owner:** Orion  
+**Priority:** High  
+**Dependencies:** 6-12 (Function Calling), 6-13 (Conversation History)
+
+### Overview
+
+Implement a 4-tier memory system that allows Orion to remember and retrieve context across conversations without overwhelming the LLM context window.
+
+### The 4 Memory Tiers
+
+| Tier | Name | Retention | Context Strategy | Examples |
+|------|------|-----------|------------------|----------|
+| **1** | **Critical** | Forever | Always in prompt | Project purpose, core architecture decisions |
+| **2** | **Important** | Long-term (1yr) | Always in prompt (summary) | Tech stack, user preferences, key decisions |
+| **3** | **Routine** | Medium-term (30d) | Search on demand | Past conversations, discussion context |
+| **4** | **Ephemeral** | Short-term (24h) | Current session only | Current task details, temp context |
+
+### Database Schema
+
+```sql
+-- Add tier and searchability to memories table
+ALTER TABLE memories ADD COLUMN IF NOT EXISTS tier VARCHAR(20) DEFAULT 'routine';
+ALTER TABLE memories ADD COLUMN IF NOT EXISTS search_vector TSVECTOR;
+
+-- Create index for full-text search
+CREATE INDEX IF NOT EXISTS idx_memories_search ON memories USING GIN(search_vector);
+
+-- Auto-update search vector
+CREATE OR REPLACE FUNCTION update_memories_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.search_vector := to_tsvector('english', COALESCE(NEW.key, '') || ' ' || COALESCE(NEW.value::text, ''));
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER memories_search_update
+  BEFORE INSERT OR UPDATE ON memories
+  FOR EACH ROW EXECUTE FUNCTION update_memories_search_vector();
+```
+
+### MemoryTool Functions
+
+```javascript
+// Function definitions for Orion
+{
+  name: "MemoryTool_search",
+  description: "Search past conversations and stored memories",
+  parameters: {
+    query: { type: "string", description: "Keywords to search for" },
+    tier: { type: "string", enum: ["critical", "important", "routine", "all"], default: "all" }
+  }
+},
+{
+  name: "MemoryTool_save",
+  description: "Save an important fact or decision to memory",
+  parameters: {
+    key: { type: "string", description: "Short identifier for this memory" },
+    value: { type: "string", description: "The content to remember" },
+    tier: { type: "string", enum: ["critical", "important", "routine"], default: "important" }
+  }
+},
+{
+  name: "MemoryTool_list",
+  description: "List memories by tier or project",
+  parameters: {
+    tier: { type: "string", enum: ["critical", "important", "routine", "all"], default: "all" }
+  }
+}
+```
+
+### Context Injection Strategy
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ SYSTEM PROMPT                                               │
+├─────────────────────────────────────────────────────────────┤
+│ [Base Orion Instructions]                                   │
+│                                                             │
+│ === CRITICAL MEMORIES (Tier 1) ===                          │
+│ • Project purpose: Multi-AI TDD platform                    │
+│ • Architecture: Vue 3 + Express + PostgreSQL                │
+│                                                             │
+│ === IMPORTANT MEMORIES (Tier 2 - Summary) ===               │
+│ • User prefers TypeScript                                   │
+│ • Naming convention: camelCase for functions                │
+│ • 5 other important facts...                                │
+│                                                             │
+│ === RECENT CONTEXT (Last 10 messages) ===                   │
+│ [Chat history from chat_messages]                           │
+│                                                             │
+│ === AVAILABLE TOOLS ===                                     │
+│ [Function definitions including MemoryTool_search]          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Auto-Memory Extraction
+
+After each conversation, extract and save important facts:
+
+```javascript
+// Run after conversation ends or every N messages
+async function extractMemories(projectId, messages) {
+  const prompt = `
+    Review these messages and extract any important facts that should be remembered:
+    - Project decisions
+    - User preferences  
+    - Technical choices
+    - Requirements mentioned
+    
+    Return JSON: [{ key: "...", value: "...", tier: "important|routine" }]
+  `;
+  
+  const memories = await llm.extract(messages, prompt);
+  for (const memory of memories) {
+    await memoryService.save(projectId, memory);
+  }
+}
+```
+
+### Retention Policy Jobs
+
+```javascript
+// Daily cleanup job
+async function cleanupExpiredMemories() {
+  // Ephemeral: 24 hours
+  await db.query(`DELETE FROM memories WHERE tier = 'ephemeral' AND created_at < NOW() - INTERVAL '24 hours'`);
+  
+  // Routine: 30 days
+  await db.query(`DELETE FROM memories WHERE tier = 'routine' AND created_at < NOW() - INTERVAL '30 days'`);
+  
+  // Important: 1 year
+  await db.query(`DELETE FROM memories WHERE tier = 'important' AND created_at < NOW() - INTERVAL '1 year'`);
+  
+  // Critical: Never deleted
+}
+```
+
+### Implementation Phases
+
+**Phase A: Basic Search (MVP - Current Sprint)**
+- [x] MemoryTool_search with PostgreSQL full-text search
+- [x] Search chat_messages table
+- [ ] Add to Orion's function definitions
+
+**Phase B: Memory Storage**
+- [ ] Add tier column to memories table
+- [ ] MemoryTool_save function
+- [ ] MemoryTool_list function
+
+**Phase C: Auto-Extraction**
+- [ ] Post-conversation memory extraction
+- [ ] LLM-based fact extraction
+- [ ] Duplicate detection
+
+**Phase D: Optimizations**
+- [ ] Vector embeddings for semantic search (pgvector)
+- [ ] Memory summarization (compress old memories)
+- [ ] Context budget tracking
+
+### Tests
+
+- [ ] MemoryTool_search returns relevant results
+- [ ] Memories are correctly tiered
+- [ ] Retention policies work (items expire)
+- [ ] Critical memories always in context
+- [ ] Search doesn't timeout on large datasets
+
+---
+
 ## Notes for CodeMaestro
 
 When implementing this phase:
