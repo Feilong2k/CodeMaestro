@@ -98,8 +98,14 @@ export const useChatStore = defineStore('chat', {
           console.warn('[Chat] Routing failed, defaulting to tactical:', routeErr)
         }
 
-        // 2. Send message with the determined mode
-        const response = await chat(content, mode)
+        // 2. Get current project ID from app store
+        const { useAppStore } = await import('./appStore');
+        const appStore = useAppStore();
+        const projectId = appStore.currentProject?.id || null;
+        
+        // 3. Send message with the determined mode and projectId
+        // History is now loaded from database server-side
+        const response = await chat(content, mode, projectId)
         
         // Add Orion's response
         this.addMessage({

@@ -110,11 +110,14 @@ const startTypingEffect = () => {
   displayedText.value = ''
   isTypingComplete.value = false
   let index = 0
+  const chunkSize = 5 // Type 5 characters at a time for faster display
   
   typingInterval.value = setInterval(() => {
     if (index < props.message.length) {
-      displayedText.value += props.message.charAt(index)
-      index++
+      // Add multiple characters per tick
+      const endIndex = Math.min(index + chunkSize, props.message.length)
+      displayedText.value = props.message.substring(0, endIndex)
+      index = endIndex
       
       // Auto-scroll the parent container when typing
       if (messageContent.value?.parentElement?.parentElement?.parentElement) {

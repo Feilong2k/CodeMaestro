@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Project root - configurable via env, defaults to CM root (3 levels up from tools/)
+const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, '../../../');
+
 /**
  * Safe file system operations with path traversal protection.
  */
@@ -15,9 +18,9 @@ class FileSystemTool {
       throw new Error('Invalid path');
     }
 
-    // Resolve the path relative to current working directory (project root)
-    const resolvedPath = path.resolve(process.cwd(), inputPath);
-    const projectRoot = process.cwd();
+    // Resolve the path relative to PROJECT_ROOT (not cwd)
+    const resolvedPath = path.resolve(PROJECT_ROOT, inputPath);
+    const projectRoot = PROJECT_ROOT;
 
     // Check if the resolved path is within the project root
     if (!resolvedPath.startsWith(projectRoot)) {
@@ -44,15 +47,15 @@ class FileSystemTool {
    * @returns {string} File content.
    */
   safeRead(filePath) {
-    // Validate the path (throws if unsafe)
-    FileSystemTool.validatePath(filePath);
+    // Validate the path and get resolved absolute path
+    const resolvedPath = FileSystemTool.validatePath(filePath);
 
-    if (!fs.existsSync(filePath)) {
+    if (!fs.existsSync(resolvedPath)) {
       throw new Error(`File not found: ${filePath}`);
     }
 
     try {
-      return fs.readFileSync(filePath, 'utf8');
+      return fs.readFileSync(resolvedPath, 'utf8');
     } catch (error) {
       throw new Error(`Failed to read file ${filePath}: ${error.message}`);
     }
@@ -67,22 +70,22 @@ class FileSystemTool {
    * @param {boolean} [options.overwrite=false] - If true, overwrite existing file.
    */
   safeWrite(filePath, content, options = {}) {
-    // Validate the path (throws if unsafe)
-    FileSystemTool.validatePath(filePath);
+    // Validate the path and get resolved absolute path
+    const resolvedPath = FileSystemTool.validatePath(filePath);
 
     // Check if file exists and overwrite is not allowed
-    if (fs.existsSync(filePath) && !options.overwrite) {
+    if (fs.existsSync(resolvedPath) && !options.overwrite) {
       throw new Error(`File ${filePath} already exists. Use { overwrite: true } to overwrite.`);
     }
 
-    // Ensure the directory exists (use the original path for directory creation)
-    const dir = path.dirname(filePath);
+    // Ensure the directory exists
+    const dir = path.dirname(resolvedPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
     try {
-      fs.writeFileSync(filePath, content, 'utf8');
+      fs.writeFileSync(resolvedPath, content, 'utf8');
     } catch (error) {
       throw new Error(`Failed to write file ${filePath}: ${error.message}`);
     }
@@ -94,17 +97,62 @@ class FileSystemTool {
    * @returns {string[]} Array of filenames.
    */
   safeList(dirPath) {
-    // Validate the path (throws if unsafe)
-    FileSystemTool.validatePath(dirPath);
+    // Validate the path and get resolved absolute path
+    const resolvedPath = FileSystemTool.validatePath(dirPath);
 
-    if (!fs.existsSync(dirPath)) {
+    if (!fs.existsSync(resolvedPath)) {
       throw new Error(`Directory not found: ${dirPath}`);
     }
 
     try {
-      return fs.readdirSync(dirPath);
+      return fs.readdirSync(resolvedPath);
     } catch (error) {
       throw new Error(`Failed to list directory ${dirPath}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Safely create a directory within the project root.
+   * Creates parent directories if they don't exist (recursive).
+   * @param {string} dirPath - Path to the directory to create.
+   * @returns {string} The created directory path.
+   */
+  createDirectory(dirPath) {
+    // Validate the path (throws if unsafe)
+    const resolvedPath = FileSystemTool.validatePath(dirPath);
+
+    try {
+      fs.mkdirSync(resolvedPath, { recursive: true });
+      return resolvedPath;
+    } catch (error) {
+      throw new Error(`Failed to create directory ${dirPath}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Safely delete a file or directory within the project root.
+   * @param {string} targetPath - Path to the file/directory to delete.
+   * @returns {string} Confirmation message.
+   */
+  safeDelete(targetPath) {
+    // Validate the path (throws if unsafe)
+    const resolvedPath = FileSystemTool.validatePath(targetPath);
+
+    if (!fs.existsSync(resolvedPath)) {
+      throw new Error(`Path not found: ${targetPath}`);
+    }
+
+    try {
+      const stats = fs.statSync(resolvedPath);
+      if (stats.isDirectory()) {
+        fs.rmSync(resolvedPath, { recursive: true });
+        return `Directory deleted: ${targetPath}`;
+      } else {
+        fs.unlinkSync(resolvedPath);
+        return `File deleted: ${targetPath}`;
+      }
+    } catch (error) {
+      throw new Error(`Failed to delete ${targetPath}: ${error.message}`);
     }
   }
 
@@ -123,6 +171,12 @@ class FileSystemTool {
         return this.safeWrite(filePath, content);
       case 'list':
         return this.safeList(dirPath || filePath);
+      case 'mkdir':
+      case 'createDirectory':
+        return this.createDirectory(dirPath || filePath);
+      case 'delete':
+      case 'remove':
+        return this.safeDelete(filePath || dirPath);
       default:
         throw new Error(`Unknown FileSystemTool action: ${action}`);
     }

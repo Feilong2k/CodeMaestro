@@ -1,0 +1,111 @@
+id: "6-12"
+title: "Function Calling API Support"
+status: ready_for_dev
+owner: Devon
+priority: critical
+phase: 6
+
+description: |
+  Replace XML-based tool parsing with native LLM Function Calling API.
+  This dramatically improves action selection accuracy from ~50% to ~95%.
+
+problem: |
+  Current system uses XML tags for tool calls:
+  <tool name="ProjectTool"><action>list</action></tool>
+  
+  Issues:
+  - LLM often picks wrong action (list vs delete vs update)
+  - XML parsing is fragile
+  - No schema validation
+  - ~50% success rate on action selection
+
+solution: |
+  Use OpenAI-compatible function calling (DeepSeek supports this):
+  - Define tools as JSON Schema functions
+  - LLM returns structured function calls
+  - Direct mapping to tool execution
+  - ~95% accuracy expected
+
+files_to_modify:
+  - backend/src/llm/TacticalAdapter.js      # Add function calling support
+  - backend/src/tools/registry.js           # Export function definitions
+  - backend/src/agents/OrionAgent.js        # Handle function call responses
+  - backend/src/services/XmlOutputParser.js # Keep as fallback
+
+implementation_steps:
+  1_create_function_definitions:
+    description: "Convert tool registry to OpenAI function format"
+    file: backend/src/tools/functionDefinitions.js
+    output: |
+      module.exports = [
+        {
+          type: "function",
+          function: {
+            name: "ProjectTool_create",
+            description: "Create a new project",
+            parameters: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Project name" },
+                description: { type: "string", description: "Project description" }
+              },
+              required: ["name"]
+            }
+          }
+        },
+        // ... all tool actions as separate functions
+      ];
+
+  2_update_tactical_adapter:
+    description: "Modify TacticalAdapter to use function calling"
+    changes:
+      - Import function definitions
+      - Add tools parameter to API call
+      - Handle tool_calls in response
+      - Return structured result for OrionAgent
+
+  3_update_orion_agent:
+    description: "Handle function call responses"
+    changes:
+      - Parse tool_calls from response
+      - Map function names to tool/action
+      - Execute tool with parameters
+      - Return result to chat
+
+  4_keep_xml_fallback:
+    description: "Keep XML parsing for models without function calling"
+    changes:
+      - Check if model supports function calling
+      - Fall back to XML if not supported
+
+test_cases:
+  - name: "Delete intent maps to delete action"
+    input: "Delete project with ID 2"
+    expected_function: "ProjectTool_delete"
+    expected_params: { projectId: 2 }
+    
+  - name: "Update intent maps to update action"
+    input: "Update project 1 path to Projects/CodeMaestro"
+    expected_function: "ProjectTool_update"
+    expected_params: { projectId: 1, path: "Projects/CodeMaestro" }
+    
+  - name: "Create intent maps to create action"
+    input: "Create a project called TestProject"
+    expected_function: "ProjectTool_create"
+    expected_params: { name: "TestProject" }
+
+  - name: "Query database for permissions"
+    input: "What permissions does Tara have?"
+    expected_function: "DatabaseTool_getAgentPermissions"
+    expected_params: { agentName: "Tara" }
+
+acceptance_criteria:
+  - Action selection accuracy > 90%
+  - All existing tools work via function calling
+  - Graceful fallback to XML for unsupported models
+  - No breaking changes to chat API
+
+resources:
+  - DeepSeek Function Calling: https://platform.deepseek.com/api-docs/function-calling
+  - OpenAI Format: https://platform.openai.com/docs/guides/function-calling
+

@@ -3,6 +3,8 @@ const AiService = require('../services/aiService');
 const { broadcastToSubtask, broadcastToAll } = require('../socket/index');
 const { AgentExecutor } = require('../services/agentExecutor');
 const TaskQueueService = require('../services/TaskQueueService');
+const TacticalAdapter = require('../llm/TacticalAdapter');
+const chatHistoryService = require('../services/chatHistoryService');
 
 /**
  * OrionAgent - orchestrator agent that coordinates tasks and state transitions.
@@ -70,51 +72,139 @@ class OrionAgent extends BaseAgent {
   }
 
   /**
-   * Chat with Orion using AiService (Split-Brain).
-   * Automatically switches to Agent Mode if tools are needed.
+   * Chat with Orion using Function Calling for reliable tool execution.
+   * Falls back to XML-based agent mode if function calling isn't available.
    * @param {string} message - The user message.
    * @param {string} mode - 'strategic' or 'tactical' (default).
+   * @param {number} projectId - Project ID for loading/saving chat history.
    * @returns {Promise<{response: string, usedAgentMode: boolean}>}
    */
-  async chat(message, mode = 'tactical') {
+  async chat(message, mode = 'tactical', projectId = null) {
     try {
       broadcastToAll('agent_action', {
         agent: 'Orion',
         action: 'processing message',
         status: 'thinking',
         mode: mode,
+        projectId: projectId,
         timestamp: new Date()
       });
 
-      // First, get initial response which may request agent mode
-      const result = await AiService.generate(message, mode);
-
-      // Check if agent mode is requested
-      const agentModeMatch = result.match(/<use_agent_mode>(true|yes)<\/use_agent_mode>/i);
-      
-      if (agentModeMatch) {
-        broadcastToAll('agent_action', {
-          agent: 'Orion',
-          action: 'switching to agent mode',
-          status: 'executing',
-          timestamp: new Date()
-        });
-
-        // Run in agent mode
-        const agentResponse = await this.runAgentMode(message);
+      // Load conversation history from database
+      let history = [];
+      if (projectId) {
+        try {
+          history = await chatHistoryService.getHistoryForLLM(projectId, 10);
+          console.log(`[OrionAgent] Loaded ${history.length} messages from project ${projectId}`);
+        } catch (err) {
+          console.warn('[OrionAgent] Failed to load chat history:', err.message);
+        }
         
+        // Save user message to database
+        try {
+          await chatHistoryService.saveMessage({
+            projectId,
+            role: 'user',
+            content: message,
+            mode
+          });
+        } catch (err) {
+          console.warn('[OrionAgent] Failed to save user message:', err.message);
+        }
+      }
+
+      // Use function calling for tactical mode
+      if (mode === 'tactical') {
+        const tacticalAdapter = new TacticalAdapter();
+        const result = await tacticalAdapter.generateWithFunctions(message, true, history);
+        
+        console.log('[OrionAgent] Function calling result type:', result.type);
+        console.log('[OrionAgent] Tool calls:', result.toolCalls);
+        console.log('[OrionAgent] Content:', result.content?.substring(0, 200));
+
+        // Handle function calls
+        if (result.type === 'function_call' && result.toolCalls?.length > 0) {
+          broadcastToAll('agent_action', {
+            agent: 'Orion',
+            action: 'function_calls_detected',
+            status: 'executing',
+            toolCalls: result.toolCalls,
+            timestamp: new Date()
+          });
+
+          // Execute via function calling agent mode
+          const agentResponse = await this.runFunctionCallingMode(message, result.toolCalls);
+          
+          // Save assistant response to database
+          if (projectId) {
+            await this.saveResponseToHistory(projectId, agentResponse, mode);
+          }
+          
+          broadcastToAll('agent_action', {
+            agent: 'Orion',
+            action: 'agent mode complete',
+            status: 'idle',
+            timestamp: new Date()
+          });
+
+          return { response: agentResponse, usedAgentMode: true };
+        }
+
+        // Text response - check for escalation
+        if (result.content === 'ESCALATE_TO_STRATEGIC') {
+          // Re-run in strategic mode
+          return this.chat(message, 'strategic');
+        }
+
+        // Also check for XML-based agent mode request (fallback)
+        const agentModeMatch = result.content?.match(/<use_agent_mode>(true|yes)<\/use_agent_mode>/i);
+        if (agentModeMatch) {
+          broadcastToAll('agent_action', {
+            agent: 'Orion',
+            action: 'switching to agent mode (XML fallback)',
+            status: 'executing',
+            timestamp: new Date()
+          });
+
+          const agentResponse = await this.runAgentMode(message);
+          
+          // Save assistant response to database
+          if (projectId) {
+            await this.saveResponseToHistory(projectId, agentResponse, mode);
+          }
+          
+          broadcastToAll('agent_action', {
+            agent: 'Orion',
+            action: 'agent mode complete',
+            status: 'idle',
+            timestamp: new Date()
+          });
+
+          return { response: agentResponse, usedAgentMode: true };
+        }
+
+        // Normal text response
+        // Save assistant response to database
+        if (projectId && result.content) {
+          await this.saveResponseToHistory(projectId, result.content, mode);
+        }
         broadcastToAll('agent_action', {
           agent: 'Orion',
-          action: 'agent mode complete',
+          action: 'replied',
           status: 'idle',
           timestamp: new Date()
         });
 
-        return { response: agentResponse, usedAgentMode: true };
+        return { response: result.content || '', usedAgentMode: false };
       }
 
-      // Normal chat response (strip any agent mode markers just in case)
-      const cleanResult = result.replace(/<use_agent_mode>.*?<\/use_agent_mode>/gi, '').trim();
+      // Strategic mode - use legacy flow
+      const result = await AiService.generate(message, mode);
+
+      // Save assistant response to database
+      if (projectId && result) {
+        await this.saveResponseToHistory(projectId, result, mode);
+      }
 
       broadcastToAll('agent_action', {
         agent: 'Orion',
@@ -123,10 +213,126 @@ class OrionAgent extends BaseAgent {
         timestamp: new Date()
       });
 
-      return { response: cleanResult, usedAgentMode: false };
+      return { response: result, usedAgentMode: false };
     } catch (error) {
       console.error('Orion chat error:', error);
       throw new Error(`Failed to get response from Orion: ${error.message}`);
+    }
+  }
+
+  /**
+   * Helper to save assistant response to chat history.
+   * @param {number} projectId - Project ID
+   * @param {string} content - Response content
+   * @param {string} mode - 'tactical' or 'strategic'
+   */
+  async saveResponseToHistory(projectId, content, mode) {
+    try {
+      await chatHistoryService.saveMessage({
+        projectId,
+        role: 'assistant',
+        content,
+        agent: 'Orion',
+        mode
+      });
+    } catch (err) {
+      console.warn('[OrionAgent] Failed to save assistant response:', err.message);
+    }
+  }
+
+  /**
+   * Run agent mode using function calling results.
+   * @param {string} query - Original user query
+   * @param {Array} toolCalls - Parsed tool calls from function calling
+   * @returns {Promise<string>} Final response
+   */
+  async runFunctionCallingMode(query, toolCalls) {
+    console.log('[runFunctionCallingMode] Starting with', toolCalls.length, 'tool calls');
+    try {
+      const registry = require('../tools/registry');
+      const tools = registry.getToolsForRole('Orion');
+      console.log('[runFunctionCallingMode] Available tools:', Object.keys(tools));
+      const results = [];
+
+      // Execute each function call
+      for (const toolCall of toolCalls) {
+        const { tool: toolName, action, params, id } = toolCall;
+        
+        broadcastToAll('agent_action', {
+          agent: 'Orion',
+          action: 'executing_function',
+          tool: toolName,
+          functionAction: action,
+          params: params,
+          callId: id,
+          timestamp: new Date()
+        });
+
+        try {
+          console.log('[runFunctionCallingMode] Looking for tool:', toolName);
+          const tool = tools[toolName];
+          if (!tool) {
+            const errorMsg = `Tool ${toolName} not found. Available: ${Object.keys(tools).join(', ')}`;
+            console.log('[runFunctionCallingMode] ERROR:', errorMsg);
+            results.push({ tool: toolName, action, error: errorMsg });
+            broadcastToAll('agent_action', {
+              agent: 'Orion',
+              action: 'function_error',
+              tool: toolName,
+              error: errorMsg,
+              timestamp: new Date()
+            });
+            continue;
+          }
+
+          // Instantiate tool if it's a class
+          console.log('[runFunctionCallingMode] Tool found, type:', typeof tool);
+          const toolInstance = typeof tool === 'function' ? new tool('Orion') : tool;
+          
+          // Execute with action included in params
+          const executeParams = { action, ...params };
+          console.log('[runFunctionCallingMode] Executing with params:', executeParams);
+          const result = await toolInstance.execute(executeParams);
+          console.log('[runFunctionCallingMode] Result:', JSON.stringify(result).substring(0, 200));
+          results.push({ tool: toolName, action, result });
+
+          broadcastToAll('agent_action', {
+            agent: 'Orion',
+            action: 'function_result',
+            tool: toolName,
+            functionAction: action,
+            result: result,
+            timestamp: new Date()
+          });
+        } catch (execError) {
+          results.push({ tool: toolName, action, error: execError.message });
+          broadcastToAll('agent_action', {
+            agent: 'Orion',
+            action: 'function_error',
+            tool: toolName,
+            error: execError.message,
+            timestamp: new Date()
+          });
+        }
+      }
+
+      // Summarize results
+      const tacticalAdapter = new TacticalAdapter();
+      const summaryPrompt = `You executed these tool calls for the user's query: "${query}"
+
+Results:
+${results.map(r => {
+  if (r.error) return `❌ ${r.tool}.${r.action}: Error - ${r.error}`;
+  return `✅ ${r.tool}.${r.action}: ${JSON.stringify(r.result, null, 2)}`;
+}).join('\n\n')}
+
+Please provide a helpful, well-formatted summary of the results for the user. Be concise but complete.`;
+
+      const summaryResult = await tacticalAdapter.generateWithFunctions(summaryPrompt, false);
+      return summaryResult.content || JSON.stringify(results, null, 2);
+    } catch (error) {
+      console.error('Function calling mode error:', error);
+      return `Function calling encountered an error: ${error.message}`;
     }
   }
 

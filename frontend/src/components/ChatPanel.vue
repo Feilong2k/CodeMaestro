@@ -11,7 +11,7 @@
         :time="formatTimeAgo(msg.timestamp)"
         :message="msg.content"
         :typing-effect="msg.typingEffect || false"
-        :typing-speed="20"
+        :typing-speed="5"
         :alignment="getAlignment(msg.sender)"
         :compact="compactMode"
       />

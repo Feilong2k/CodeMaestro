@@ -11,6 +11,7 @@ import StatusBar from './components/StatusBar.vue'
 import PatternManager from './components/PatternManager.vue'
 import Workflows from './views/Workflows.vue'
 import TaskDashboard from './views/TaskDashboard.vue'
+import FeaturesView from './views/FeaturesView.vue'
 
 const appStore = useAppStore()
 const { currentView, showTaskDashboard } = storeToRefs(appStore)
@@ -50,6 +51,7 @@ onMounted(checkHealth)
           <ChatPanel v-if="currentView === 'dashboard'" />
           <PatternManager v-else-if="currentView === 'patterns'" />
           <Workflows v-else-if="currentView === 'workflows'" />
+          <FeaturesView v-else-if="currentView === 'features'" />
           <ChatPanel v-else-if="currentView === 'chat'" />
           <!-- Fallback: if currentView is something else, show chat -->
           <ChatPanel v-else />

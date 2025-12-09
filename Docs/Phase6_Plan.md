@@ -467,6 +467,224 @@ async function get(endpoint) {
 **Owner:** Devon
 **Priority:** High
 
+---
+
+### 6-10: Project-Level File Isolation
+**Owner:** Devon
+**Priority:** Critical (Security)
+
+**Description:**
+Currently FileSystemTool allows access to the entire workspace (`C:\Coding\CM`). 
+It should restrict access to the **active project's folder** only.
+
+**Current Behavior:**
+- Agent can read/write anywhere in `C:\Coding\CM/`
+- No concept of "active project" in agent context
+
+**Required Behavior:**
+- Each session has an `activeProject` context
+- FileSystemTool restricts to `projects/{activeProject}/`
+- Switching projects changes the accessible folder
+
+**Implementation:**
+1. Add `activeProjectId` to agent session/context
+2. Update `FileSystemTool.validatePath()` to use project root, not workspace root
+3. Add API endpoint: `POST /api/session/project/:id` to switch active project
+4. Store active project in session or memory
+
+**Example:**
+```javascript
+// Current (insecure)
+const projectRoot = process.cwd(); // C:\Coding\CM
+
+// Fixed (secure)
+const projectRoot = path.join(process.cwd(), 'projects', activeProject.path);
+// C:\Coding\CM\projects\MyProject
+```
+
+**Tests:**
+- [ ] Agent cannot access files outside active project
+- [ ] Switching projects changes accessible files
+- [ ] Error thrown when no project is active
+
+---
+
+### 6-11: Conversation History for Agent Mode
+**Owner:** Devon
+**Priority:** High
+
+**Description:**
+Currently each chat message is sent to the LLM independently with no context.
+When user says "Yes, proceed", Orion doesn't remember what he proposed.
+
+**Problem:**
+```
+User: "Create folder X and update project path"
+Orion: "I'll do steps 1 and 2. Confirm?"
+User: "Yes, proceed"
+Orion: [doesn't know what was proposed - no history]
+```
+
+**Solution:**
+Pass conversation history to the LLM (last N messages).
+
+**Implementation:**
+```javascript
+// OrionAgent.chat()
+async chat(message, mode = 'tactical', conversationHistory = []) {
+  // Include last 5 messages as context
+  const context = conversationHistory.slice(-5);
+  const result = await AiService.generate(message, mode, context);
+  // ...
+}
+
+// TacticalAdapter.generate()
+async generate(prompt, mode, history = []) {
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...history.map(h => ({ role: h.role, content: h.content })),
+    { role: 'user', content: prompt }
+  ];
+  // ...
+}
+```
+
+**Frontend:**
+- Store messages in chat store
+- Pass history array with each API call
+
+**Tests:**
+- [ ] "Yes proceed" after proposal executes the proposed actions
+- [ ] History is limited to last N messages (memory safety)
+- [ ] System prompt is not duplicated
+
+---
+
+### 6-12: Function Calling API Support
+**Owner:** Devon
+**Priority:** Critical
+
+**Description:**
+Replace XML-based tool parsing with native LLM Function Calling API.
+This dramatically improves action selection accuracy.
+
+**Current Problem:**
+```
+User: "Update project 1 path to Projects/CodeMaestro"
+LLM: <tool name="ProjectTool"><action>list</action></tool>  ← WRONG!
+```
+
+**Solution:**
+Use OpenAI-compatible function calling (DeepSeek supports this):
+
+```javascript
+// Define tools as functions
+const tools = [
+  {
+    type: "function",
+    function: {
+      name: "ProjectTool_update",
+      description: "Update a project's details (name, description, path)",
+      parameters: {
+        type: "object",
+        properties: {
+          projectId: { type: "integer", description: "Project ID to update" },
+          path: { type: "string", description: "New path for the project" },
+          name: { type: "string", description: "New name (optional)" }
+        },
+        required: ["projectId"]
+      }
+    }
+  },
+  // ... other tools
+];
+
+// Call with function calling
+const response = await client.chat.completions.create({
+  model: "deepseek-chat",
+  messages: [...],
+  tools: tools,
+  tool_choice: "auto"
+});
+
+// Response contains structured tool calls
+if (response.choices[0].message.tool_calls) {
+  const toolCall = response.choices[0].message.tool_calls[0];
+  // toolCall.function.name = "ProjectTool_update"
+  // toolCall.function.arguments = '{"projectId": 1, "path": "Projects/CodeMaestro"}'
+}
+```
+
+**Benefits:**
+- LLM returns structured JSON, not free-form XML
+- No parsing errors
+- Much higher accuracy for action selection
+- Native support in DeepSeek, OpenAI, Anthropic
+
+**Implementation:**
+1. Convert tool registry to function definitions
+2. Update TacticalAdapter to use function calling API
+3. Update AgentExecutor to handle function call responses
+4. Remove XML parsing (keep as fallback for models without function calling)
+
+**Tests:**
+- [ ] "Update project X" correctly calls ProjectTool_update
+- [ ] "Delete project X" correctly calls ProjectTool_delete  
+- [ ] Multi-step tasks chain function calls correctly
+- [ ] Fallback to XML for unsupported models
+
+---
+
+### 6-13: WebSocket Project Sync
+**Owner:** Devon
+**Priority:** Medium
+
+**Description:**
+When projects are created/updated/deleted via agent mode (Orion), the frontend dropdown 
+doesn't update because it only fetches on mount. Add WebSocket events to sync state.
+
+**Problem:**
+- User asks Orion: "Create project Test-Alpha"
+- Orion creates it via ProjectTool
+- Frontend dropdown doesn't show it (needs manual refresh)
+
+**Solution:**
+1. Backend broadcasts WebSocket event after project changes
+2. Frontend listens and refreshes project store
+
+**Implementation:**
+
+Backend (ProjectTool.js):
+```javascript
+// After createProject
+const io = require('../socket').getIO();
+io.emit('project_created', newProject);
+
+// After deleteProject  
+io.emit('project_deleted', { id: projectId });
+```
+
+Frontend (stores/project.js):
+```javascript
+// In useSocket composable
+socket.on('project_created', (project) => {
+  projectStore.projects.push(project);
+});
+
+socket.on('project_deleted', ({ id }) => {
+  projectStore.fetchProjects(); // Refresh list
+});
+```
+
+**Tests:**
+- [ ] Creating project via chat triggers dropdown update
+- [ ] Deleting project via chat removes from dropdown
+- [ ] Multiple browser tabs stay in sync
+
+---
+
+### 6-12: Agent Activity Log Integration
+
 **Description:**
 Connect agent mode actions (LLM responses, tool calls, results) to the Activity Log view. 
 Make logs persistent, clickable, and filterable.

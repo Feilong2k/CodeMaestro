@@ -149,3 +149,11 @@ subtasks:
     owner: "Devon1"
     priority: medium
     dependencies: ["5-2"]
+
+  # Phase 6: Self-Service & Context Intelligence
+  - id: "6-12"
+    title: "Function Calling API Support"
+    status: completed
+    owner: "Cursor"
+    priority: critical
+    dependencies: ["5-4"]

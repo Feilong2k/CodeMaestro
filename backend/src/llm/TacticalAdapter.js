@@ -2,6 +2,8 @@ const ModelAdapter = require('./ModelAdapter');
 const OpenAI = require('openai');
 const aiConfig = require('../config/ai');
 const agentRegistryService = require('../services/agentRegistryService');
+const functionDefinitions = require('../tools/functionDefinitions');
+const { parseFunctionCall } = require('../tools/functionDefinitions');
 
 /**
  * TacticalAdapter - Client for DeepSeek API (OpenAI-compatible).
@@ -45,38 +47,151 @@ class TacticalAdapter extends ModelAdapter {
 You coordinate development tasks, provide guidance, and help users understand the system.
 Be concise, helpful, and focused on actionable responses.
 
-AVAILABLE TOOLS (only mention these - do not make up tools):
+AVAILABLE TOOLS:
 ${toolList}
+
+TOOL ACTIONS (use exact action names):
+
+ProjectTool actions:
+- action: "create" - Create new project (params: name, description)
+- action: "list" - List all active projects
+- action: "get" - Get project details (params: projectId)
+- action: "update" - Update project (params: projectId, name?, description?)
+- action: "delete" - SOFT DELETE a project (params: projectId)
+
+DatabaseTool actions:
+- action: "getAgentPermissions" - Get permissions for an agent (params: agentName)
+- action: "getAgentRegistry" - Get all agents and their tools
+- action: "listTables" - List all database tables
+- action: "query" - Run custom SQL (params: sql, params[])
+
+FileSystemTool actions:
+- action: "read" - Read file contents (params: path)
+- action: "write" - Write to file (params: path, content)
+- action: "list" - List directory contents (params: path)
+- action: "mkdir" - Create directory recursively (params: path)
+
+GitTool actions:
+- action: "status" - Get git status
+- action: "commit" - Commit changes (params: message)
+- action: "branch" - List or create branches
 
 AGENT ROLES:
 ${roleList}
 
 AGENT MODE:
-If you need to query the database, check permissions, list files, or perform any action using tools, 
-include this tag at the START of your response:
+If you need to perform ANY action using tools, include this at the START of your response:
 <use_agent_mode>true</use_agent_mode>
 
-Use agent mode for questions like:
-- "What permissions does Tara have?" (needs DatabaseTool)
-- "List all projects" (needs DatabaseTool)
-- "Show me the files in src/" (needs FileSystemTool)
-- "What's the git status?" (needs GitTool)
+Then include your tool call:
+<tool name="ToolName">
+  <action>actionName</action>
+  <paramName>value</paramName>
+</tool>
 
-Do NOT use agent mode for:
-- General questions about concepts
-- Explanations of how things work
-- Greetings and simple conversations
+IMPORTANT: Match user intent to correct action:
+- "delete project X" → action: "delete" (NOT "get")
+- "remove project X" → action: "delete"
+- "list projects" → action: "list"
+- "create project" → action: "create"
+- "update project" → action: "update" (NOT "list" or "get")
+- "change path" → action: "update" with path parameter
+- "set path to" → action: "update" with path parameter
+- "modify project" → action: "update"
+
+ProjectTool UPDATE example:
+<tool name="ProjectTool">
+  <action>update</action>
+  <projectId>1</projectId>
+  <path>Projects/CodeMaestro</path>
+</tool>
+
+CONFIRMATION HANDLING:
+When user says "yes", "proceed", "go ahead", "do it", or confirms a proposed action:
+- You MUST use agent mode and actually execute the tools
+- Do NOT just describe what you would do
+- Do NOT pretend to have done it
+- Actually call the tools with <use_agent_mode>true</use_agent_mode>
+
+Example:
+User: "Yes, proceed with creating the folder and updating the path"
+You MUST respond with:
+<use_agent_mode>true</use_agent_mode>
+<tool name="FileSystemTool">...</tool>
+<tool name="ProjectTool">...</tool>
+
+Do NOT use agent mode for general questions or explanations.
 
 If a question requires architectural decisions, multi-file refactors, security implications, or scalability planning, respond with exactly: ESCALATE_TO_STRATEGIC`;
   }
 
   /**
-   * Generate text response for a prompt.
-   * Includes logic to check for escalation.
-   * @param {string} prompt
-   * @returns {Promise<string>}
+   * Build a simpler system prompt for function calling mode
    */
-  async generate(prompt) {
+  buildFunctionCallingPrompt() {
+    return `You are Orion, the strategic AI orchestrator for CodeMaestro.
+You have access to tools via function calling. Use them to help the user.
+
+AUTONOMY RULES:
+
+AUTO-EXECUTE (just do it, no confirmation needed):
+- Read files or directories
+- List files or directories
+- Create folders (mkdir)
+- Create/write new files (use FileSystemTool_write)
+- Git status
+- Query database (SELECT only)
+- Get agent permissions/registry
+
+CRITICAL RULES - FOLLOW EXACTLY:
+
+1. "Create a file" → Call FileSystemTool_write IMMEDIATELY. Do NOT call list first.
+2. "Write to file" → Call FileSystemTool_write IMMEDIATELY.
+3. "Make a file" → Call FileSystemTool_write IMMEDIATELY.
+
+The write function creates parent directories automatically. You don't need to verify anything first.
+
+WRONG: User says "create file X" → you call list to check → WRONG!
+RIGHT: User says "create file X" → you call FileSystemTool_write → CORRECT!
+
+CONFIRM FIRST (ask user before executing):
+- Delete files or folders
+- Modify/update existing files
+- Git commit, push, or branch changes
+- Update database records
+- Update project settings
+
+For AUTO-EXECUTE actions: Call the function immediately without asking.
+For CONFIRM actions: Explain what you'll do and ask "Should I proceed?"
+
+AFTER USER CONFIRMS - CRITICAL:
+When user responds with "yes", "confirmed", "proceed", "go ahead", "do it", "sure", "ok":
+- Look at conversation history to see what action was proposed
+- IMMEDIATELY call the appropriate function to execute it
+- Do NOT ask again
+- Do NOT say "How can I help you?"
+- EXECUTE THE ACTION
+
+Example conversation:
+History: [User asked to delete file X, You asked "Should I proceed?"]
+User: "confirmed"
+Your response: Call FileSystemTool_delete with path X
+
+If multiple steps are needed (e.g., create folder then create file), do all AUTO-EXECUTE steps immediately.
+
+For questions that don't require tools, respond directly with helpful information.
+
+If a question requires architectural decisions, security reviews, or complex multi-step planning,
+respond with: ESCALATE_TO_STRATEGIC`;
+  }
+
+  /**
+   * Generate response with function calling support.
+   * @param {string} prompt
+   * @param {boolean} useFunctionCalling - Whether to use function calling (default: true)
+   * @returns {Promise<Object>} { type: 'text'|'function_call', content?, toolCalls? }
+   */
+  async generateWithFunctions(prompt, useFunctionCalling = true, history = []) {
     // Check for escalation triggers first
     const lowerPrompt = prompt.toLowerCase();
     const complexTriggers = [
@@ -88,31 +203,94 @@ If a question requires architectural decisions, multi-file refactors, security i
     ];
 
     if (complexTriggers.some(trigger => lowerPrompt.includes(trigger))) {
-      return 'ESCALATE_TO_STRATEGIC';
+      return { type: 'text', content: 'ESCALATE_TO_STRATEGIC' };
     }
 
     // If not configured, return mock response
     if (!this.isConfigured) {
-      return `[Tactical/DeepSeek] Mock response (no API key): "${prompt.substring(0, 50)}..."`;
+      return { 
+        type: 'text', 
+        content: `[Tactical/DeepSeek] Mock response (no API key): "${prompt.substring(0, 50)}..."` 
+      };
     }
 
     try {
-      const systemPrompt = await this.buildSystemPrompt();
-      const response = await this.client.chat.completions.create({
+      const systemPrompt = this.buildFunctionCallingPrompt();
+      
+      // Build messages array with history
+      const messages = [
+        { role: 'system', content: systemPrompt }
+      ];
+      
+      // Add conversation history (limit to last 10 messages to stay within context limits)
+      if (history && history.length > 0) {
+        const recentHistory = history.slice(-10);
+        for (const msg of recentHistory) {
+          if (msg.role && msg.content) {
+            messages.push({
+              role: msg.role === 'assistant' ? 'assistant' : 'user',
+              content: msg.content
+            });
+          }
+        }
+      }
+      
+      // Add current message
+      messages.push({ role: 'user', content: prompt });
+      
+      const requestParams = {
         model: this.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
-        ],
+        messages,
         temperature: 0.7,
         max_tokens: 2000
-      });
+      };
 
-      return response.choices[0].message.content;
+      // Add function calling if enabled
+      if (useFunctionCalling) {
+        requestParams.tools = functionDefinitions;
+        requestParams.tool_choice = 'auto';
+      }
+
+      const response = await this.client.chat.completions.create(requestParams);
+      const message = response.choices[0].message;
+
+      // Check if LLM wants to call functions
+      if (message.tool_calls && message.tool_calls.length > 0) {
+        const toolCalls = message.tool_calls.map(tc => ({
+          id: tc.id,
+          ...parseFunctionCall(tc)
+        }));
+        
+        return {
+          type: 'function_call',
+          toolCalls,
+          rawMessage: message
+        };
+      }
+
+      // Regular text response
+      return {
+        type: 'text',
+        content: message.content || ''
+      };
     } catch (error) {
-      console.error('[TacticalAdapter] API Error:', error.message);
-      return `[Tactical Error] ${error.message}`;
+      console.error('[TacticalAdapter] Function Calling Error:', error.message);
+      return {
+        type: 'text',
+        content: `[Tactical Error] ${error.message}`
+      };
     }
+  }
+
+  /**
+   * Generate text response for a prompt (legacy method, now uses function calling).
+   * @param {string} prompt
+   * @returns {Promise<string>}
+   */
+  async generate(prompt) {
+    // Use function calling and extract text content
+    const result = await this.generateWithFunctions(prompt, false);
+    return result.content || '';
   }
 
   async chat(messages) {

@@ -316,7 +316,7 @@ class DatabaseTool {
         return this.query(actionParams.sql, actionParams.params || []);
       
       case 'getAgentPermissions':
-        return this.getAgentPermissions(actionParams.agentId);
+        return this.getAgentPermissions(actionParams.agentName || actionParams.agentId);
       
       case 'getAgentRegistry':
         return this.getAgentRegistry();

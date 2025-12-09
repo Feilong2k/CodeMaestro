@@ -164,12 +164,12 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
-import { useStore } from '../stores/appStore';
+import { useAppStore } from '../stores/appStore';
 
 export default {
   name: 'FeaturesView',
   setup() {
-    const store = useStore();
+    const store = useAppStore();
     const features = ref([]);
     const loading = ref(false);
     const error = ref(null);

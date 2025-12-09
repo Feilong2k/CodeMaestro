@@ -318,11 +318,11 @@ async function deleteProject(id) {
 }
 
 /**
- * Lists all projects, ordered by creation date (newest first).
+ * Lists all active projects, ordered by creation date (newest first).
  * @returns {Promise<Array>} Array of project objects.
  */
 async function listProjects() {
-  const query = 'SELECT * FROM projects ORDER BY created_at DESC;';
+  const query = "SELECT * FROM projects WHERE status = 'active' ORDER BY created_at DESC;";
   const result = await getPool().query(query);
   return result.rows;
 }

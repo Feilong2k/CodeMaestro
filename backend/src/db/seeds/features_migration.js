@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').join(__dirname, '../../../.env') });
 const fs = require('fs');
 const path = require('path');
 const db = require('../connection');
@@ -82,80 +83,81 @@ function sanitizeText(text) {
 
 /**
  * Parse the future features markdown file and extract features.
+ * Captures all numbered sections (## X. Title) except meta sections.
  */
 async function parseFeaturesFromMarkdown() {
-  const filePath = path.join(__dirname, '../../../Docs/CodeMaestro_Future_Features.md');
-  const content = fs.readFileSync(filePath, 'utf8');
+  const filePath = path.join(__dirname, '../../../../Docs/CodeMaestro_Future_Features.md');
+  // File is UTF-16 LE encoded
+  const content = fs.readFileSync(filePath, 'utf16le');
   
   const features = [];
   
-  // Split by major sections (## headings)
-  const sections = content.split(/^##\s+/gm).slice(1); // Skip first empty
+  // Match all numbered sections: ## 1. Title, ## 2. Title, etc.
+  const sectionRegex = /^## (\d+)\. (.+)$/gm;
+  const sections = [];
+  let match;
   
-  for (const section of sections) {
-    // Get section title (first line)
-    const lines = section.split('\n');
-    const titleLine = lines[0].trim();
+  while ((match = sectionRegex.exec(content)) !== null) {
+    sections.push({
+      number: parseInt(match[1]),
+      title: match[2].trim(),
+      startIndex: match.index
+    });
+  }
+  
+  // Meta sections to skip (not actual features)
+  const metaSections = [
+    'Vision Beyond MVP',
+    'Phase Overview',
+    'Non-Goals',
+    'Metrics',
+    'Phase Acceptance Criteria',
+    'Prioritized Backlog',
+    'Timeline Estimate',
+    'References'
+  ];
+  
+  for (let i = 0; i < sections.length; i++) {
+    const section = sections[i];
     
-    // Skip non-feature sections
-    const excludedSections = [
-      'Vision Beyond MVP',
-      'Phase Overview',
-      'Critical Infrastructure Gaps',
-      'Additional Agent Roles',
-      'Database Migration',
-      'Advanced Dashboard Features',
-      'MCP / Inter-Agent Protocol',
-      'Self-Improvement System',
-      'Security & Compliance',
-      'Integration Points',
-      'Non-Goals',
-      'Metrics',
-      'Phase Acceptance Criteria',
-      'Prioritized Backlog',
-      'Timeline Estimate',
-      'Agent Team Scaling',
-      'Distribution & Business Models',
-      'IDE Extension Strategy',
-      'Auto-Generated Task Checklists',
-      'Multi-Model AI Council',
-      'Command Executor Safety',
-      'Queue Infrastructure',
-      'Split-Brain Orchestration',
-      'Advanced Orchestration Features',
-      'Persistent Agent Memory',
-      'The Orchestrator Explained',
-      'Maestro Studio',
-      'Self-Evolution Loop',
-      'References'
-    ];
-    
-    if (excludedSections.some(excluded => titleLine.includes(excluded))) {
+    // Skip meta sections
+    if (metaSections.some(meta => section.title.includes(meta))) {
       continue;
     }
     
-    // Clean up title
-    let title = titleLine.replace(/^\d+\.\s*/, ''); // Remove leading numbers
-    title = sanitizeText(title);
+    // Get content between this section and the next
+    const startIndex = section.startIndex;
+    const endIndex = sections[i + 1]?.startIndex || content.length;
+    const sectionContent = content.substring(startIndex, endIndex);
     
-    // Get description (next lines until next ## or ###)
+    // Extract description (everything after the title line, before subsections)
+    const lines = sectionContent.split('\n').slice(1); // Skip title line
     let descriptionLines = [];
-    for (let i = 1; i < lines.length; i++) {
-      if (lines[i].trim().startsWith('###') || lines[i].trim().startsWith('##')) {
+    
+    for (const line of lines) {
+      // Stop at subsections or next major section
+      if (line.trim().startsWith('###') || line.trim().startsWith('## ')) {
         break;
       }
-      descriptionLines.push(lines[i]);
+      descriptionLines.push(line);
     }
     
+    // Clean up
+    let title = sanitizeText(section.title);
     let description = descriptionLines.join('\n').trim();
     description = sanitizeText(description);
     
-    // Limit description length for database
+    // Limit description length
     if (description.length > 2000) {
       description = description.substring(0, 2000) + '...';
     }
     
-    // Determine priority based on keywords in title or description
+    // Skip empty features
+    if (!title || title.length < 3) {
+      continue;
+    }
+    
+    // Determine priority based on keywords
     let priority = 'medium';
     const lowerTitle = title.toLowerCase();
     const lowerDesc = description.toLowerCase();
@@ -167,15 +169,13 @@ async function parseFeaturesFromMarkdown() {
       priority = 'low';
     }
     
-    // Determine phase based on section numbering or content
+    // Determine phase based on section numbering
     let phase = 'planning';
-    if (titleLine.match(/^\d+\./)) {
-      const sectionNum = parseInt(titleLine.match(/^\d+/)[0]);
-      if (sectionNum <= 5) phase = 'phase-a';
-      else if (sectionNum <= 10) phase = 'phase-b';
-      else if (sectionNum <= 15) phase = 'phase-c';
-      else phase = 'phase-d';
-    }
+    const sectionNum = section.number;
+    if (sectionNum <= 5) phase = 'phase-a';
+    else if (sectionNum <= 10) phase = 'phase-b';
+    else if (sectionNum <= 15) phase = 'phase-c';
+    else phase = 'phase-d';
     
     // Skip empty features
     if (!title || title.length < 3) {
@@ -191,39 +191,7 @@ async function parseFeaturesFromMarkdown() {
     });
   }
   
-  // Add some specific features we know should be in the database
-  const additionalFeatures = [
-    {
-      title: 'AI Council',
-      description: 'Multi-model AI council for complex problem solving with different LLMs collaborating.',
-      priority: 'high',
-      phase: 'phase-c',
-      tags: ['ai', 'council', 'escalation']
-    },
-    {
-      title: 'Real-time Collaboration',
-      description: 'Multiple agents working in parallel on frontend and backend tasks.',
-      priority: 'high',
-      phase: 'phase-b',
-      tags: ['parallel', 'scaling', 'collaboration']
-    },
-    {
-      title: 'Self-Optimization Loop',
-      description: 'System learns from successes and failures to improve its own processes.',
-      priority: 'medium',
-      phase: 'phase-c',
-      tags: ['learning', 'optimization', 'ai']
-    },
-    {
-      title: 'Feature Branch Workflow',
-      description: 'Move from single-branch to feature branches for parallel development.',
-      priority: 'high',
-      phase: 'phase-b',
-      tags: ['git', 'workflow', 'branches']
-    }
-  ];
-  
-  return [...features, ...additionalFeatures];
+  return features;
 }
 
 /**
