@@ -61,6 +61,22 @@ export function useSocket() {
         timestamp: new Date(),
         type: 'state_change'
       })
+      // Also surface in System Log
+      if (systemLogStore) {
+        try {
+          const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+          const agent = payload.agent || 'Agent'
+          const from = payload.from || 'UNKNOWN'
+          const to = payload.to || 'UNKNOWN'
+          systemLogStore.addMessage({
+            timestamp: ts,
+            level: 'info',
+            text: `${agent}: ${from} → ${to}`
+          })
+        } catch (e) {
+          console.warn('Could not add state_change to system log:', e)
+        }
+      }
     })
 
     socket.value.on('agent_action', (payload) => {
@@ -77,6 +93,22 @@ export function useSocket() {
         chatStore.handleAgentAction(payload)
       } catch (e) {
         console.warn('Could not send agent action to chat store:', e)
+      }
+
+      // Also surface agent_action in System Log
+      if (systemLogStore) {
+        try {
+          const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+          const agent = payload.agent || 'Agent'
+          const action = payload.action || 'action'
+          systemLogStore.addMessage({
+            timestamp: ts,
+            level: 'info',
+            text: `${agent}: ${action}`
+          })
+        } catch (e) {
+          console.warn('Could not add agent_action to system log:', e)
+        }
       }
     })
 
