@@ -150,6 +150,21 @@ subtasks:
     priority: medium
     dependencies: ["5-2"]
 
+  # Phase 5.5: Stabilization & Context API
+  - id: "5-10"
+    title: "Stabilization (TacticalAdapter & Pathing)"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["5-3"]
+
+  - id: "5-11"
+    title: "Project Context API"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["5-10"]
+
   # Phase 6: Self-Service & Context Intelligence
   - id: "6-12"
     title: "Function Calling API Support"

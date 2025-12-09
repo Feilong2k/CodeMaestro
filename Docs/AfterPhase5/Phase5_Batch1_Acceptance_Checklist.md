@@ -7,20 +7,20 @@
 ## 1. Tool Registry & Safety (5-1)
 
 ### A. Core Registry
-- [ ] **Orion's Toolbox:** Ask Orion `list tools`. Verify he sees `database_tool`, `git_tool`, `filesystem_tool`.
-- [ ] **Devon's Toolbox:** Switch to Devon context (if possible) or check logs. Ensure he **cannot** see `database_tool`.
-- [ ] **Tara's Toolbox:** Ensure she has read access to `src` but write access only to `tests`.
+- [X ] **Orion's Toolbox:** Ask Orion `list tools`. Verify he sees `database_tool`, `git_tool`, `filesystem_tool`.
+- [x ] **Devon's Toolbox:** Switch to Devon context (if possible) or check logs. Ensure he **cannot** see `database_tool`.
+- [x] **Tara's Toolbox:** Ensure she has read access to `src` but write access only to `tests`.
 
 ### B. Safety Constraints (The "Red Button" Test)
-- [ ] **Path Traversal:** Ask Orion/Devon to `read_file("../../../windows/system32/drivers/etc/hosts")`.
+- [ x] **Path Traversal:** Ask Orion/Devon to `read_file("../../../windows/system32/drivers/etc/hosts")`.
     *   *Expected Result:* Error "Access Denied: Path outside project root."
 - [ ] **Command Injection:** Ask Orion/Devon to `git commit -m 'fix'; rm -rf /`.
     *   *Expected Result:* Error "Command Rejected: Illegal characters or blocked command."
-- [ ] **Blocked Commands:** Try to run `curl google.com`.
+- [ x] **Blocked Commands:** Try to run `curl google.com`.
     *   *Expected Result:* Error "Command 'curl' is not whitelisted."
 
 ### C. Git Safety
-- [ ] **Status Check:** Run `git status` via the tool. Should return JSON status.
+- [x ] **Status Check:** Run `git status` via the tool. Should return JSON status.
 - [ ] **Commit:** Stage a dummy file and commit. Should succeed.
 
 ---
@@ -32,7 +32,7 @@
     *   *Verify:*
         1.  Folder `projects/Test-Project-Alpha` exists.
         2.  DB Query `SELECT * FROM projects WHERE name='Test-Project-Alpha'` returns 1 row.
-- [ ] **List:** Ask Orion: "List all active projects".
+- [x] **List:** Ask Orion: "List all active projects".
     *   *Verify:* 'Test-Project-Alpha' appears in the list.
 - [ ] **Delete (Soft):** Ask Orion: "Delete 'Test-Project-Alpha'".
     *   *Verify:*

@@ -1,0 +1,52 @@
+# Subtask Log: 5-11 (Project Context API)
+id: "5-11"
+title: "Project Context API"
+status: pending
+branch: "subtask/5-11-context-api"
+
+constraint_discovery:
+  subtask_id: "5-11"
+  owner: "Devon"
+  concern: "API Security & Data Integrity"
+  date: "2025-12-09"
+  
+  atomic_actions:
+    - action: "Expose GET /api/projects/:id/context"
+      description: "Return full project context"
+    - action: "Expose POST /api/projects/:id/context"
+      description: "Update context memories"
+      
+  resources_touched:
+    - resource: "Express Router"
+      action: "Route Registration"
+    - resource: "ProjectContextService"
+      action: "Invocation"
+      
+  resource_physics:
+    - resource: "Network Response"
+      constraint: "Payload Size"
+      risk: "Large file contents in context could bloat response > 1MB"
+      mitigation: "Service already truncates files; consider pagination for large lists"
+    - resource: "Database"
+      constraint: "Connection Pool"
+      risk: "Heavy context building blocks main thread"
+      mitigation: "Context building is async; ensure efficient queries"
+      
+  verification:
+    - action: "API Test"
+      method: "GET /api/projects/1/context returns 200 JSON"
+
+history:
+  - ts: "2025-12-09T01:25:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Exposing ProjectContextService to the world."
+
+requiredActions:
+  - "Logic: Add routes to `backend/src/routes/projects.js`"
+  - "Logic: Connect routes to `ProjectContextService`"
+  - "Test: Integration tests for endpoints"
+
+verificationChecklist:
+  - "[ ] [TDD] GET /context returns valid structure"
+  - "[ ] [TDD] POST /context updates memory"

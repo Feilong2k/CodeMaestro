@@ -286,18 +286,7 @@ respond with: ESCALATE_TO_STRATEGIC`;
       // Add function calling if enabled
       if (useFunctionCalling) {
         requestParams.tools = functionDefinitions;
-        // Use 'auto' but encourage tool use - if user's request seems actionable, the LLM should call tools
-        // Check if message seems like a command/action request
-        const actionKeywords = ['clone', 'create', 'delete', 'run', 'execute', 'status', 'list', 'read', 'write', 'update'];
-        const isActionRequest = actionKeywords.some(kw => prompt.toLowerCase().includes(kw));
-        
-        if (isActionRequest) {
-          // Force function calling for action requests
-          requestParams.tool_choice = 'required';
-          console.log('[TacticalAdapter] Action request detected, forcing tool use');
-        } else {
-          requestParams.tool_choice = 'auto';
-        }
+        requestParams.tool_choice = 'auto';
       }
 
       const response = await this.client.chat.completions.create(requestParams);
