@@ -88,14 +88,14 @@ implementation_plan:
       - Display a simple list of state changes (e.g., "Orion: OBSERVE → THINK").
 
 requiredActions:
-  - "[ ] [TDD] Create failing unit tests for AgentFSM (Red)"
+  - "[x] [TDD] Create failing unit tests for AgentFSM (Red)"
   - "[ ] [TDD] Implement AgentFSM state logic to satisfy tests (Green)"
   - "[ ] [TDD] Wire AgentExecutor to AgentFSM and update tests"
   - "[ ] [TDD] Add AgentFsmLogService and DB migration for agent_fsm_log table"
   - "[ ] [TDD] Add API endpoint and integration tests for /api/agent-fsm-log/:subtaskId"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Integration Tests"
@@ -116,3 +116,7 @@ history:
     role: orchestrator
     action: CREATED
     message: "Initialized v2.2 subtask for Agent FSM core and DB logging (Task 6-1)."
+  - ts: "2025-12-09T15:34:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for AgentFSM (Red phase)."
