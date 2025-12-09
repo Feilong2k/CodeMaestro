@@ -44,18 +44,20 @@ describe('MainLayout.vue', () => {
     expect(rightSlot.exists()).toBe(true)
     expect(rightSlot.text()).toBe('Activity Panel')
 
-    // Check column spans for desktop (2:1:1 ratio)
-    const leftContainer = leftSlot.parentElement?.parentElement
-    const centerContainer = centerSlot.parentElement?.parentElement
-    const rightContainer = rightSlot.parentElement?.parentElement
-    // Since we can't directly access parent elements in test, we'll rely on class checks on the slots' containers
-    // Instead, we can test that the grid has three columns and the slots are placed correctly by checking their order
-    // For simplicity, we'll assume the slots are rendered in order: left, center, right
-    const slots = wrapper.findAll('.grid > *')
-    expect(slots.length).toBe(3)
-    expect(slots[0].classes()).toContain('lg:col-span-6') // left
-    expect(slots[1].classes()).toContain('lg:col-span-3') // center
-    expect(slots[2].classes()).toContain('lg:col-span-3') // right
+    // We should have two asides and one main
+    const asides = wrapper.findAll('aside')
+    const mains = wrapper.findAll('main')
+    expect(asides).toHaveLength(2)
+    expect(mains).toHaveLength(1)
+
+    // Check the column spans
+    const leftAside = asides[0]
+    const main = mains[0]
+    const rightAside = asides[1]
+
+    expect(leftAside.classes()).toContain('lg:col-span-6')
+    expect(main.classes()).toContain('lg:col-span-3')
+    expect(rightAside.classes()).toContain('lg:col-span-3')
   })
 
   it('should have sidebars hidden on mobile and visible on large screens by default', () => {
@@ -63,7 +65,7 @@ describe('MainLayout.vue', () => {
     // The left and right sidebars should be hidden on mobile
     const leftAside = wrapper.find('aside:first-of-type')
     const rightAside = wrapper.find('aside:last-of-type')
-    // If they exist, they should have 'hidden lg:block' classes
+    // If they exist, they should have 'hidden lg:block' classes (if showLeftOnMobile and showRightOnMobile are false)
     if (leftAside.exists()) {
       expect(leftAside.classes()).toContain('hidden')
       expect(leftAside.classes()).toContain('lg:block')
@@ -84,10 +86,14 @@ describe('MainLayout.vue', () => {
 
   it('should use matrix theme classes', () => {
     const wrapper = mount(MainLayout)
-    const defaultSlot = wrapper.find('.bg-bg-elevated')
-    expect(defaultSlot.exists()).toBe(true)
-    expect(defaultSlot.classes()).toContain('shadow-matrix-glow')
-    expect(defaultSlot.classes()).toContain('border-line-base')
+    // Check that the default slot content inside left aside uses matrix theme classes
+    const leftAside = wrapper.find('aside')
+    expect(leftAside.exists()).toBe(true)
+    // The default slot content is a div with the matrix classes
+    const defaultContent = leftAside.find('div.bg-bg-elevated')
+    expect(defaultContent.exists()).toBe(true)
+    expect(defaultContent.classes()).toContain('shadow-matrix-glow')
+    expect(defaultContent.classes()).toContain('border-line-base')
   })
 
   it('should show sidebars on mobile when showLeftOnMobile and showRightOnMobile props are true', () => {
@@ -112,10 +118,21 @@ describe('MainLayout.vue', () => {
   // Additional test for three-panel layout requirement
   it('should have three distinct panels for Chat, System Log, and Activity', () => {
     const wrapper = mount(MainLayout)
-    // Expect three panel containers (could be main and asides)
-    const panels = wrapper.findAll('main, aside')
+    // Expect three panel containers (two asides and one main)
+    const panels = wrapper.findAll('aside, main')
     expect(panels.length).toBe(3)
-    // Expect them to have appropriate slot names
-    // This test will fail until the component is updated
+    // Check that they have the appropriate slot names (by checking the presence of slot content or classes)
+    // The left aside should have slot name left, center main should have slot name center, right aside should have slot name right.
+    // We can check by injecting slots and verifying they appear in the correct containers.
+    const wrapperWithSlots = mount(MainLayout, {
+      slots: {
+        left: '<div data-test="left-slot">left</div>',
+        center: '<div data-test="center-slot">center</div>',
+        right: '<div data-test="right-slot">right</div>'
+      }
+    })
+    expect(wrapperWithSlots.find('[data-test="left-slot"]').exists()).toBe(true)
+    expect(wrapperWithSlots.find('[data-test="center-slot"]').exists()).toBe(true)
+    expect(wrapperWithSlots.find('[data-test="right-slot"]').exists()).toBe(true)
   })
 })
