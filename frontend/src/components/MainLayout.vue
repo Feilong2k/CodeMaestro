@@ -1,7 +1,7 @@
 <template>
   <div class="main-layout">
     <!-- Desktop: 3-column grid (left, center, right), Mobile: single column -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 w-full max-w-7xl mx-auto px-4 lg:px-6 pt-4 lg:pt-6 pb-0 h-full">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 w-[95vw] mx-auto px-4 lg:px-6 pt-4 lg:pt-6 pb-0 h-full">
       <!-- Left slot (Chat) as aside -->
       <aside
         class="lg:col-span-6 order-1 flex flex-col h-full min-h-0"

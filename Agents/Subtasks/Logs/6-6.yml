@@ -84,6 +84,13 @@ implementation_plan:
         - refactor → integration_red / integration_green
         - integration_green → verification
         - verification → completed
+      - Example intent → tool_call sketch (for natural language "read and summarize Docs/Phase6_Plan.md"):
+        - IntentParser detects `intent: read_file_and_summarize` and `filePath: Docs/Phase6_Plan.md`.
+        - OBSERVE/THINK passes this metadata into the FSM transition.
+        - stateActionMap returns a `tool_call` action using FileSystemTool.read with the given path.
+        - OrchestratorService.transition passes the plan to OrchestrationExecutor.
+        - OrchestrationExecutor calls BodyInterface.executeTool('FileSystemTool', 'read', { path }),
+          and the next THINK step summarizes the file content for the user.
 
   - component: "OrchestratorService Hooks"
     path: "backend/src/services/orchestrator.js"

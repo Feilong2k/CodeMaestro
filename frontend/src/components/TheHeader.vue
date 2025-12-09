@@ -1,6 +1,6 @@
 <template>
   <header class="sticky top-0 z-50 h-14 bg-transparent px-6">
-    <div class="h-full max-w-7xl mx-auto flex items-center justify-between">
+    <div class="h-full w-[95vw] mx-auto flex items-center justify-between">
       <!-- Left: Logo, App Name, and Project Switcher -->
       <div class="flex items-center space-x-4">
         <!-- Logo and App Name -->

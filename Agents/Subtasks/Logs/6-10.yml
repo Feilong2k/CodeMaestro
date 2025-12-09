@@ -1,0 +1,128 @@
+# Subtask Log: 6-10 (SystemLogPanel WebSocket Wiring & Basic Events)
+id: "6-10"
+title: "SystemLogPanel WebSocket Wiring & Basic Events"
+status: pending
+branch: "subtask/6-10-systemlog-websocket"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Complete the WebSocket + System Log behavior that was originally scoped under 6-0,
+  so that the SystemLogPanel reflects real backend events and the verification
+  steps in 6-0 are fully satisfied via this follow-up slice.
+
+  This task focuses on:
+    - Wiring a real WebSocket connection on the frontend (via a composable + Pinia store)
+    - Emitting basic system_message / connect / disconnect events from the backend
+    - Updating SystemLogPanel to consume those events instead of static placeholder data
+    - Adding integration tests so that live System Log behavior is reliable
+
+constraint_discovery:
+  subtask_id: "6-10"
+  owner: "Orion"
+  concern: "Observability & WebSocket UX"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Implement WebSocket composable and system log store"
+      description: "Create a frontend composable and Pinia store that track connection state and system messages."
+    - action: "Wire SystemLogPanel to store"
+      description: "Replace hard-coded wsConnected/messages with reactive data from the store."
+    - action: "Emit basic backend events"
+      description: "From backend/socket, emit connect/disconnect + system_message events used by the UI."
+    - action: "Add integration tests"
+      description: "Simulate events and assert that SystemLogPanel + status indicator update correctly."
+
+  resources_touched:
+    - resource: "Frontend WebSocket Client"
+      constraint: "Must auto-reconnect and expose clear connected/disconnected state."
+    - resource: "SystemLogPanel"
+      constraint: "Must not rely on static demo data; should only use store state."
+    - resource: "Backend Socket Server"
+      constraint: "Event emission must be lightweight and not flood clients."
+
+  resource_physics:
+    - resource: "Network Reliability"
+      constraint: "WebSocket connections can drop or time out."
+      risk: "UI shows 'Connected' when it is not, or silently freezes."
+      mitigation: "Drive status from real socket events; show clear disconnected state."
+
+    - resource: "Event Volume"
+      constraint: "Too many system messages can clutter the System Log."
+      risk: "Users cannot find important messages."
+      mitigation: "Start with minimal events (connect/disconnect + key actions) and expand later (6-8)."
+
+  verification:
+    - action: "Frontend integration tests"
+      method: "Mock WebSocket events in MainLayout/SystemLogPanel tests and assert UI updates without refresh."
+    - action: "Manual verification with real backend"
+      method: "Run the app, trigger an agent task, and restart backend to confirm System Log reflects events."
+
+implementation_plan:
+  - component: "WebSocket Composable"
+    path: "frontend/src/composables/useWebSocket.js" # or similar
+    details: |
+      - Establish a WebSocket (or Socket.IO) connection to the backend on app start.
+      - Expose reactive `connected` state and an API to subscribe to events.
+      - Handle auto-reconnect and basic error logging.
+
+  - component: "SystemLog Store (Pinia)"
+    path: "frontend/src/stores/systemLogStore.js"
+    details: |
+      - State: `connected: boolean`, `messages: Array<{ timestamp, level, text }>`.
+      - Actions:
+        - `setConnected(bool)`
+        - `addMessage({ timestamp, level, text })`
+        - `clear()`
+      - Optionally provide a getter for formatted messages.
+
+  - component: "SystemLogPanel Wiring"
+    path: "frontend/src/components/SystemLogPanel.vue"
+    details: |
+      - Replace local `ref(true)` wsConnected and static `messages` array with store-based computed values.
+      - Keep Clear button wired to `systemLogStore.clear()`.
+      - Ensure empty state text appears when there are no messages.
+
+  - component: "Backend Socket Events (Basic)"
+    path: "backend/src/socket/index.js"
+    details: |
+      - On client connect: emit `system_message` with text like "WebSocket client connected".
+      - On client disconnect: emit `system_message` like "WebSocket client disconnected".
+      - Optionally emit minimal `system_message` when server starts.
+
+  - component: "Frontend Integration Tests"
+    path: "frontend/src/__tests__/integration/MainLayout.integration.spec.js"
+    details: |
+      - Mock WebSocket client or event stream so tests can:
+        - Simulate connect/disconnect and system_message events.
+        - Assert that SystemLogPanel shows updated messages and status without full page refresh.
+
+requiredActions:
+  - "[ ] [TDD] Create failing integration tests for SystemLogPanel WebSocket behavior (Red)"
+  - "[ ] [TDD] Implement WebSocket composable + systemLogStore and wire SystemLogPanel (Green)"
+  - "[ ] [TDD] Add backend socket events and basic integration tests"
+  - "[ ] [TDD] Refactor and cleanup placeholder data (no hard-coded wsConnected/messages)"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing integration tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies integration tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80% for new code"
+  - "[ ] SystemLogPanel shows connection and disconnection events based on real socket state"
+  - "[ ] Triggering an agent task produces at least one new System Log entry without refreshing the page"
+  - "[ ] Stopping and restarting backend results in visible disconnect and reconnect information in System Log (or at minimum via status indicator)"
+
+human_verification:
+  - "Start backend and frontend; open the web app in your browser."
+  - "Confirm that the System Log panel initially shows either an empty state or a small set of real messages."
+  - "Trigger an agent task (e.g., ask Orion to plan a small change) and verify new entries appear in the System Log without a full page refresh."
+  - "Stop the backend, observe that System Log (or its status indicator) reflects loss of connection."
+  - "Restart the backend and verify that System Log shows reconnect behavior (status and/or messages), rather than silently freezing."
+
+history:
+  - ts: "2025-12-09T12:35:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Spawned follow-up subtask 6-10 from 6-0 to deliver live System Log WebSocket behavior while treating 6-0 as complete for layout foundation."
