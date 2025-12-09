@@ -100,13 +100,13 @@ implementation_plan:
         - Assert that SystemLogPanel shows updated messages and status without full page refresh.
 
 requiredActions:
-  - "[ ] [TDD] Create failing integration tests for SystemLogPanel WebSocket behavior (Red)"
+  - "[x] [TDD] Create failing integration tests for SystemLogPanel WebSocket behavior (Red)"
   - "[ ] [TDD] Implement WebSocket composable + systemLogStore and wire SystemLogPanel (Green)"
   - "[ ] [TDD] Add backend socket events and basic integration tests"
   - "[ ] [TDD] Refactor and cleanup placeholder data (no hard-coded wsConnected/messages)"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing integration tests created (Red)"
+  - "[x] [TDD] Failing integration tests created (Red)"
   - "[ ] [TDD] Implementation satisfies integration tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Final test by Tara and Coverage > 80% for new code"
@@ -126,3 +126,7 @@ history:
     role: orchestrator
     action: CREATED
     message: "Spawned follow-up subtask 6-10 from 6-0 to deliver live System Log WebSocket behavior while treating 6-0 as complete for layout foundation."
+  - ts: "2025-12-09T13:25:00Z"
+    role: tester
+    action: UPDATED
+    message: "Created failing integration tests for SystemLogPanel WebSocket behavior (Red phase). Tests verify that SystemLogPanel should use WebSocket store instead of hardcoded data, update status based on connection, and handle real-time events."
