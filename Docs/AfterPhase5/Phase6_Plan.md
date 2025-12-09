@@ -2,17 +2,25 @@
 
 **Status:** Planning (Post Phase 5 Acceptance)
 **Prerequisites:** Phase 5 tools working, acceptance tests passing
-**Goal:** Enable Orion to understand and leverage project-specific context
+**Goal:** Enable Orion to understand and leverage project-specific context, and establish a "Body" and "Process" for autonomous execution.
 
 ---
 
-## Overview
+## Architectural Pillars
 
-Phase 6 focuses on making CodeMaestro **context-aware**. Currently, Orion has tools but lacks deep understanding of individual projects. This phase adds:
+### 1. The Body (Sensory & Motor Control)
+To be truly autonomous, Orion needs a reliable "body" to interact with the world:
+- **Motor Control (Tools):** Robust, cross-platform tools (Shell, FileSystem, Git) that don't fail on minor issues (like path separators).
+- **Sensory Input (Feedback):** Streaming STDOUT/STDERR from shell commands back to the context in real-time.
+- **Proprioception (State):** Awareness of current directory, active project, and modified files.
 
-1. **Project Context API** - Load/save project-specific settings
-2. **Orion Response Panel** - Better UX for structured outputs
-3. **Context Loading** - Orion auto-loads project context on switch
+### 2. The Process (Thinking & Restriction)
+We restrict CodeMaestro's behavior into a safe, predictable loop using FSMs and Strict Prompting:
+- **The Loop:** OBSERVE -> THINK -> ACT -> WAIT -> REPEAT.
+- **Restrictions:**
+    - Strict JSON output (no loose text).
+    - Mandatory verification steps after edits.
+    - Finite State Machine (FSM) enforcement for workflow transitions.
 
 ---
 
@@ -61,7 +69,7 @@ DELETE /api/projects/:id/context/:key   - Delete context key
 **Priority:** High
 
 **Description:**
-Add a collapsible panel to the dashboard for displaying Orion's structured responses.
+Add a collapsible panel to the dashboard for displaying Orion's structured responses (The "Sensory" Interface).
 
 **Location:** Right sidebar of chat view
 
@@ -117,12 +125,12 @@ frontend/src/components/
 
 ---
 
-### 6-3: Orion Context Loading
+### 6-3: Orion Context Loading (Proprioception)
 **Owner:** Devon
 **Priority:** High
 
 **Description:**
-When Orion starts working on a project, automatically load project context into memory.
+When Orion starts working on a project, automatically load project context into memory so he knows "where" and "who" he is.
 
 **Trigger:** Project switch or session start
 
@@ -284,4 +292,3 @@ Reference existing patterns:
 - API routes: See `backend/src/routes/features.js`
 - Services: See `backend/src/services/FeaturesService.js`
 - Vue components: See `frontend/src/views/FeaturesView.vue`
-
