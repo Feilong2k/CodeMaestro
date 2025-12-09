@@ -95,16 +95,23 @@ export function useSocket() {
         console.warn('Could not send agent action to chat store:', e)
       }
 
-      // Also surface agent_action in System Log
+      // Also surface agent_action in System Log with helpful details
       if (systemLogStore) {
         try {
           const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
           const agent = payload.agent || 'Agent'
           const action = payload.action || 'action'
+          let detail = ''
+          if (payload.tool) {
+            const func = payload.functionAction || payload.action || ''
+            detail = payload.result
+              ? ` ${payload.tool}.${func} result`
+              : ` ${payload.tool}.${func}`
+          }
           systemLogStore.addMessage({
             timestamp: ts,
             level: 'info',
-            text: `${agent}: ${action}`
+            text: `${agent}: ${action}${detail}`
           })
         } catch (e) {
           console.warn('Could not add agent_action to system log:', e)
@@ -119,6 +126,17 @@ export function useSocket() {
         timestamp: new Date(),
         type: 'log_entry'
       })
+      // Also surface generic log entries in System Log
+      if (systemLogStore) {
+        try {
+          const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+          const level = payload.level || 'info'
+          const msg = payload.message || payload.text || JSON.stringify(payload)
+          systemLogStore.addMessage({ timestamp: ts, level, text: msg })
+        } catch (e) {
+          console.warn('Could not add log_entry to system log:', e)
+        }
+      }
     })
 
     socket.value.on('system_message', (payload) => {
