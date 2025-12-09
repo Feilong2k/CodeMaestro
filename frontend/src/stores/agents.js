@@ -84,26 +84,65 @@ export const useAgentsStore = defineStore('agents', {
       if (this._socketHandler) {
         this.cleanupSocket()
       }
-      const handler = (data) => {
-        // Handle agent_action events
+      // Unified handler to convert various events into activity entries
+      const toActivity = (payload, type) => {
+        const ts = payload.timestamp ? new Date(payload.timestamp) : new Date()
+        const agent = payload.agent || 'System'
+        let action = payload.action || type
+        if (type === 'state_change') {
+          action = `${payload.from || 'UNKNOWN'} → ${payload.to || 'UNKNOWN'}`
+        } else if (type === 'system_message') {
+          action = payload.text || 'system'
+        } else if (type === 'log_entry') {
+          action = payload.message || payload.text || JSON.stringify(payload)
+        }
+        return {
+          agent,
+          action,
+          taskId: payload.taskId || payload.subtaskId || null,
+          timestamp: ts
+        }
+      }
+
+      const agentActionHandler = (data) => {
         if (data.agent && data.status) {
           this.updateAgentStatus(data.agent, data.status, data.taskId || null)
         }
-        // Always add an activity for the event
-        this.addActivity({
-          agent: data.agent,
-          action: data.action || 'unknown',
-          taskId: data.taskId || null,
-          timestamp: data.timestamp ? new Date(data.timestamp) : new Date()
-        })
+        this.addActivity(toActivity(data, 'agent_action'))
       }
-      socket.on('agent_action', handler)
-      this._socketHandler = handler
+
+      const stateChangeHandler = (data) => {
+        this.addActivity(toActivity(data, 'state_change'))
+      }
+
+      const systemMessageHandler = (data) => {
+        this.addActivity(toActivity(data, 'system_message'))
+      }
+
+      const logEntryHandler = (data) => {
+        this.addActivity(toActivity(data, 'log_entry'))
+      }
+
+      socket.on('agent_action', agentActionHandler)
+      socket.on('state_change', stateChangeHandler)
+      socket.on('system_message', systemMessageHandler)
+      socket.on('log_entry', logEntryHandler)
+
+      this._socketHandler = {
+        agentActionHandler,
+        stateChangeHandler,
+        systemMessageHandler,
+        logEntryHandler
+      }
     },
 
     cleanupSocket() {
       if (this._socketHandler) {
-        socket.off('agent_action', this._socketHandler)
+        const { agentActionHandler, stateChangeHandler, systemMessageHandler, logEntryHandler } = this._socketHandler
+        if (agentActionHandler) socket.off('agent_action', agentActionHandler)
+        if (stateChangeHandler) socket.off('state_change', stateChangeHandler)
+        if (systemMessageHandler) socket.off('system_message', systemMessageHandler)
+        if (logEntryHandler) socket.off('log_entry', logEntryHandler)
         this._socketHandler = null
       }
     }
