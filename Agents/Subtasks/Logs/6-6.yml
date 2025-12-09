@@ -1,115 +1,131 @@
-# Subtask Log: 6-6 (Strict Agent Loop & Frontend Integration)
+# Subtask Log: 6-6 (State Machine Action Hooks & Automated Orchestration)
 id: "6-6"
-title: "Strict Agent Loop & Frontend Integration"
+title: "State Machine Action Hooks & Automated Orchestration"
 status: pending
-branch: "subtask/6-6-strict-loop-ui"
+branch: "subtask/6-6-orchestrator-automation"
 
 phase: 6
 owner: "Devon"
 priority: critical
 
 description: |
-  Refactor the agent execution loop into a clear OBSERVE–THINK–ACT–WAIT
-  finite state machine (FSM) and surface its state in the web UI.
-  This makes agent behavior predictable, debuggable, and visible to users.
+  Activate the existing subtask TDD state machine and OrchestratorService so that
+  subtask state transitions automatically trigger concrete orchestration actions.
+  
+  Today, the xstate machine and OrchestratorService track subtask status, but
+  they do not actually perform the git, manifest, and notification work that
+  you are doing manually as Orion. This task closes that gap and makes
+  orchestration truly automatic.
 
-  Web-app priority #1: users must see what the agent is doing and where it is
-  in the process, rather than experiencing it as a black box.
+  Web-app / system priority: when a subtask moves from RED → GREEN → REFACTOR →
+  INTEGRATION → VERIFICATION → COMPLETE, the system should:
+    - Enforce the correct next actor (Tara vs Devon vs Orion)
+    - Run the right git operations (branch creation, merge, push)
+    - Update the manifest/logs as the source of truth
+    - Emit events for the UI (SystemLogPanel, ActivityLog)
 
 constraint_discovery:
   subtask_id: "6-6"
   owner: "Orion"
-  concern: "Process Discipline & UX"
+  concern: "Automated Orchestration & Process Discipline"
   date: "2025-12-09"
 
   atomic_actions:
-    - action: "Design AgentFSM"
-      description: "Define OBSERVE–THINK–ACT–WAIT–VERIFY–COMPLETE–ERROR states and transitions."
-    - action: "Integrate FSM into AgentExecutor"
-      description: "Replace ad-hoc while-loop with FSM-driven loop."
-    - action: "Enforce JSON schema for THOUGHT + ACTION"
-      description: "TacticalAdapter must produce structured responses, validated before acting."
-    - action: "Emit loop state events over WebSocket"
-      description: "Broadcast agent_state_change events for UI visualization."
-    - action: "Visualize loop state in frontend"
-      description: "Add AgentStatus component and integrate into TaskDashboard."
+    - action: "Map states to orchestration actions"
+      description: "Define, for each subtaskMachine state, what concrete actions Orion should perform (e.g., merge test branch, assign implementation)."
+    - action: "Add state-action hooks to OrchestratorService"
+      description: "Extend OrchestratorService.transition to call an action executor when state changes."
+    - action: "Extend GitTool for orchestration workflows"
+      description: "Add safe merge/fetch/pull helpers used by automation (no ad-hoc shell git)."
+    - action: "Integrate manifest updates with state changes"
+      description: "Automatically update Agents/Subtasks/manifest.yml based on subtask state."
+    - action: "Emit orchestration events for UI"
+      description: "Emit WebSocket events so SystemLogPanel and ActivityLog show who did what, and when."
 
   resources_touched:
-    - resource: "AgentExecutor"
-      constraint: "Must remain backwards-compatible for existing tasks."
-    - resource: "TacticalAdapter"
-      constraint: "Prompt/schema changes must not break function-calling behavior."
-    - resource: "WebSocket server"
-      constraint: "New events must not overload clients or spam logs."
+    - resource: "OrchestratorService"
+      constraint: "Must remain backwards-compatible and not break existing manual flows."
+    - resource: "GitTool"
+      constraint: "New operations must be safe, validated, and respect RBAC/role rules."
+    - resource: "Agents/Subtasks manifest & logs"
+      constraint: "Automation must preserve human readability and not corrupt YAML."
 
   resource_physics:
-    - resource: "LLM Output Variability"
-      constraint: "LLM may return malformed or verbose output."
-      risk: "FSM stuck if schema not enforced; tools called on garbage actions."
-      mitigation: "Strict JSON schema validation with retry/failover behavior."
+    - resource: "Git & Branch State"
+      constraint: "Branches can be out-of-date or missing locally."
+      risk: "Automated merges may fail or create conflicts without clear visibility."
+      mitigation: "Use safe fetch/merge patterns; log all failures to SystemLogPanel and avoid auto-resolving conflicts."
 
-    - resource: "UI Latency"
-      constraint: "Too many state events can cause noisy UI."
-      risk: "Users overwhelmed by flickering states."
-      mitigation: "Throttle/debounce state updates; coalesce transitions for display."
+    - resource: "Human Override"
+      constraint: "Orion must retain the ability to pause or override automation."
+      risk: "Runaway automation could perform merges when not desired."
+      mitigation: "Introduce a config flag / mode (manual vs assisted vs full-auto) and log all decisions."
 
   verification:
-    - action: "FSM State Tests"
-      method: "Unit tests cover all transitions and error branches in AgentFSM."
-    - action: "Executor Integration Tests"
-      method: "Simulate 2–3 step tasks and assert correct state sequences."
-    - action: "Frontend Integration Tests"
-      method: "Fake WebSocket events update AgentStatus correctly."
+    - action: "Unit tests for state→action mapping"
+      method: "Pure tests that given (oldState, newState, metadata) assert the correct orchestration plan is produced."
+    - action: "Integration tests for OrchestratorService.transition"
+      method: "Simulate key transitions (e.g., RED→GREEN) and assert that GitTool and manifest updates are called as expected."
+    - action: "End-to-end test using a Phase 6 subtask (e.g., 6-0)"
+      method: "Drive the subtask through states and verify that branches are created/merged and manifest/logs are updated."
 
 implementation_plan:
-  - component: "AgentFSM"
-    path: "backend/src/machines/AgentFSM.js"
+  - component: "State→Action Mapping Table"
+    path: "backend/src/services/orchestration/stateActionMap.js"
     details: |
-      - Define states: OBSERVE, THINK, ACT, WAIT, VERIFY, COMPLETE, ERROR.
-      - Accept a context object (task, history, lastResult, stepCount, maxSteps).
-      - Pure transition logic for unit testing without tools/LLM.
+      - Export a pure function `planActions({ subtaskId, previousState, newState, metadata })`.
+      - Return a list of high-level actions, e.g.:
+        - `[{ type: 'merge_tests', branch: 'feature/6-0-tests', target: 'phase-6-base' }, ...]`
+      - Cover common flows:
+        - pending → in_progress
+        - in_progress → red
+        - red → green (tests passing)
+        - green → refactor
+        - refactor → integration_red / integration_green
+        - integration_green → verification
+        - verification → completed
 
-  - component: "AgentExecutor + FSM Integration"
-    path: "backend/src/services/AgentExecutor.js"
+  - component: "OrchestratorService Hooks"
+    path: "backend/src/services/orchestrator.js"
     details: |
-      - Replace while-loop with FSM loop.
-      - OBSERVE: build compact context snapshot (task + recent outputs).
-      - THINK: call TacticalAdapter with strict JSON instructions.
-      - ACT: call tools (initially directly; later via BodyInterface from 6-7).
-      - WAIT: collect results, update context, advance FSM.
+      - Extend `transition(subtaskId, event, eventData)` to:
+        - Capture `previousState` and `newState`.
+        - Call `planActions` with subtaskId + states + metadata.
+        - Pass the resulting plan to an `OrchestrationExecutor`.
+      - Ensure errors in orchestration do **not** corrupt the subtask state; they should surface as separate errors.
 
-  - component: "Schema Enforcement for THOUGHT + ACTION"
-    path: "backend/src/llm/TacticalAdapter.js"
+  - component: "OrchestrationExecutor"
+    path: "backend/src/services/orchestration/OrchestrationExecutor.js"
     details: |
-      - Update system prompt to require JSON object with `thought` and `action`.
-      - Add validator that parses/validates the JSON.
-      - On invalid output: retry within safe bounds or surface error to user.
+      - Consume action plans and perform concrete operations:
+        - Call GitTool for fetch/merge/checkout as needed.
+        - Update manifest.yml via a ManifestService (if available) or a safe file-edit layer.
+        - Emit WebSocket events to notify agents/users (e.g., `orchestration_action_performed`).
+      - Implement idempotency where possible (e.g., merging an already-merged branch should be a no-op).
 
-  - component: "Loop State WebSocket Events"
-    path: "backend/src/socket/index.js" and AgentExecutor
+  - component: "GitTool Extensions for Orchestration"
+    path: "backend/src/tools/GitTool.js"
     details: |
-      - Emit `agent_state_change` events with { agent, state, step, subtaskId }.
-      - Ensure events are rate-limited/throttled for UX.  
+      - Add safe helpers:
+        - `merge({ source, target })`
+        - `fetch({ remote, branch })`
+        - `checkout({ branch, createFrom })`
+      - Reuse existing validation and exec wrapper.
+      - Ensure operations are logged and errors are propagated clearly.
 
-  - component: "AgentStatus UI Component"
-    path: "frontend/src/components/AgentStatus.vue"
+  - component: "Event Emission for UI"
+    path: "backend/src/socket/index.js" and/or new orchestration events module
     details: |
-      - Render badges/indicators for Observing, Thinking, Acting, Waiting, Verifying.
-      - Show step count vs maxSteps.
-      - Subscribe via Pinia/WebSocket store to `agent_state_change` events.
-
-  - component: "Dashboard Integration"
-    path: "frontend/src/views/TaskDashboard.vue"
-    details: |
-      - Place AgentStatus near chat/ActivityLog so loop state is always visible.
+      - Emit events like `orchestration_plan_created` and `orchestration_action_performed`.
+      - Payload should include: subtaskId, actions, outcome, error (if any).
+      - SystemLogPanel and ActivityLog can subscribe later (6-0/6-8).
 
 requiredActions:
-  - "[ ] [TDD] Create failing FSM unit tests (Red)"
-  - "[ ] [TDD] Implement AgentFSM to satisfy tests (Green)"
-  - "[ ] [TDD] Refactor AgentExecutor to use FSM"
-  - "[ ] [TDD] Add JSON schema enforcement in TacticalAdapter"
-  - "[ ] [TDD] Emit WebSocket state events from AgentExecutor"
-  - "[ ] [TDD] Implement AgentStatus UI and connect to WebSocket events"
+  - "[ ] [TDD] Create failing unit tests for state→action mapping (Red)"
+  - "[ ] [TDD] Implement stateActionMap to satisfy tests (Green)"
+  - "[ ] [TDD] Add OrchestratorService hooks to call stateActionMap + OrchestrationExecutor"
+  - "[ ] [TDD] Extend GitTool with merge/fetch/checkout helpers and add tests"
+  - "[ ] [TDD] Add integration tests simulating 6-0 and 6-1 flows"
 
 verificationChecklist:
   - "[ ] [TDD] Failing Unit Tests created (Red)"
@@ -117,21 +133,19 @@ verificationChecklist:
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Integration Tests"
   - "[ ] [TDD] Final test by Tara and Coverage > 80%"
-  - "[ ] FSM unit tests: all states and transitions covered (>80% coverage for AgentFSM)"
-  - "[ ] AgentExecutor integration tests: end-to-end loop for simple tasks"
-  - "[ ] TacticalAdapter tests: malformed JSON responses handled safely"
-  - "[ ] WebSocket tests: agent_state_change emitted on each transition"
-  - "[ ] Frontend tests: AgentStatus reflects backend state correctly"
-  - "[ ] E2E test: user can see agent progress through loop while a task runs"
+  - "[ ] RED→GREEN on 6-0 automatically produces a merge plan for Tara's test branch into phase-6-base"
+  - "[ ] GREEN→REFACTOR on 6-1 does **not** trigger a merge, but may update assignment/notifications only"
+  - "[ ] COMPLETED on a subtask triggers a plan to mark it completed in manifest.yml (no direct merge to master)"
+  - "[ ] All orchestration actions are visible in SystemLogPanel/ActivityLog via emitted events (once UI wiring exists)"
 
 human_verification:
-  - "Open the web app Task Dashboard in your browser."
-  - "Trigger an agent-run task (e.g., ask Orion to work on a small change)."
-  - "Watch the new AgentStatus area: you should see clear labels like 'Observing', 'Thinking', 'Acting', 'Waiting' change over time while the agent works."
-  - "Confirm that the status changes feel consistent with what you see in the chat and Activity Log (no long periods where the agent seems busy but the status is stuck)."
+  - "Pick an in-progress Phase 6 subtask (e.g., 6-0 once tests exist)."
+  - "Drive its state from RED → GREEN using the OrchestratorService API or CLI helper."
+  - "Verify that without manually running git commands, the correct feature branch is merged into phase-6-base (or a dry-run plan is logged, depending on mode)."
+  - "Open the manifest and logs to confirm that the subtask status and history have been updated to reflect the new state and orchestration actions."
 
 history:
-  - ts: "2025-12-09T00:00:00Z"
+  - ts: "2025-12-09T11:00:00Z"
     role: orchestrator
     action: CREATED
-    message: "Initialized v2.1 subtask for strict agent loop and frontend integration (top web-app priority)."
+    message: "Initialized subtask for activating state machine-driven orchestration (6-6)."

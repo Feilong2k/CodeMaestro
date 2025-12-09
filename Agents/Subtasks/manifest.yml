@@ -221,3 +221,31 @@ subtasks:
     owner: "Devon"
     priority: medium
     dependencies: ["5-11", "6-3"]
+
+  - id: "6-6"
+    title: "State Machine Action Hooks & Automated Orchestration"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["6-1", "6-2", "6-3"]
+
+  - id: "6-7"
+    title: "Body Interface & Cross-Platform Reliability"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["6-3"]
+
+  - id: "6-8"
+    title: "Sensory Feedback & Network Telemetry"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["6-3", "6-4"]
+
+  - id: "6-9"
+    title: "Strict Agent Loop & Frontend Integration"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["6-1", "6-2", "6-6", "6-7", "6-8"]
