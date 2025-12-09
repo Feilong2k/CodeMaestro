@@ -389,6 +389,22 @@ Working Directory: ${currentDir}
             result: result,
             timestamp: new Date()
           });
+          // Also emit a concise system_message for System Log visibility
+          try {
+            const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            let extra = '';
+            if (toolName === 'FileSystemTool' && action === 'list') {
+              const count = Array.isArray(result?.items) ? result.items.length : (Array.isArray(result) ? result.length : undefined);
+              extra = typeof count === 'number' ? ` (${count} items)` : '';
+            }
+            broadcastToAll('system_message', {
+              timestamp: ts,
+              level: 'info',
+              text: `Orion: ${toolName}.${action} completed${extra}`
+            });
+          } catch (e) {
+            console.warn('[OrionAgent] Failed to emit system_message for function_result:', e?.message);
+          }
         } catch (execError) {
           results.push({ tool: toolName, action, error: execError.message });
           broadcastToAll('agent_action', {
