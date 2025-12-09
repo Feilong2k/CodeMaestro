@@ -3,6 +3,7 @@ const registry = require('../tools/registry');
 const DeepseekClient = require('../llm/DeepseekClient');
 const AgentFSM = require('../machines/AgentFSM');
 const AgentFsmLogService = require('./AgentFsmLogService');
+const { broadcastToAll } = require('../socket/index');
 
 /**
  * Simple XML parser for extracting tool calls from LLM output.
@@ -165,6 +166,19 @@ class AgentExecutor {
         const nextState = this.fsm.transition(state, event, context);
         // Log the transition
         await AgentFsmLogService.logTransition(subtaskId, agent, state, nextState);
+        // Emit state_change over WebSocket for live System Log visibility
+        try {
+          broadcastToAll('state_change', {
+            subtaskId,
+            agent,
+            from: state,
+            to: nextState,
+            timestamp: new Date().toISOString()
+          });
+        } catch (e) {
+          // Non-fatal: logging only
+          // console.warn('[AgentExecutor] Failed to emit state_change:', e?.message)
+        }
         // Update context based on transition
         context = this.fsm.updateContext(state, event, context);
         // Move to next state
