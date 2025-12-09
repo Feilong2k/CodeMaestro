@@ -351,6 +351,15 @@ class OrionAgent extends BaseAgent {
             console.log('[runFunctionCallingMode] MemoryTool using projectId:', projectId);
           }
           
+          // Special handling for ShellTool - inject project path as cwd
+          if (toolName === 'ShellTool' && projectPath) {
+            // Only set cwd if not already specified in params
+            if (!params.cwd) {
+              params.cwd = projectPath;
+              console.log('[runFunctionCallingMode] ShellTool using project cwd:', projectPath);
+            }
+          }
+          
           // Execute with action included in params
           const executeParams = { action, ...params };
           console.log('[runFunctionCallingMode] Executing with params:', executeParams);
