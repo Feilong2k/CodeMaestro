@@ -67,6 +67,7 @@ instructions:
     role: "Implementer"
     goal: "Implement the API routes and connect to service"
     steps:
+      - "DEBUG: Fix `FileSystemTool.js` path normalization on Windows (casing mismatch causes false security rejections)"
       - "Edit `backend/src/routes/projects.js`"
       - "Import `projectContextService`"
       - "Implement `GET /:id/context`"
