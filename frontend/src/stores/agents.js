@@ -138,11 +138,7 @@ export const useAgentsStore = defineStore('agents', {
 
     cleanupSocket() {
       if (this._socketHandler) {
-        const { agentActionHandler, stateChangeHandler, systemMessageHandler, logEntryHandler } = this._socketHandler
-        if (agentActionHandler) socket.off('agent_action', agentActionHandler)
-        if (stateChangeHandler) socket.off('state_change', stateChangeHandler)
-        if (systemMessageHandler) socket.off('system_message', systemMessageHandler)
-        if (logEntryHandler) socket.off('log_entry', logEntryHandler)
+        socket.off('agent_action', this._socketHandler)
         this._socketHandler = null
       }
     }
