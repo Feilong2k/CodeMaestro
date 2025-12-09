@@ -99,14 +99,14 @@ implementation_plan:
       - On agent action (e.g., subtask start/complete), emit agent_action.
 
 requiredActions:
-  - "[ ] [TDD] Create failing frontend tests for 3-panel layout (Red)"
+  - "[x] [TDD] Create failing frontend tests for 3-panel layout (Red)"
   - "[ ] [TDD] Implement MainLayout changes and App.vue wiring (Green)"
   - "[ ] [TDD] Create failing tests for SystemLogPanel empty and populated states (Red)"
   - "[ ] [TDD] Implement SystemLogPanel and WebSocket composable (Green)"
   - "[ ] [TDD] Add backend WebSocket events and basic integration tests"
 
 verificationChecklist:
-  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[x] [TDD] Failing Unit Tests created (Red)"
   - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
   - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Integration Tests"
@@ -128,3 +128,7 @@ history:
     role: orchestrator
     action: CREATED
     message: "Initialized v2.2 subtask for UI/WebSocket foundation and 3-panel layout (Task 6-0)."
+  - ts: "2025-12-09T15:21:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing frontend tests for 3-panel layout (Red phase)."
