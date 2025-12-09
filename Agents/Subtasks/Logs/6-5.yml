@@ -89,6 +89,11 @@ requiredActions:
   - "[ ] [TDD] Add a basic UI view showing cwd and recent files from context"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80%"
   - "[ ] After running tasks that edit files, proprioception_state reflects correct cwd and recent files"
   - "[ ] /api/projects/:id/context includes a proprioception section with these fields"
   - "[ ] Frontend view displays the same cwd and recent file list as the API response"

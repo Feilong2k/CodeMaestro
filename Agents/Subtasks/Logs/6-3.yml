@@ -92,6 +92,11 @@ requiredActions:
   - "[ ] [TDD] Implement ToolExecutionLogService and API endpoint"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80%"
   - "[ ] All tool calls from AgentExecutor go through BodyInterface"
   - "[ ] tool_execution_log entries created for each tool call in a sample task"
   - "[ ] /api/tool-executions/:subtaskId returns the same entries as the DB"

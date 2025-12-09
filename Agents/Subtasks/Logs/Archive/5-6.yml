@@ -1,0 +1,88 @@
+# Subtask Log: 5-6 (Advanced Shell Tool)
+id: "5-6"
+title: "Advanced Shell Tool (Safe Exec)"
+status: completed
+branch: "subtask/5-6-shell-tool"
+
+constraint_discovery:
+  subtask_id: "5-6"
+  owner: "Devon"
+  concern: "System Safety"
+  date: "2025-12-07"
+  
+  atomic_actions:
+    - action: "Execute Command"
+      description: "Run shell process safely"
+    - action: "Validate Command"
+      description: "Check against whitelist/blocklist"
+    - action: "Split Commands"
+      description: "Break '&&' chains into sequential executions"
+      
+  resources_touched:
+    - resource: "System Shell"
+      action: "Execution"
+      
+  resource_physics:
+    - resource: "Command Injection"
+      constraint: "Safety"
+      risk: "Malicious commands"
+      mitigation: "Strict Whitelist + Blocklist"
+    - resource: "Command Chaining"
+      constraint: "State"
+      risk: "`cd` lost between commands"
+      mitigation: "Auto-Splitter with persisted CWD"
+
+implementation_plan:
+  - component: "ShellTool"
+    path: "backend/src/tools/ShellTool.js"
+    details: |
+      class ShellTool {
+        constructor(options = {}) {
+          this.cwd = options.cwd || process.cwd();
+          this.whitelist = COMMAND_WHITELIST;
+          this.blocklist = COMMAND_BLOCKLIST;
+        }
+        
+        async execute(command): Runs command safely
+        validateCommand(command): Checks whitelist/blocklist
+        splitChain(command): Breaks '&&' into array
+        _runSingle(cmd): Low-level exec with timeout
+      }
+
+  - component: "Whitelist/Blocklist"
+    path: "backend/src/tools/ShellTool.js"
+    details: |
+      WHITELIST: npm, npx, git, node, ls, dir, mkdir, cp, mv, rm (files only), grep, find, ps
+      BLOCKLIST: sudo, chmod, chown, ssh, ftp, curl, wget, rm -rf /, format, shutdown
+
+history:
+  - ts: "2025-12-07T23:45:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Focus on Shell Safety and Logic."
+  - ts: "2025-12-08T13:00:00Z"
+    role: orchestrator
+    action: UPDATED
+    message: "Added implementation plan and TDD checklist for Tara."
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests (Red)"
+  - "[ ] [TDD] Implement ShellTool (Green)"
+  - "[ ] [TDD] Refactor (Cleanup)"
+  - "[ ] Implement `ShellTool` class"
+  - "[ ] Implement `Blocklist` check (sudo, chmod, ssh, curl...)"
+  - "[ ] Implement `Whitelist` check (npm, git, ls, grep...)"
+  - "[ ] Implement `Auto-Splitter` for `&&` chains"
+  - "[ ] Implement `cwd` persistence for chained commands"
+
+verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Blocklist rejects 'sudo' instantly"
+  - "[ ] [TDD] Blocklist rejects 'rm -rf /'"
+  - "[ ] [TDD] Whitelist allows 'npm test'"
+  - "[ ] [TDD] Whitelist allows 'git status'"
+  - "[ ] [TDD] Non-whitelisted command throws error"
+  - "[ ] [TDD] Auto-splitter breaks 'cd dir && ls' into two commands"
+  - "[ ] [TDD] CWD persists after 'cd' in chained command"

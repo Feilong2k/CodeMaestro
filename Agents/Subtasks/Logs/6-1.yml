@@ -95,6 +95,11 @@ requiredActions:
   - "[ ] [TDD] Add API endpoint and integration tests for /api/agent-fsm-log/:subtaskId"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80%"
   - "[ ] FSM unit tests cover all valid and invalid transitions"
   - "[ ] Running a simple agent task creates multiple rows in agent_fsm_log"
   - "[ ] /api/agent-fsm-log/:subtaskId returns the same sequence as seen in DB"

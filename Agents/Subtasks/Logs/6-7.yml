@@ -86,6 +86,11 @@ requiredActions:
   - "[ ] [TDD] Implement ToolHealthService and /api/tools/health endpoint"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80%"
   - "[ ] BodyInterface unit tests: happy/sad paths for FileSystemTool, ShellTool, GitTool"
   - "[ ] Path normalization tests cover Windows and POSIX examples"
   - "[ ] FileSystem operations are blocked when attempting path traversal"

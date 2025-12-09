@@ -87,6 +87,11 @@ requiredActions:
   - "[ ] [TDD] Implement errorFormatter and expose structured summaries in SystemLogPanel"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80%"
   - "[ ] Long-running commands produce multiple shell_output events"
   - "[ ] SystemLogPanel updates live while a command is running"
   - "[ ] Common error cases produce clear, structured summaries (npm, git, tests)"

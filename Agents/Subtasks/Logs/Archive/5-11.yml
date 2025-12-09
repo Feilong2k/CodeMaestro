@@ -1,0 +1,94 @@
+# Subtask Log: 5-11 (Project Context API)
+id: "5-11"
+title: "Project Context API"
+status: pending
+branch: "subtask/5-11-context-api"
+
+constraint_discovery:
+  subtask_id: "5-11"
+  owner: "Devon"
+  concern: "API Security & Data Integrity"
+  date: "2025-12-09"
+  
+  atomic_actions:
+    - action: "Expose GET /api/projects/:id/context"
+      description: "Return full project context"
+    - action: "Expose POST /api/projects/:id/context"
+      description: "Update context memories"
+      
+  resources_touched:
+    - resource: "Express Router"
+      action: "Route Registration"
+    - resource: "ProjectContextService"
+      action: "Invocation"
+      
+  resource_physics:
+    - resource: "Network Response"
+      constraint: "Payload Size"
+      risk: "Large file contents in context could bloat response > 1MB"
+      mitigation: "Service already truncates files; consider pagination for large lists"
+    - resource: "Database"
+      constraint: "Connection Pool"
+      risk: "Heavy context building blocks main thread"
+      mitigation: "Context building is async; ensure efficient queries"
+      
+  verification:
+    - action: "API Test"
+      method: "GET /api/projects/1/context returns 200 JSON"
+
+history:
+  - ts: "2025-12-09T01:25:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Exposing ProjectContextService to the world."
+  - ts: "2025-12-09T12:16:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for GET/POST /context (Red phase). Ready for Devon to implement routes."
+  - ts: "2025-12-09T08:02:00Z"
+    role: devon
+    action: IMPLEMENTED
+    message: "Implemented GET and POST /context routes, fixed FileSystemTool path normalization for Windows, updated tests. All unit tests pass."
+
+requiredActions:
+  - "Logic: Add routes to `backend/src/routes/projects.js` ✓"
+  - "Logic: Connect routes to `ProjectContextService` ✓"
+  - "Test: Integration tests for endpoints ✓"
+
+# Instructions for Agents
+instructions:
+  tara:
+    role: "Tester"
+    goal: "Create integration tests for the new Context API endpoints"
+    steps:
+      - "Create `backend/__tests__/integration/projects/context.test.js`"
+      - "Test GET returns 200 and expected schema"
+      - "Test POST updates context correctly"
+      - "Run: `npm test backend/__tests__/integration/projects/context.test.js`"
+    git_workflow:
+      - "git checkout -b subtask/5-11-context-api phase-5.5-base"
+      - "git add backend/__tests__/integration/projects/context.test.js"
+      - "git commit -m 'test: add integration tests for project context api'"
+      - "git push origin subtask/5-11-context-api"
+
+  devon:
+    role: "Implementer"
+    goal: "Implement the API routes and connect to service"
+    steps:
+      - "DEBUG: Fix `FileSystemTool.js` path normalization on Windows (casing mismatch causes false security rejections)"
+      - "Edit `backend/src/routes/projects.js`"
+      - "Import `projectContextService`"
+      - "Implement `GET /:id/context`"
+      - "Implement `POST /:id/context`"
+      - "Run tests to verify: `npm test backend/__tests__/integration/projects/context.test.js`"
+    git_workflow:
+      - "git checkout subtask/5-11-context-api"
+      - "git pull origin subtask/5-11-context-api"
+      - "git add backend/src/routes/projects.js"
+      - "git commit -m 'feat: implement project context api endpoints'"
+      - "git push origin subtask/5-11-context-api"
+      - "Notify Adam to merge PR into phase-5.5-base"
+
+verificationChecklist:
+  - "[x] [TDD] GET /context returns valid structure"
+  - "[x] [TDD] POST /context updates memory"

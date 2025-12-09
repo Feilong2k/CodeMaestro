@@ -106,6 +106,11 @@ requiredActions:
   - "[ ] [TDD] Add backend WebSocket events and basic integration tests"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80%"
   - "[ ] Layout renders three distinct panels on desktop (Chat, System Log, Activity)"
   - "[ ] Layout degrades gracefully on smaller screens"
   - "[ ] SystemLogPanel shows connection and disconnection events"

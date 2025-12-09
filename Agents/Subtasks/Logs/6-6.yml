@@ -112,6 +112,11 @@ requiredActions:
   - "[ ] [TDD] Implement AgentStatus UI and connect to WebSocket events"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80%"
   - "[ ] FSM unit tests: all states and transitions covered (>80% coverage for AgentFSM)"
   - "[ ] AgentExecutor integration tests: end-to-end loop for simple tasks"
   - "[ ] TacticalAdapter tests: malformed JSON responses handled safely"

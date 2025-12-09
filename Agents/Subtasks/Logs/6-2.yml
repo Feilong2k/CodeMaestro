@@ -90,6 +90,11 @@ requiredActions:
   - "[ ] [TDD] Extend agent_fsm_log with metadata column and tests"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80%"
   - "[ ] Validator rejects malformed JSON and logs an appropriate error"
   - "[ ] Valid JSON responses lead to correct tool calls via AgentExecutor"
   - "[ ] agent_fsm_log rows include metadata for THINK and ACT states"

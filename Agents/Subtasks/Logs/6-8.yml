@@ -97,6 +97,11 @@ requiredActions:
   - "[ ] [TDD] Implement TelemetryService hooks for LLM/DB calls"
 
 verificationChecklist:
+  - "[ ] [TDD] Failing Unit Tests created (Red)"
+  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Integration Tests"
+  - "[ ] [TDD] Final test by Tara and Coverage > 80%"
   - "[ ] Streaming tests verify multiple shell_output events for long commands"
   - "[ ] ErrorFormatter tests cover common git/npm/test failure patterns"
   - "[ ] Telemetry tests verify durations and statuses are recorded without blocking"
