@@ -1,0 +1,113 @@
+# Subtask Log: 6-1 (Agent FSM Core + DB Logging)
+id: "6-1"
+title: "Agent FSM Core + DB Logging"
+status: pending
+branch: "subtask/6-1-agent-fsm-core-db"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Implement the core Agent Finite State Machine (FSM) for OBSERVE–THINK–ACT–WAIT–
+  VERIFY–COMPLETE–ERROR, and log every state transition into the database. This 
+  makes the agent loop visible and auditable.
+
+constraint_discovery:
+  subtask_id: "6-1"
+  owner: "Orion"
+  concern: "Process Transparency & Traceability"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Design AgentFSM states and transitions"
+      description: "Define valid state transitions and error handling paths."
+    - action: "Implement AgentFSM as pure logic"
+      description: "Create a testable module with no external side effects."
+    - action: "Wire AgentExecutor to use AgentFSM"
+      description: "Drive agent runs through FSM instead of ad-hoc loops."
+    - action: "Log transitions to DB"
+      description: "Record from_state, to_state, agent, and subtask_id for each step."
+
+  resources_touched:
+    - resource: "AgentExecutor"
+      constraint: "Must not break existing basic behavior while refactoring."
+    - resource: "Database (Postgres)"
+      constraint: "New table must be efficient and non-blocking for writes."
+
+  resource_physics:
+    - resource: "Long-Running Tasks"
+      constraint: "FSM may run many steps per task."
+      risk: "Logging every step could bloat the DB."
+      mitigation: "Keep log rows compact; allow pruning by subtask_id or age."
+
+    - resource: "LLM Non-Determinism"
+      constraint: "LLM outputs may be inconsistent across runs."
+      risk: "Harder to reproduce issues without logs."
+      mitigation: "Include enough metadata in logs to replay or analyze behavior."
+
+  verification:
+    - action: "FSM Unit Tests"
+      method: "Pure tests over AgentFSM ensure all transitions and errors behave as expected."
+    - action: "Integration Tests"
+      method: "Run a simple task and assert that a sequence of DB log rows matches expected transitions."
+
+implementation_plan:
+  - component: "AgentFSM Module"
+    path: "backend/src/machines/AgentFSM.js"
+    details: |
+      - Implement a state machine with states:
+        OBSERVE, THINK, ACT, WAIT, VERIFY, COMPLETE, ERROR.
+      - Provide pure transition functions that accept a context and return next state + updated context.
+      - No direct I/O in this module (for ease of testing).
+
+  - component: "AgentExecutor Integration"
+    path: "backend/src/services/AgentExecutor.js"
+    details: |
+      - Replace existing while-loop with calls into AgentFSM.
+      - At each step, update context (e.g., lastResult, stepCount, subtaskId).
+      - Trigger side effects (LLM calls, tool calls) based on FSM decisions.
+
+  - component: "FSM Transition Logging (DB)"
+    path: "backend/src/services/AgentFsmLogService.js" (new)
+    details: |
+      - Create a service that writes to a new table `agent_fsm_log`.
+      - Columns: id, subtask_id, agent, from_state, to_state, timestamp.
+      - Provide a query function for logs by subtaskId.
+
+  - component: "API Endpoint for FSM Logs"
+    path: "backend/src/routes/agents.js" or new route
+    details: |
+      - Add GET `/api/agent-fsm-log/:subtaskId`.
+      - Return chronological list of transitions for the given subtask.
+
+  - component: "SystemLogPanel Integration (Read-Only)"
+    path: "frontend/src/components/SystemLogPanel.vue" / store
+    details: |
+      - When viewing a subtask, fetch `/api/agent-fsm-log/:subtaskId` once.
+      - Display a simple list of state changes (e.g., "Orion: OBSERVE → THINK").
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for AgentFSM (Red)"
+  - "[ ] [TDD] Implement AgentFSM state logic to satisfy tests (Green)"
+  - "[ ] [TDD] Wire AgentExecutor to AgentFSM and update tests"
+  - "[ ] [TDD] Add AgentFsmLogService and DB migration for agent_fsm_log table"
+  - "[ ] [TDD] Add API endpoint and integration tests for /api/agent-fsm-log/:subtaskId"
+
+verificationChecklist:
+  - "[ ] FSM unit tests cover all valid and invalid transitions"
+  - "[ ] Running a simple agent task creates multiple rows in agent_fsm_log"
+  - "[ ] /api/agent-fsm-log/:subtaskId returns the same sequence as seen in DB"
+  - "[ ] SystemLogPanel displays a readable list of state changes"
+
+human_verification:
+  - "Run a small agent task for a known subtask ID (for example, ask Orion to plan for subtask 5-9)."
+  - "Use a simple DB viewer or script to run: SELECT * FROM agent_fsm_log WHERE subtask_id = '5-9';"
+  - "Confirm you see multiple rows, each showing from_state and to_state for Orion or another agent."
+  - "In the web app, open the System Log view for that subtask and check that you see matching messages like 'Orion: OBSERVE → THINK', 'Orion: THINK → ACT', etc."
+
+history:
+  - ts: "2025-12-09T00:40:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized v2.2 subtask for Agent FSM core and DB logging (Task 6-1)."

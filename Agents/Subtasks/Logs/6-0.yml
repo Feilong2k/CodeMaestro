@@ -1,0 +1,125 @@
+# Subtask Log: 6-0 (UI & WebSocket Foundation + 3-Panel Layout)
+id: "6-0"
+title: "UI & WebSocket Foundation (3-Panel Layout)"
+status: pending
+branch: "subtask/6-0-ui-websocket-foundation"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Establish a three-panel layout (Chat, System Log, Activity) and a working
+  WebSocket connection from backend to frontend. This gives a live dashboard
+  of what the system is doing and is the foundation for all later tasks.
+
+  Layout:
+  - Left (Chat): main interaction area, 2/4 of width.
+  - Middle (System Log): system messages, tool output, errors.
+  - Right (Activity): agent actions and high-level events.
+
+constraint_discovery:
+  subtask_id: "6-0"
+  owner: "Orion"
+  concern: "Observability & UX Foundation"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Restructure MainLayout for 3 columns"
+      description: "Expose left/center/right slots with 2:1:1 column ratio on desktop."
+    - action: "Wire App.vue to new slots"
+      description: "Place ChatPanel, SystemLogPanel, and ActivityLog into left/center/right."
+    - action: "Create SystemLogPanel component"
+      description: "Central panel to display system messages and debug output."
+    - action: "Implement frontend WebSocket connection"
+      description: "Connect from browser to backend WebSocket and handle core events."
+    - action: "Emit basic backend events"
+      description: "Send system_message and agent_action over WebSocket."
+
+  resources_touched:
+    - resource: "MainLayout.vue"
+      constraint: "Must remain responsive and readable on different screen sizes."
+    - resource: "App.vue"
+      constraint: "Must route views correctly into new layout slots."
+    - resource: "WebSocket server"
+      constraint: "Events must be small and structured to avoid flooding clients."
+
+  resource_physics:
+    - resource: "Viewport Height"
+      constraint: "Header and StatusBar consume fixed height."
+      risk: "Panels may become unusably small on short screens."
+      mitigation: "Use scrollable panel content within fixed-height layout."
+
+    - resource: "WebSocket Connectivity"
+      constraint: "Network issues or backend restarts may drop connections."
+      risk: "User sees stale state with no indication."
+      mitigation: "Show connection status and auto-reconnect behavior in System Log."
+
+  verification:
+    - action: "Layout Tests"
+      method: "Frontend tests ensure slots render and resize correctly."
+    - action: "WebSocket Smoke Tests"
+      method: "Simulated events appear in SystemLogPanel and ActivityLog."
+
+implementation_plan:
+  - component: "MainLayout 3-Column Grid"
+    path: "frontend/src/components/MainLayout.vue"
+    details: |
+      - Update grid to support left/center/right slots.
+      - Desktop: Chat (col-span-6), System (col-span-3), Activity (col-span-3) or similar.
+      - Mobile: collapse to sensible single-column layout.
+
+  - component: "App.vue Slot Wiring"
+    path: "frontend/src/App.vue"
+    details: |
+      - Place ChatPanel into left slot.
+      - Place SystemLogPanel into center slot.
+      - Place ActivityLog into right slot.
+      - Preserve existing views (PatternManager, Workflows, etc.) in main content flow.
+
+  - component: "SystemLogPanel Component"
+    path: "frontend/src/components/SystemLogPanel.vue"
+    details: |
+      - Render list of messages with timestamp, level (info/warn/error), and text.
+      - Auto-scroll to the latest message.
+      - Accept messages from a Pinia store.
+
+  - component: "Frontend WebSocket Composable + Store"
+    path: "frontend/src/composables/useWebSocket.js" (or similar)
+    details: |
+      - Connect to backend WebSocket on app start.
+      - Subscribe to system_message, tool_output, agent_action, error.
+      - Update Pinia stores for SystemLog and ActivityLog.
+
+  - component: "Backend WebSocket Events (Basic)"
+    path: "backend/src/socket/index.js" and related services
+    details: |
+      - On server start, emit a system_message.
+      - On client connect/disconnect, emit system_message.
+      - On agent action (e.g., subtask start/complete), emit agent_action.
+
+requiredActions:
+  - "[ ] [TDD] Create failing frontend tests for 3-panel layout (Red)"
+  - "[ ] [TDD] Implement MainLayout changes and App.vue wiring (Green)"
+  - "[ ] [TDD] Create failing tests for SystemLogPanel empty and populated states (Red)"
+  - "[ ] [TDD] Implement SystemLogPanel and WebSocket composable (Green)"
+  - "[ ] [TDD] Add backend WebSocket events and basic integration tests"
+
+verificationChecklist:
+  - "[ ] Layout renders three distinct panels on desktop (Chat, System Log, Activity)"
+  - "[ ] Layout degrades gracefully on smaller screens"
+  - "[ ] SystemLogPanel shows connection and disconnection events"
+  - "[ ] ActivityLog updates when agent actions occur"
+  - "[ ] No console errors when backend restarts or WebSocket reconnects"
+
+human_verification:
+  - "Start the backend server and then open the web app in your browser."
+  - "Confirm you see three main vertical panels: left (Chat), middle (System Log), right (Activity)."
+  - "Trigger an agent task (e.g., ask Orion to plan or review something). You should see new entries appear in the System Log and Activity panels without refreshing the page."
+  - "Stop and restart the backend. You should see System Log messages indicating disconnection and reconnection, rather than the UI silently freezing."
+
+history:
+  - ts: "2025-12-09T00:30:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized v2.2 subtask for UI/WebSocket foundation and 3-panel layout (Task 6-0)."

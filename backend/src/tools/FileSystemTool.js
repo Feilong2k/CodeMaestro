@@ -14,6 +14,7 @@ class FileSystemTool {
    * @param {string} [projectPath] - Base path for this project (relative to GLOBAL_ROOT or absolute)
    */
   constructor(projectPath = null) {
+    console.log('[FileSystemTool] constructor called with projectPath:', projectPath);
     if (projectPath && projectPath !== '.') {
       // Resolve project path
       this.basePath = path.isAbsolute(projectPath) 
@@ -22,6 +23,8 @@ class FileSystemTool {
     } else {
       this.basePath = GLOBAL_ROOT;
     }
+    console.log('[FileSystemTool] basePath set to:', this.basePath);
+    console.log('[FileSystemTool] GLOBAL_ROOT is:', GLOBAL_ROOT);
   }
 
   /**
@@ -34,26 +37,39 @@ class FileSystemTool {
       throw new Error('Invalid path');
     }
 
+    // Check for null bytes and other dangerous patterns
+    if (inputPath.includes('\0')) {
+      throw new Error('Null byte in path');
+    }
+
     // Resolve the path relative to basePath
     const resolvedPath = path.resolve(this.basePath, inputPath);
+    console.log('[FileSystemTool] validatePath debug:', { 
+      inputPath, 
+      basePath: this.basePath, 
+      resolvedPath,
+      platform: process.platform 
+    });
 
-    // Check if the resolved path is within the base path (case-insensitive on Windows)
-    const isInside = process.platform === 'win32'
-      ? resolvedPath.toLowerCase().startsWith(this.basePath.toLowerCase())
-      : resolvedPath.startsWith(this.basePath);
+    // Use path.relative to check if resolvedPath is inside basePath
+    const relative = path.relative(this.basePath, resolvedPath);
+    const isInside = !relative.startsWith('..') && !path.isAbsolute(relative);
+    
     if (!isInside) {
+      console.error('[FileSystemTool] Path validation failed:', { 
+        inputPath,
+        basePath: this.basePath,
+        resolvedPath,
+        relative,
+        isInside
+      });
       throw new Error(`Unsafe path: ${inputPath} is outside project root (${this.basePath})`);
     }
 
-    // Additional check for directory traversal patterns
-    const normalized = path.normalize(inputPath);
-    if (normalized.includes('..') && !isInside) {
+    // Additional check for directory traversal patterns in the input (before resolution)
+    const normalizedInput = path.normalize(inputPath);
+    if (normalizedInput.includes('..') && !isInside) {
       throw new Error(`Path traversal detected: ${inputPath}`);
-    }
-
-    // Check for absolute paths that bypass the base path
-    if (path.isAbsolute(inputPath) && !isInside) {
-      throw new Error(`Absolute path ${inputPath} is not allowed`);
     }
 
     return resolvedPath;

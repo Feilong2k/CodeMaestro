@@ -41,6 +41,18 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized. Prioritizing Windows compatibility and JSON strictness."
+  - ts: "2025-12-09T08:43:29Z"
+    role: Adam
+    action: MODIFIED
+    message: "Added console logs to FileSystemTool.validatePath for debugging path resolution."
+  - ts: "2025-12-09T08:44:37Z"
+    role: Adam
+    action: TESTED
+    message: "Tested FileSystemTool.safeList('Docs') from C:\\Coding\\CM - success. Issue is project root mismatch (C:/Coding/Workspaces/CodeMaestro) vs actual Docs location."
+  - ts: "2025-12-09T08:55:48Z"
+    role: Adam
+    action: MODIFIED
+    message: "Updated FileSystemTool.validatePath to use path.relative for cross-platform safety, added null byte check, updated TacticalAdapter to enforce JSON function calling."
 
 requiredActions:
   - "Logic: Refactor `validatePath` in `backend/src/tools/FileSystemTool.js`"

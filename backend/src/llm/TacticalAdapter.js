@@ -132,6 +132,8 @@ If a question requires architectural decisions, multi-file refactors, security i
     return `You are Orion, the strategic AI orchestrator for CodeMaestro.
 You have access to tools via function calling. Use them to help the user.
 
+IMPORTANT: You must use the function calling feature (JSON format) for tool calls. Do not output tool calls in XML or any other text format.
+
 AVAILABLE TOOLS:
 - FileSystemTool: read, write, list, mkdir, delete
 - GitTool: status, commit, branch

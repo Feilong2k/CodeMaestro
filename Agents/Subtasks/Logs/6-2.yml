@@ -1,0 +1,107 @@
+# Subtask Log: 6-2 (AgentExecutor Integration + JSON Schema Enforcement)
+id: "6-2"
+title: "AgentExecutor Integration + JSON Schema Enforcement"
+status: pending
+branch: "subtask/6-2-agent-executor-schema"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Replace the old AgentExecutor while-loop with the AgentFSM-driven loop and
+  enforce a strict JSON schema for LLM outputs (THOUGHT + ACTION). This ensures
+  predictable behavior and prevents the agent from acting on malformed outputs.
+
+constraint_discovery:
+  subtask_id: "6-2"
+  owner: "Orion"
+  concern: "Safety & Predictability of Agent Decisions"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Wire AgentExecutor to AgentFSM"
+      description: "Use FSM for all agent runs instead of ad-hoc logic."
+    - action: "Define JSON schema for LLM outputs"
+      description: "Require { thought, action: { tool, params } } structure."
+    - action: "Implement schema validation in TacticalAdapter"
+      description: "Reject or retry malformed LLM responses."
+    - action: "Add metadata to FSM logs"
+      description: "Store summarized action info in agent_fsm_log metadata."
+
+  resources_touched:
+    - resource: "TacticalAdapter"
+      constraint: "Must remain compatible with function calling and other output modes."
+    - resource: "AgentExecutor"
+      constraint: "Refactor must preserve core capabilities while improving safety."
+
+  resource_physics:
+    - resource: "LLM Output Variability"
+      constraint: "LLM may return extra text or missing fields."
+      risk: "Agent might attempt to act on unstructured output."
+      mitigation: "Strict JSON parsing and validation before any tool call."
+
+    - resource: "Prompt Length & Clarity"
+      constraint: "Too much instruction can confuse the model."
+      risk: "Model might ignore schema instructions."
+      mitigation: "Concise, example-driven schema instructions in system prompt."
+
+  verification:
+    - action: "Schema Validation Tests"
+      method: "Unit tests feed good and bad JSON strings to validator."
+    - action: "Executor Behavior Tests"
+      method: "Simulate LLM outputs; ensure only valid ones lead to tool calls."
+
+implementation_plan:
+  - component: "AgentExecutor → FSM Integration"
+    path: "backend/src/services/AgentExecutor.js"
+    details: |
+      - Replace current loop with a call sequence driven by AgentFSM.
+      - For THINK steps, call TacticalAdapter and store result in context.
+      - For ACT steps, call BodyInterface/Tools based on parsed action.
+
+  - component: "LLM Output Schema + Validator"
+    path: "backend/src/llm/TacticalAdapter.js" (and/or helper module)
+    details: |
+      - Define expected JSON structure:
+        { thought: string, action: { tool: string, params: object } }.
+      - Implement a validator that parses model output and checks this shape.
+      - On failure, either:
+        - Retry with a clarification prompt (within a safe retry limit), or
+        - Return an error that is logged and surfaced to the user.
+
+  - component: "FSM Log Metadata Enrichment"
+    path: "backend/src/services/AgentFsmLogService.js"
+    details: |
+      - Add a metadata column (JSON) to agent_fsm_log.
+      - Store summaries such as: { thought, tool, paramsSummary } for THINK/ACT steps.
+
+  - component: "SystemLogPanel Display of Decisions"
+    path: "frontend/src/components/SystemLogPanel.vue" / store
+    details: |
+      - When loading FSM logs, show a concise message per step:
+        - THINK: "Thought: <summary>"
+        - ACT: "Action: <tool> with params <summary>".
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for LLM output validator (Red)"
+  - "[ ] [TDD] Implement validator and integrate into TacticalAdapter (Green)"
+  - "[ ] [TDD] Refactor AgentExecutor to use AgentFSM for THINK/ACT cycles"
+  - "[ ] [TDD] Extend agent_fsm_log with metadata column and tests"
+
+verificationChecklist:
+  - "[ ] Validator rejects malformed JSON and logs an appropriate error"
+  - "[ ] Valid JSON responses lead to correct tool calls via AgentExecutor"
+  - "[ ] agent_fsm_log rows include metadata for THINK and ACT states"
+  - "[ ] SystemLogPanel shows human-readable thoughts and actions for each step"
+
+human_verification:
+  - "Ask Orion to perform a non-trivial task (for example: 'Update the welcome text in App.vue to say Hello CodeMaestro')."
+  - "Watch the System Log panel during the run. You should see clear entries like: 'Thought: Need to edit App.vue header' and 'Action: FileSystemTool.read on frontend/src/App.vue'."
+  - "Then ask Orion to perform a nonsense or extremely vague request. You should see either a polite refusal or a clarification question, and you should NOT see random tool calls with strange parameters."
+
+history:
+  - ts: "2025-12-09T00:50:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized v2.2 subtask for AgentExecutor integration and JSON schema enforcement (Task 6-2)."

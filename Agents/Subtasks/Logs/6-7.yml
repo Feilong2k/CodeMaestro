@@ -1,0 +1,104 @@
+# Subtask Log: 6-7 (Body Interface & Cross-Platform Reliability)
+id: "6-7"
+title: "Body Interface & Cross-Platform Reliability"
+status: pending
+branch: "subtask/6-7-body-interface-cross-platform"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Introduce a BodyInterface that standardizes tool execution and ensures
+  consistent behavior across Windows/macOS/Linux. This subtask focuses on
+  cross-platform correctness and safety, building on the strict loop from 6-6.
+
+constraint_discovery:
+  subtask_id: "6-7"
+  owner: "Orion"
+  concern: "Cross-Platform Reliability & Tool Safety"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Create BodyInterface core"
+      description: "Central wrapper for executing tools with pre/post logic."
+    - action: "Normalize file system paths"
+      description: "Ensure all file operations behave consistently across OSs."
+    - action: "Add basic tool health checks"
+      description: "Detect missing/outdated git/node/npm before failures occur."
+
+  resources_touched:
+    - resource: "ToolRegistry + Tools"
+      constraint: "BodyInterface must respect existing role-based permissions."
+    - resource: "FileSystem"
+      constraint: "Must prevent path traversal and accidental data loss."
+    - resource: "Shell/OS Environment"
+      constraint: "Must not assume POSIX-only semantics."
+
+  resource_physics:
+    - resource: "Filesystem Semantics"
+      constraint: "Path separators, drive letters, and case-sensitivity vary by OS."
+      risk: "Agents work locally but fail on other platforms."
+      mitigation: "Normalize paths and centralize checks in BodyInterface."
+
+    - resource: "External Tool Availability"
+      constraint: "git/node/npm may be missing or different versions."
+      risk: "Silent failures or confusing error messages."
+      mitigation: "Health checks with clear error reporting and guidance."
+
+  verification:
+    - action: "Unit Tests (BodyInterface)"
+      method: "Mock tools to assert pre/post behavior and error handling."
+    - action: "Path Normalization Tests"
+      method: "Simulate Windows and POSIX paths, verify resolved paths and guards."
+    - action: "Health Check Tests"
+      method: "Simulate missing tools and ensure endpoints/outputs are clear."
+
+implementation_plan:
+  - component: "BodyInterface Core"
+    path: "backend/src/body/BodyInterface.js"
+    details: |
+      - Export a class or singleton with `executeTool(toolName, action, params, options)`.
+      - Consult ToolRegistry for allowed tools/actions per role.
+      - Wrap tool execution in try/catch with standardized error objects.
+      - Enrich results with metadata: cwd, touchedFiles (if available), timestamps.
+
+  - component: "Path Normalization Utility"
+    path: "backend/src/utils/pathNormalizer.js"
+    details: |
+      - Provide helpers: `normalizePath(inputPath, projectRoot)`.
+      - Convert Windows-style paths to a normalized internal form.
+      - Reject paths that escape projectRoot via `..` traversal.
+      - Used by FileSystemTool and BodyInterface before any fs calls.
+
+  - component: "Tool Health Service"
+    path: "backend/src/body/ToolHealthService.js"
+    details: |
+      - Check availability/versions of git, node, npm (and others as needed).
+      - Provide `/api/tools/health` endpoint returning JSON summary.
+      - Emit warnings via logs/ActivityLog when environment is degraded.
+
+requiredActions:
+  - "[ ] [TDD] Create failing BodyInterface unit tests (Red)"
+  - "[ ] [TDD] Implement BodyInterface core to satisfy tests (Green)"
+  - "[ ] [TDD] Create failing path normalization tests (Red)"
+  - "[ ] [TDD] Implement pathNormalizer and integrate into FileSystemTool/BodyInterface"
+  - "[ ] [TDD] Implement ToolHealthService and /api/tools/health endpoint"
+
+verificationChecklist:
+  - "[ ] BodyInterface unit tests: happy/sad paths for FileSystemTool, ShellTool, GitTool"
+  - "[ ] Path normalization tests cover Windows and POSIX examples"
+  - "[ ] FileSystem operations are blocked when attempting path traversal"
+  - "[ ] Tool health endpoint correctly reports missing tools and versions"
+  - "[ ] No regression in existing toolRegistry/role-based behavior"
+
+human_verification:
+  - "On your machine (Windows or macOS), open the web app and run a simple agent task that reads or writes a file (for example, ask Devon to create a sample file)."
+  - "Confirm that the task completes without any path-related error messages (no complaints about backslashes vs slashes or 'file not found' when you know it exists)."
+  - "Ask the agent (Orion) if the tool health looks OK; you should either see a clear confirmation or a readable message telling you which tool is missing or misconfigured (e.g., git or npm)."
+
+history:
+  - ts: "2025-12-09T00:10:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized v2.1 subtask for BodyInterface and cross-platform reliability (web-app priority #2)."

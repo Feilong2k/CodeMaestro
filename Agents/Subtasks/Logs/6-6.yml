@@ -1,0 +1,132 @@
+# Subtask Log: 6-6 (Strict Agent Loop & Frontend Integration)
+id: "6-6"
+title: "Strict Agent Loop & Frontend Integration"
+status: pending
+branch: "subtask/6-6-strict-loop-ui"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Refactor the agent execution loop into a clear OBSERVE–THINK–ACT–WAIT
+  finite state machine (FSM) and surface its state in the web UI.
+  This makes agent behavior predictable, debuggable, and visible to users.
+
+  Web-app priority #1: users must see what the agent is doing and where it is
+  in the process, rather than experiencing it as a black box.
+
+constraint_discovery:
+  subtask_id: "6-6"
+  owner: "Orion"
+  concern: "Process Discipline & UX"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Design AgentFSM"
+      description: "Define OBSERVE–THINK–ACT–WAIT–VERIFY–COMPLETE–ERROR states and transitions."
+    - action: "Integrate FSM into AgentExecutor"
+      description: "Replace ad-hoc while-loop with FSM-driven loop."
+    - action: "Enforce JSON schema for THOUGHT + ACTION"
+      description: "TacticalAdapter must produce structured responses, validated before acting."
+    - action: "Emit loop state events over WebSocket"
+      description: "Broadcast agent_state_change events for UI visualization."
+    - action: "Visualize loop state in frontend"
+      description: "Add AgentStatus component and integrate into TaskDashboard."
+
+  resources_touched:
+    - resource: "AgentExecutor"
+      constraint: "Must remain backwards-compatible for existing tasks."
+    - resource: "TacticalAdapter"
+      constraint: "Prompt/schema changes must not break function-calling behavior."
+    - resource: "WebSocket server"
+      constraint: "New events must not overload clients or spam logs."
+
+  resource_physics:
+    - resource: "LLM Output Variability"
+      constraint: "LLM may return malformed or verbose output."
+      risk: "FSM stuck if schema not enforced; tools called on garbage actions."
+      mitigation: "Strict JSON schema validation with retry/failover behavior."
+
+    - resource: "UI Latency"
+      constraint: "Too many state events can cause noisy UI."
+      risk: "Users overwhelmed by flickering states."
+      mitigation: "Throttle/debounce state updates; coalesce transitions for display."
+
+  verification:
+    - action: "FSM State Tests"
+      method: "Unit tests cover all transitions and error branches in AgentFSM."
+    - action: "Executor Integration Tests"
+      method: "Simulate 2–3 step tasks and assert correct state sequences."
+    - action: "Frontend Integration Tests"
+      method: "Fake WebSocket events update AgentStatus correctly."
+
+implementation_plan:
+  - component: "AgentFSM"
+    path: "backend/src/machines/AgentFSM.js"
+    details: |
+      - Define states: OBSERVE, THINK, ACT, WAIT, VERIFY, COMPLETE, ERROR.
+      - Accept a context object (task, history, lastResult, stepCount, maxSteps).
+      - Pure transition logic for unit testing without tools/LLM.
+
+  - component: "AgentExecutor + FSM Integration"
+    path: "backend/src/services/AgentExecutor.js"
+    details: |
+      - Replace while-loop with FSM loop.
+      - OBSERVE: build compact context snapshot (task + recent outputs).
+      - THINK: call TacticalAdapter with strict JSON instructions.
+      - ACT: call tools (initially directly; later via BodyInterface from 6-7).
+      - WAIT: collect results, update context, advance FSM.
+
+  - component: "Schema Enforcement for THOUGHT + ACTION"
+    path: "backend/src/llm/TacticalAdapter.js"
+    details: |
+      - Update system prompt to require JSON object with `thought` and `action`.
+      - Add validator that parses/validates the JSON.
+      - On invalid output: retry within safe bounds or surface error to user.
+
+  - component: "Loop State WebSocket Events"
+    path: "backend/src/socket/index.js" and AgentExecutor
+    details: |
+      - Emit `agent_state_change` events with { agent, state, step, subtaskId }.
+      - Ensure events are rate-limited/throttled for UX.  
+
+  - component: "AgentStatus UI Component"
+    path: "frontend/src/components/AgentStatus.vue"
+    details: |
+      - Render badges/indicators for Observing, Thinking, Acting, Waiting, Verifying.
+      - Show step count vs maxSteps.
+      - Subscribe via Pinia/WebSocket store to `agent_state_change` events.
+
+  - component: "Dashboard Integration"
+    path: "frontend/src/views/TaskDashboard.vue"
+    details: |
+      - Place AgentStatus near chat/ActivityLog so loop state is always visible.
+
+requiredActions:
+  - "[ ] [TDD] Create failing FSM unit tests (Red)"
+  - "[ ] [TDD] Implement AgentFSM to satisfy tests (Green)"
+  - "[ ] [TDD] Refactor AgentExecutor to use FSM"
+  - "[ ] [TDD] Add JSON schema enforcement in TacticalAdapter"
+  - "[ ] [TDD] Emit WebSocket state events from AgentExecutor"
+  - "[ ] [TDD] Implement AgentStatus UI and connect to WebSocket events"
+
+verificationChecklist:
+  - "[ ] FSM unit tests: all states and transitions covered (>80% coverage for AgentFSM)"
+  - "[ ] AgentExecutor integration tests: end-to-end loop for simple tasks"
+  - "[ ] TacticalAdapter tests: malformed JSON responses handled safely"
+  - "[ ] WebSocket tests: agent_state_change emitted on each transition"
+  - "[ ] Frontend tests: AgentStatus reflects backend state correctly"
+  - "[ ] E2E test: user can see agent progress through loop while a task runs"
+
+human_verification:
+  - "Open the web app Task Dashboard in your browser."
+  - "Trigger an agent-run task (e.g., ask Orion to work on a small change)."
+  - "Watch the new AgentStatus area: you should see clear labels like 'Observing', 'Thinking', 'Acting', 'Waiting' change over time while the agent works."
+  - "Confirm that the status changes feel consistent with what you see in the chat and Activity Log (no long periods where the agent seems busy but the status is stuck)."
+
+history:
+  - ts: "2025-12-09T00:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized v2.1 subtask for strict agent loop and frontend integration (top web-app priority)."

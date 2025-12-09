@@ -1,0 +1,104 @@
+# Subtask Log: 6-4 (Shell Output Streaming & Structured Errors)
+id: "6-4"
+title: "Shell Output Streaming & Structured Errors"
+status: pending
+branch: "subtask/6-4-shell-streaming-errors"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Stream ShellTool output (tests, builds, etc.) into the SystemLogPanel in
+  real time, and convert raw stderr into structured, human-friendly error
+  summaries. This makes long-running operations visible and understandable.
+
+constraint_discovery:
+  subtask_id: "6-4"
+  owner: "Orion"
+  concern: "Visibility of Long-Running Commands & Error Clarity"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Implement StreamingAdapter for ShellTool"
+      description: "Capture stdout/stderr in chunks and emit WebSocket events."
+    - action: "Create errorFormatter utility"
+      description: "Map common stderr patterns to structured summaries and hints."
+    - action: "Wire streaming and errors into SystemLogPanel"
+      description: "Show live output and summaries during/after commands."
+
+  resources_touched:
+    - resource: "ShellTool"
+      constraint: "Streaming must not break existing simple commands."
+    - resource: "WebSocket server"
+      constraint: "Streaming events must be chunked and rate-limited."
+
+  resource_physics:
+    - resource: "Output Size"
+      constraint: "Build/test logs can be very large."
+      risk: "Sending entire logs at once can freeze UI or exhaust memory."
+      mitigation: "Chunk output into manageable pieces and truncate when necessary."
+
+    - resource: "Error Patterns"
+      constraint: "Different tools have different error formats."
+      risk: "Hard to give clear guidance without recognizing patterns."
+      mitigation: "Add pattern-based parsing for common tools (npm, git, test runners)."
+
+  verification:
+    - action: "Streaming Integration Tests"
+      method: "Run sample long commands and assert multiple shell_output events arrive."
+    - action: "Error Formatter Tests"
+      method: "Feed known stderr strings and verify structured summaries."
+
+implementation_plan:
+  - component: "StreamingAdapter for ShellTool"
+    path: "backend/src/body/StreamingAdapter.js"
+    details: |
+      - Wrap ShellTool execution to capture stdout/stderr incrementally.
+      - Emit WebSocket events like: { type: 'shell_output', command, chunk, isError, seq }.
+      - Ensure adapter works for both short and long commands.
+
+  - component: "Error Formatter Utility"
+    path: "backend/src/utils/errorFormatter.js"
+    details: |
+      - Map common stderr patterns to structured errors, for example:
+        - npm not found
+        - tests failed with count
+        - git authentication or merge conflicts
+      - Output shape: { type, summary, details, hints }.
+
+  - component: "Backend Integration with WebSocket"
+    path: "backend/src/socket/index.js" / ShellTool integration
+    details: |
+      - Forward shell_output events from StreamingAdapter to connected clients.
+      - Ensure events are tagged with subtaskId or context for filtering.
+
+  - component: "SystemLogPanel Streaming UI"
+    path: "frontend/src/components/SystemLogPanel.vue" / store
+    details: |
+      - Subscribe to shell_output events via WebSocket store.
+      - Append chunks to a scrollable log view.
+      - On error, show a highlighted summary (from errorFormatter) at the top.
+
+requiredActions:
+  - "[ ] [TDD] Create failing integration tests for streaming ShellTool output (Red)"
+  - "[ ] [TDD] Implement StreamingAdapter and WebSocket event emission (Green)"
+  - "[ ] [TDD] Create failing unit tests for errorFormatter mappings (Red)"
+  - "[ ] [TDD] Implement errorFormatter and expose structured summaries in SystemLogPanel"
+
+verificationChecklist:
+  - "[ ] Long-running commands produce multiple shell_output events"
+  - "[ ] SystemLogPanel updates live while a command is running"
+  - "[ ] Common error cases produce clear, structured summaries (npm, git, tests)"
+  - "[ ] Raw logs remain accessible for deeper investigation (e.g., via expanding sections)"
+
+human_verification:
+  - "Ask Orion to run a long-running command such as 'Run the backend test suite' or 'Build the frontend'."
+  - "Watch the System Log panel: you should see lines of output appear gradually while the command is running, not just a single message at the end."
+  - "If the command fails (e.g., tests fail or build errors), you should see a short, human-readable summary near the top (for example '5 backend tests failed' or 'Frontend build failed: missing dependency'), with the detailed raw log still visible below or behind an expand/collapse."
+
+history:
+  - ts: "2025-12-09T01:10:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized v2.2 subtask for Shell output streaming and structured errors (Task 6-4)."

@@ -153,21 +153,21 @@ subtasks:
   # Phase 5.5: Stabilization & Context API
   - id: "5-10"
     title: "Stabilization (TacticalAdapter & Pathing)"
-    status: in_progress
+    status: completed
     owner: "Devon"
     priority: critical
     dependencies: ["5-3"]
 
   - id: "5-11"
     title: "Project Context API"
-    status: in_progress
+    status: completed
     owner: "Devon"
     priority: high
     dependencies: ["5-10"]
 
   - id: "5-12"
     title: "Tooling Upgrade (JSON & Windows)"
-    status: pending
+    status: in_progress
     owner: "Devon"
     priority: critical
     dependencies: ["5-11"]
@@ -179,3 +179,45 @@ subtasks:
     owner: "Cursor"
     priority: critical
     dependencies: ["5-4"]
+
+  - id: "6-0"
+    title: "UI & WebSocket Foundation (3-Panel Layout)"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["5-6"]
+
+  - id: "6-1"
+    title: "Agent FSM Core + DB Logging"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["5-3", "6-0"]
+
+  - id: "6-2"
+    title: "AgentExecutor Integration + JSON Schema Enforcement"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["6-1"]
+
+  - id: "6-3"
+    title: "BodyInterface Core + Tool Execution Logging"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["5-1", "5-6", "6-2"]
+
+  - id: "6-4"
+    title: "Shell Output Streaming & Structured Errors"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["6-0", "6-3"]
+
+  - id: "6-5"
+    title: "Proprioception & Context Wiring (First Slice)"
+    status: pending
+    owner: "Devon"
+    priority: medium
+    dependencies: ["5-11", "6-3"]

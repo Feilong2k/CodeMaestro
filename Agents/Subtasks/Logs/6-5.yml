@@ -1,0 +1,105 @@
+# Subtask Log: 6-5 (Proprioception & Context Wiring - First Slice)
+id: "6-5"
+title: "Proprioception & Context Wiring (First Slice)"
+status: pending
+branch: "subtask/6-5-proprioception-context"
+
+phase: 6
+owner: "Devon"
+priority: medium
+
+description: |
+  Capture the agent's "body state" (current working directory, recent files,
+  recent commands) and wire this into the existing Project Context API so
+  Orion can speak about where it is and what it has been working on.
+
+constraint_discovery:
+  subtask_id: "6-5"
+  owner: "Orion"
+  concern: "Situational Awareness"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Implement ProprioceptionService"
+      description: "Track cwd, recently-touched files, and recent commands."
+    - action: "Store proprioception data in DB"
+      description: "Persist snapshots per project."
+    - action: "Expose proprioception via Project Context API"
+      description: "Add a proprioception section to /api/projects/:id/context."
+
+  resources_touched:
+    - resource: "Project Context API"
+      constraint: "New fields must be backwards-compatible."
+    - resource: "BodyInterface/Tools"
+      constraint: "Must provide hooks or callbacks for proprioception updates."
+
+  resource_physics:
+    - resource: "Data Volume"
+      constraint: "Too many snapshots could create noise or bloat."
+      risk: "Context becomes cluttered and confusing."
+      mitigation: "Limit to last N files and commands; only snapshot when meaningful changes occur."
+
+    - resource: "Staleness"
+      constraint: "Context can get out of sync if not updated reliably."
+      risk: "Orion says it's in one directory or file but is actually in another."
+      mitigation: "Update proprioception on every successful BodyInterface tool call that changes cwd/files."
+
+  verification:
+    - action: "Proprioception Service Tests"
+      method: "Unit tests for tracking and retrieving state."
+    - action: "Context API Integration Tests"
+      method: "Check that context includes accurate proprioception after tasks."
+
+implementation_plan:
+  - component: "ProprioceptionService"
+    path: "backend/src/services/ProprioceptionService.js"
+    details: |
+      - Track:
+        - currentWorkingDirectory
+        - recentFilesTouched (with timestamps)
+        - recentCommands (with success/failure)
+      - Provide functions to update state after BodyInterface tool calls.
+
+  - component: "DB Schema for proprioception_state"
+    path: "backend/src/db/migrations/XXX_create_proprioception_state.sql"
+    details: |
+      - Table fields: id, project_id, current_working_directory, recent_files_json, recent_commands_json, updated_at.
+
+  - component: "Project Context API Wiring"
+    path: "backend/src/services/projectContextService.js"
+    details: |
+      - Load proprioception_state for the current project.
+      - Add a `proprioception` section to the context response:
+        {
+          cwd: "...",
+          recentFiles: [...],
+          recentCommands: [...]
+        }
+
+  - component: "Frontend Display (Read-Only)"
+    path: "frontend/src/components/SystemLogPanel.vue" or a dedicated Context panel
+    details: |
+      - Show current cwd and recent files for the active project/subtask.
+      - Keep it simple and text-based for now (no heavy UI work required).
+
+requiredActions:
+  - "[ ] [TDD] Create failing tests for ProprioceptionService state tracking (Red)"
+  - "[ ] [TDD] Implement ProprioceptionService and DB integration (Green)"
+  - "[ ] [TDD] Extend projectContextService to include proprioception"
+  - "[ ] [TDD] Add a basic UI view showing cwd and recent files from context"
+
+verificationChecklist:
+  - "[ ] After running tasks that edit files, proprioception_state reflects correct cwd and recent files"
+  - "[ ] /api/projects/:id/context includes a proprioception section with these fields"
+  - "[ ] Frontend view displays the same cwd and recent file list as the API response"
+
+human_verification:
+  - "Ask Orion to perform a few tasks that clearly involve different files (for example: 'Edit App.vue', then 'Edit TaskDashboard.vue')."
+  - "Call the Project Context API for the relevant project (or open a UI view that shows context) and look for the proprioception section. It should list the current working directory and show App.vue and TaskDashboard.vue as recent files."
+  - "Ask Orion a question like 'What files have we been working on for this project?' The answer should mention the same files you see in the context/proprioception view."
+
+history:
+  - ts: "2025-12-09T01:20:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized v2.2 subtask for Proprioception and context wiring (Task 6-5)."

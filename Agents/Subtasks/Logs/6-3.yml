@@ -1,0 +1,109 @@
+# Subtask Log: 6-3 (BodyInterface Core + Tool Execution Logging)
+id: "6-3"
+title: "BodyInterface Core + Tool Execution Logging"
+status: pending
+branch: "subtask/6-3-body-interface-core"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Introduce BodyInterface as the single gateway for all tool executions and
+  log each tool call (what ran, with what params, and whether it succeeded)
+  into the database. This provides a clear audit trail of what the "Body"
+  actually did.
+
+constraint_discovery:
+  subtask_id: "6-3"
+  owner: "Orion"
+  concern: "Action Traceability & Safety"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Create BodyInterface executeTool API"
+      description: "Central function to execute tools with pre/post logic."
+    - action: "Integrate AgentExecutor with BodyInterface"
+      description: "Route all tool usage through BodyInterface."
+    - action: "Implement tool_execution_log table"
+      description: "Record each tool call with summary and outcome."
+
+  resources_touched:
+    - resource: "ToolRegistry"
+      constraint: "BodyInterface must respect role-based restrictions."
+    - resource: "FileSystemTool/GitTool/ShellTool/etc."
+      constraint: "Existing behavior should be preserved but wrapped."
+
+  resource_physics:
+    - resource: "Log Volume"
+      constraint: "Frequent tool calls can create many log rows."
+      risk: "DB bloat or slow queries."
+      mitigation: "Store compact summaries and allow pruning by project/subtask."
+
+    - resource: "Error Handling"
+      constraint: "Different tools fail in different ways."
+      risk: "Inconsistent error messages confound debugging."
+      mitigation: "Normalize error shape in BodyInterface before logging."
+
+  verification:
+    - action: "BodyInterface Unit Tests"
+      method: "Mock tools and assert executeTool wraps calls and logs results."
+    - action: "Integration Tests"
+      method: "Run a real agent task and verify tool_execution_log records the right calls."
+
+implementation_plan:
+  - component: "BodyInterface Core"
+    path: "backend/src/body/BodyInterface.js"
+    details: |
+      - Export `executeTool(toolName, action, params, options)`.
+      - Look up the tool implementation from ToolRegistry.
+      - Perform pre-checks (role, allowed actions) and normalize params.
+      - Call the underlying tool and catch errors.
+      - Return a standardized result object: { success, data, error }.
+
+  - component: "Tool Execution Log Service"
+    path: "backend/src/services/ToolExecutionLogService.js" (new)
+    details: |
+      - Write to `tool_execution_log` with fields:
+        id, subtask_id, agent, tool, action, params_summary, success, error_message, timestamp.
+      - Provide query by subtaskId.
+
+  - component: "DB Migration for tool_execution_log"
+    path: "backend/src/db/migrations/XXX_create_tool_execution_log.sql"
+    details: |
+      - Create table with appropriate indices (e.g., by subtask_id, timestamp).
+
+  - component: "API Endpoint for Tool Executions"
+    path: "backend/src/routes/agents.js` or new route
+    details: |
+      - Add GET `/api/tool-executions/:subtaskId`.
+      - Return list of tool calls for that subtask.
+
+  - component: "SystemLogPanel Tool Call View"
+    path: "frontend/src/components/SystemLogPanel.vue" / store
+    details: |
+      - When inspecting a subtask, fetch `/api/tool-executions/:subtaskId`.
+      - Show lines like: "Devon: FileSystemTool.write src/App.vue – success".
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for BodyInterface.executeTool (Red)"
+  - "[ ] [TDD] Implement BodyInterface and update AgentExecutor usage (Green)"
+  - "[ ] [TDD] Create DB migration and tests for tool_execution_log"
+  - "[ ] [TDD] Implement ToolExecutionLogService and API endpoint"
+
+verificationChecklist:
+  - "[ ] All tool calls from AgentExecutor go through BodyInterface"
+  - "[ ] tool_execution_log entries created for each tool call in a sample task"
+  - "[ ] /api/tool-executions/:subtaskId returns the same entries as the DB"
+  - "[ ] SystemLogPanel displays a readable list of tool calls for a subtask"
+
+human_verification:
+  - "Ask Orion to perform a task that clearly uses tools (for example: 'Create a new file called notes.md and commit it')."
+  - "After the run, query the DB table tool_execution_log for the relevant subtask_id and confirm you see entries for FileSystemTool and GitTool (status/add/commit)."
+  - "In the web app, open the System Log or a dedicated Tool Executions view for that subtask. You should see human-readable lines describing each tool call (which tool, what it did, and whether it succeeded)."
+
+history:
+  - ts: "2025-12-09T01:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized v2.2 subtask for BodyInterface core and tool execution logging (Task 6-3)."

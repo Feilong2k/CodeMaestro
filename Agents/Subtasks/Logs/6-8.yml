@@ -1,0 +1,114 @@
+# Subtask Log: 6-8 (Sensory Feedback & Network Telemetry)
+id: "6-8"
+title: "Sensory Feedback & Network Telemetry"
+status: pending
+branch: "subtask/6-8-sensory-feedback-telemetry"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Stream backend activity (ShellTool, builds, tests, LLM calls, DB queries,
+  external APIs) to the UI in a structured way. This subtask focuses on
+  backend streaming + formatting and the minimal frontend wiring needed to
+  display useful feedback for development workflows.
+
+  Web-app priority #3: when agents run npm/gulp/vite/jest or talk to APIs,
+  users should see progress, results, and errors clearly in the app.
+
+constraint_discovery:
+  subtask_id: "6-8"
+  owner: "Orion"
+  concern: "Observability & Feedback"
+  date: "2025-12-09"
+
+  atomic_actions:
+    - action: "Stream ShellTool output"
+      description: "Capture stdout/stderr and emit chunked events for long-running commands."
+    - action: "Structure tool errors"
+      description: "Convert raw stderr into actionable, user-friendly messages."
+    - action: "Record network I/O telemetry"
+      description: "Track latency/success for LLM, DB, and external services."
+
+  resources_touched:
+    - resource: "ShellTool"
+      constraint: "Streaming must not break existing simple commands/tests."
+    - resource: "LLM & DB clients"
+      constraint: "Telemetry must be low-overhead and non-blocking."
+    - resource: "WebSocket server"
+      constraint: "Output events must be rate-limited to avoid flooding clients."
+
+  resource_physics:
+    - resource: "Output Volume"
+      constraint: "Test/build logs can be large."
+      risk: "Flooding UI or exhausting memory if fully buffered."
+      mitigation: "Chunked streaming with max buffer sizes and truncation rules."
+
+    - resource: "Network Latency & Failures"
+      constraint: "External calls can be slow or fail intermittently."
+      risk: "Agents appear hung; users have no visibility."
+      mitigation: "Telemetry + visible status for slow/failing calls."
+
+  verification:
+    - action: "Streaming Tests"
+      method: "Integration tests simulate long shell commands and assert multiple output events."
+    - action: "Error Formatting Tests"
+      method: "Map known stderr patterns to structured error objects."
+    - action: "Telemetry Tests"
+      method: "Mock LLM/DB calls and verify latency + status are recorded."
+
+implementation_plan:
+  - component: "StreamingAdapter for ShellTool"
+    path: "backend/src/body/StreamingAdapter.js"
+    details: |
+      - Wrap ShellTool execution to capture stdout/stderr as it arrives. 
+      - Emit `shell_output` WebSocket events: { command, chunk, isError, seq }.
+      - Provide a simple API BodyInterface can call when executing shell commands.
+
+  - component: "Structured Error Formatter"
+    path: "backend/src/utils/errorFormatter.js"
+    details: |
+      - Parse common tool errors (git not found, npm not installed, test failures).
+      - Return structured objects: { type, summary, details, hints }.
+      - Used by Response Panel renderers to show clear messages.
+
+  - component: "TelemetryService"
+    path: "backend/src/body/TelemetryService.js"
+    details: |
+      - Provide wrappers/hooks for:
+        - LLM API calls (TacticalAdapter)
+        - DB queries
+        - External HTTP calls (if any)
+      - Record metrics: duration, success/failure, basic context (operation name).
+      - Optionally expose a summary endpoint for future dashboards.
+
+  - component: "Frontend Wiring (Minimal for Phase 6)"
+    path: "frontend/src/stores/activityLog.js" / Response Panel
+    details: |
+      - Subscribe to `shell_output` events and append chunks to an activity/log view.
+      - Render structured errors via Response Panel when available.
+
+requiredActions:
+  - "[ ] [TDD] Create failing streaming integration tests for ShellTool (Red)"
+  - "[ ] [TDD] Implement StreamingAdapter and ShellTool integration (Green)"
+  - "[ ] [TDD] Create failing tests for errorFormatter mappings (Red)"
+  - "[ ] [TDD] Implement errorFormatter and wire into tool result handling"
+  - "[ ] [TDD] Implement TelemetryService hooks for LLM/DB calls"
+
+verificationChecklist:
+  - "[ ] Streaming tests verify multiple shell_output events for long commands"
+  - "[ ] ErrorFormatter tests cover common git/npm/test failure patterns"
+  - "[ ] Telemetry tests verify durations and statuses are recorded without blocking"
+  - "[ ] Frontend tests show streamed output appearing in ActivityLog/Panel"
+
+human_verification:
+  - "From the web app, trigger a task that runs tests or a build (for example, ask the agent to run the backend or frontend test suite)."
+  - "Watch the Activity Log / output area: you should see streaming lines of output appear while the command is running, not just a single final message."
+  - "If something fails (e.g., tests or build), you should see a clear, human-readable summary of what went wrong at the top, with the detailed raw log still available if you expand or scroll."
+
+history:
+  - ts: "2025-12-09T00:20:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized v2.1 subtask for sensory feedback and network telemetry (web-app priority #3)."
