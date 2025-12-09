@@ -89,20 +89,20 @@ implementation_plan:
 
 requiredActions:
   - "[x] [TDD] Create failing unit tests for AgentFSM (Red)"
-  - "[ ] [TDD] Implement AgentFSM state logic to satisfy tests (Green)"
-  - "[ ] [TDD] Wire AgentExecutor to AgentFSM and update tests"
-  - "[ ] [TDD] Add AgentFsmLogService and DB migration for agent_fsm_log table"
-  - "[ ] [TDD] Add API endpoint and integration tests for /api/agent-fsm-log/:subtaskId"
+  - "[x] [TDD] Implement AgentFSM state logic to satisfy tests (Green)"
+  - "[x] [TDD] Wire AgentExecutor to AgentFSM and update tests"
+  - "[x] [TDD] Add AgentFsmLogService and DB migration for agent_fsm_log table"
+  - "[x] [TDD] Add API endpoint and integration tests for /api/agent-fsm-log/:subtaskId"
 
 verificationChecklist:
   - "[x] [TDD] Failing Unit Tests created (Red)"
-  - "[ ] [TDD] Implementation satisfies Unit Tests (Green)"
-  - "[ ] [TDD] Refactor pass (Cleanup)"
+  - "[x] [TDD] Implementation satisfies Unit Tests (Green)"
+  - "[x] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Integration Tests"
   - "[ ] [TDD] Final test by Tara and Coverage > 80%"
-  - "[ ] FSM unit tests cover all valid and invalid transitions"
+  - "[x] FSM unit tests cover all valid and invalid transitions"
   - "[ ] Running a simple agent task creates multiple rows in agent_fsm_log"
-  - "[ ] /api/agent-fsm-log/:subtaskId returns the same sequence as seen in DB"
+  - "[x] /api/agent-fsm-log/:subtaskId returns the same sequence as seen in DB"
   - "[ ] SystemLogPanel displays a readable list of state changes"
 
 human_verification:
@@ -120,3 +120,7 @@ history:
     role: tester
     action: TESTS_CREATED
     message: "Created failing unit tests for AgentFSM (Red phase)."
+  - ts: "2025-12-09T17:15:00Z"
+    role: devon
+    action: IMPLEMENTED
+    message: "Implemented AgentFSM core, wired AgentExecutor, added AgentFsmLogService and DB migration, and API endpoint. All unit tests pass."
