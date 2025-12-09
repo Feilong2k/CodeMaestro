@@ -189,20 +189,30 @@ describe("SystemLogPanel WebSocket Integration Tests (Red Phase - Task 6-10)", (
     };
 
     // Mock the WebSocket composable
-    vi.mock("../../../composables/useWebSocket", () => ({
-      default: vi.fn(() => ({
+    vi.mock("../../composables/useWebSocket", () => ({
+      useSocket: vi.fn(() => ({
         socket: mockSocket,
-        connected: vi.fn(() => mockSocket.connected),
-        subscribe: vi.fn(),
-        unsubscribe: vi.fn(),
+        isConnected: { value: mockSocket.connected },
+        logEntries: { value: [] },
+        stateChanges: { value: [] },
+        agentActions: { value: [] },
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+        joinSubtask: vi.fn(),
+        leaveSubtask: vi.fn(),
+        emitStateChange: vi.fn(),
+        emitAgentAction: vi.fn(),
+        emitLogEntry: vi.fn(),
+        clearEvents: vi.fn(),
       })),
     }));
 
-    // Mock the system log store (doesn't exist yet)
-    vi.mock("../../../stores/systemLogStore", () => ({
+    // Mock the system log store
+    vi.mock("../../stores/systemLogStore", () => ({
       useSystemLogStore: vi.fn(() => ({
         connected: false,
         messages: [],
+        formattedMessages: [],
         setConnected: vi.fn(),
         addMessage: vi.fn(),
         clear: vi.fn(),
