@@ -31,6 +31,14 @@ class SocketServer {
       console.log(`Client connected: ${socket.id}`);
       this.clients.set(socket.id, { socket, subtaskRooms: new Set() });
 
+      // Emit system message for connection
+      const timestamp = new Date().toTimeString().split(' ')[0];
+      this.io.emit('system_message', {
+        timestamp,
+        level: 'info',
+        text: `WebSocket client connected: ${socket.id}`
+      });
+
       // Event handlers
       socket.on('state_change', (payload) => this.handleStateChange(socket, payload));
       socket.on('agent_action', (payload) => this.handleAgentAction(socket, payload));
@@ -145,6 +153,13 @@ class SocketServer {
    */
   handleDisconnect(socket) {
     console.log(`Client disconnected: ${socket.id}`);
+    // Emit system message for disconnection
+    const timestamp = new Date().toTimeString().split(' ')[0];
+    this.io.emit('system_message', {
+      timestamp,
+      level: 'info',
+      text: `WebSocket client disconnected: ${socket.id}`
+    });
     this.clients.delete(socket.id);
   }
 

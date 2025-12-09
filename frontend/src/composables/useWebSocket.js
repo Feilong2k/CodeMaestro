@@ -1,6 +1,7 @@
 import { ref, onUnmounted } from 'vue'
 import { io } from 'socket.io-client'
 import { useChatStore } from '../stores/chat'
+import { useSystemLogStore } from '../stores/systemLogStore'
 
 /**
  * WebSocket client composable for real-time communication with backend
@@ -11,6 +12,7 @@ export function useSocket() {
   const logEntries = ref([])
   const stateChanges = ref([])
   const agentActions = ref([])
+  let systemLogStore = null
 
   /**
    * Initialize WebSocket connection
@@ -19,6 +21,13 @@ export function useSocket() {
     if (socket.value) {
       console.warn('Socket already connected')
       return
+    }
+
+    // Try to get system log store, but don't break if it's not available
+    try {
+      systemLogStore = useSystemLogStore()
+    } catch (e) {
+      console.warn('System log store not available:', e)
     }
 
     // Create socket connection
@@ -31,11 +40,17 @@ export function useSocket() {
     socket.value.on('connect', () => {
       console.log('WebSocket connected:', socket.value.id)
       isConnected.value = true
+      if (systemLogStore) {
+        systemLogStore.setConnected(true)
+      }
     })
 
     socket.value.on('disconnect', () => {
       console.log('WebSocket disconnected')
       isConnected.value = false
+      if (systemLogStore) {
+        systemLogStore.setConnected(false)
+      }
     })
 
     // Application event handlers
@@ -74,6 +89,13 @@ export function useSocket() {
       })
     })
 
+    socket.value.on('system_message', (payload) => {
+      console.log('System message:', payload)
+      if (systemLogStore) {
+        systemLogStore.addMessage(payload)
+      }
+    })
+
     socket.value.on('error', (payload) => {
       console.error('WebSocket error:', payload)
       logEntries.value.unshift({
@@ -82,6 +104,14 @@ export function useSocket() {
         timestamp: new Date(),
         type: 'error'
       })
+      // Also add to system log store as error
+      if (systemLogStore) {
+        systemLogStore.addMessage({
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          level: 'error',
+          text: payload.message || 'Unknown error'
+        })
+      }
     })
 
     socket.value.on('joined_subtask', (payload) => {

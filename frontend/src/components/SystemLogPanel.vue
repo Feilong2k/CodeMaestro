@@ -10,31 +10,28 @@
     </div>
     <div class="flex-1 overflow-y-auto bg-bg-layer border border-line-base rounded-lg p-4">
       <ul class="space-y-2">
-        <li v-for="(msg, index) in messages" :key="index" class="text-sm font-matrix-mono" :class="getMessageClass(msg.level)">
+        <li v-for="(msg, index) in formattedMessages" :key="index" class="text-sm font-matrix-mono" :class="getMessageClass(msg.level)">
           <span class="text-text-tertiary">[{{ msg.timestamp }}]</span>
           <span class="ml-2">{{ msg.text }}</span>
         </li>
       </ul>
-      <p v-if="messages.length === 0" class="text-text-tertiary text-sm font-matrix-mono">No system messages yet.</p>
+      <p v-if="formattedMessages.length === 0" class="text-text-tertiary text-sm font-matrix-mono">No system messages yet.</p>
     </div>
     <div class="mt-4 flex items-center justify-between text-xs text-text-tertiary font-matrix-mono">
-      <div>Total messages: {{ messages.length }}</div>
+      <div>Total messages: {{ formattedMessages.length }}</div>
       <button @click="clearMessages" class="px-2 py-1 border border-line-base rounded hover:bg-bg-layer transition">Clear</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { useSystemLogStore } from '../stores/systemLogStore'
 
-const wsConnected = ref(true) // placeholder, will be replaced with real WebSocket status
+const systemLogStore = useSystemLogStore()
 
-const messages = ref([
-  { timestamp: '10:33:45', level: 'info', text: 'System initialized' },
-  { timestamp: '10:33:50', level: 'info', text: 'WebSocket connected' },
-  { timestamp: '10:34:00', level: 'warn', text: 'Agent Orion started a new subtask' },
-  { timestamp: '10:34:10', level: 'info', text: 'Tool execution: FileSystemTool' },
-])
+const wsConnected = computed(() => systemLogStore.connected)
+const formattedMessages = computed(() => systemLogStore.formattedMessages)
 
 function getMessageClass(level) {
   return {
@@ -45,7 +42,7 @@ function getMessageClass(level) {
 }
 
 function clearMessages() {
-  messages.value = []
+  systemLogStore.clear()
 }
 </script>
 
