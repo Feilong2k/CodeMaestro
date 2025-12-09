@@ -5,6 +5,7 @@ const { AgentExecutor } = require('../services/agentExecutor');
 const TaskQueueService = require('../services/TaskQueueService');
 const TacticalAdapter = require('../llm/TacticalAdapter');
 const chatHistoryService = require('../services/chatHistoryService');
+const memoryExtractionService = require('../services/memoryExtractionService');
 
 /**
  * OrionAgent - orchestrator agent that coordinates tasks and state transitions.
@@ -94,7 +95,7 @@ class OrionAgent extends BaseAgent {
       let history = [];
       if (projectId) {
         try {
-          history = await chatHistoryService.getHistoryForLLM(projectId, 10);
+          history = await chatHistoryService.getHistoryForLLM(projectId, 100);
           console.log(`[OrionAgent] Loaded ${history.length} messages from project ${projectId}`);
         } catch (err) {
           console.warn('[OrionAgent] Failed to load chat history:', err.message);
@@ -249,6 +250,11 @@ class OrionAgent extends BaseAgent {
         content,
         agent: 'Orion',
         mode
+      });
+      
+      // Check if memory extraction is needed (runs every 50 messages)
+      memoryExtractionService.checkAndExtract(projectId).catch(err => {
+        console.warn('[OrionAgent] Memory extraction check failed:', err.message);
       });
     } catch (err) {
       console.warn('[OrionAgent] Failed to save assistant response:', err.message);

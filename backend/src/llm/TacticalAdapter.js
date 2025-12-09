@@ -132,6 +132,14 @@ If a question requires architectural decisions, multi-file refactors, security i
     return `You are Orion, the strategic AI orchestrator for CodeMaestro.
 You have access to tools via function calling. Use them to help the user.
 
+AVAILABLE TOOLS:
+- FileSystemTool_read, FileSystemTool_write, FileSystemTool_list, FileSystemTool_mkdir, FileSystemTool_delete
+- GitTool_status, GitTool_commit, GitTool_branch
+- ShellTool_execute - Run shell commands (git clone, npm install, etc.)
+- ProjectTool_list, ProjectTool_get, ProjectTool_create, ProjectTool_update, ProjectTool_delete
+- DatabaseTool_query, DatabaseTool_getAgentPermissions, DatabaseTool_getAgentRegistry
+- MemoryTool_search - Search past conversations
+
 AUTONOMY RULES:
 
 AUTO-EXECUTE (just do it, no confirmation needed):
@@ -139,7 +147,8 @@ AUTO-EXECUTE (just do it, no confirmation needed):
 - List files or directories
 - Create folders (mkdir)
 - Create/write new files (use FileSystemTool_write)
-- Git status
+- Git status, git clone
+- Run shell commands (ShellTool_execute) for safe operations like: git clone, npm install, ls, dir
 - Query database (SELECT only)
 - Get agent permissions/registry
 
@@ -148,11 +157,16 @@ CRITICAL RULES - FOLLOW EXACTLY:
 1. "Create a file" → Call FileSystemTool_write IMMEDIATELY. Do NOT call list first.
 2. "Write to file" → Call FileSystemTool_write IMMEDIATELY.
 3. "Make a file" → Call FileSystemTool_write IMMEDIATELY.
+4. "git clone X" → Call ShellTool_execute with command: "git clone X" IMMEDIATELY.
+5. "run npm install" → Call ShellTool_execute with command: "npm install" IMMEDIATELY.
+6. "git status" → Call ShellTool_execute with command: "git status" OR use GitTool_status.
 
 The write function creates parent directories automatically. You don't need to verify anything first.
 
 WRONG: User says "create file X" → you call list to check → WRONG!
 RIGHT: User says "create file X" → you call FileSystemTool_write → CORRECT!
+WRONG: User says "git clone X" → you describe what would happen → WRONG!
+RIGHT: User says "git clone X" → you call ShellTool_execute → CORRECT!
 
 CONFIRM FIRST (ask user before executing):
 - Delete files or folders
@@ -227,9 +241,10 @@ respond with: ESCALATE_TO_STRATEGIC`;
         { role: 'system', content: systemPrompt }
       ];
       
-      // Add conversation history (limit to last 10 messages to stay within context limits)
+      // Add conversation history (up to 100 messages for full context)
       if (history && history.length > 0) {
-        const recentHistory = history.slice(-10);
+        const recentHistory = history.slice(-100);
+        console.log(`[TacticalAdapter] Adding ${recentHistory.length} history messages to context`);
         for (const msg of recentHistory) {
           if (msg.role && msg.content) {
             messages.push({
@@ -238,6 +253,8 @@ respond with: ESCALATE_TO_STRATEGIC`;
             });
           }
         }
+      } else {
+        console.log('[TacticalAdapter] No history provided or empty');
       }
       
       // Add current message
@@ -253,7 +270,18 @@ respond with: ESCALATE_TO_STRATEGIC`;
       // Add function calling if enabled
       if (useFunctionCalling) {
         requestParams.tools = functionDefinitions;
-        requestParams.tool_choice = 'auto';
+        // Use 'auto' but encourage tool use - if user's request seems actionable, the LLM should call tools
+        // Check if message seems like a command/action request
+        const actionKeywords = ['clone', 'create', 'delete', 'run', 'execute', 'status', 'list', 'read', 'write', 'update'];
+        const isActionRequest = actionKeywords.some(kw => prompt.toLowerCase().includes(kw));
+        
+        if (isActionRequest) {
+          // Force function calling for action requests
+          requestParams.tool_choice = 'required';
+          console.log('[TacticalAdapter] Action request detected, forcing tool use');
+        } else {
+          requestParams.tool_choice = 'auto';
+        }
       }
 
       const response = await this.client.chat.completions.create(requestParams);

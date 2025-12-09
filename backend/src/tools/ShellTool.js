@@ -4,13 +4,17 @@ const path = require('path');
 
 const execPromise = util.promisify(exec);
 
+// Project root - one level up from backend
+const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, '../../../');
+
 /**
  * Advanced Shell Tool with command validation, chaining, and cwd persistence.
  */
 class ShellTool {
   constructor() {
-    // Current working directory, updated after each cd command
-    this.cwd = process.cwd();
+    // Current working directory - default to project root, not backend folder
+    this.cwd = PROJECT_ROOT;
+    console.log('[ShellTool] Initialized with cwd:', this.cwd);
 
     // Blocklist: commands or patterns that are never allowed
     this.blocklist = [
@@ -158,10 +162,32 @@ class ShellTool {
 
   /**
    * Execute a command (possibly chained) with validation.
-   * @param {string} command - The command(s) to execute.
+   * @param {string|Object} commandOrParams - The command string, or an object { action, command, cwd }
    * @returns {Promise<{stdout: string, stderr: string}>} The result of the last command.
    */
-  async execute(command) {
+  async execute(commandOrParams) {
+    console.log('[ShellTool] execute called with:', JSON.stringify(commandOrParams));
+    
+    // Handle both string and object formats for compatibility with function calling
+    let command;
+    if (typeof commandOrParams === 'object' && commandOrParams !== null) {
+      // Try multiple possible field names
+      command = commandOrParams.command || commandOrParams.cmd || commandOrParams.args;
+      console.log('[ShellTool] Extracted command from object:', command);
+      // Optionally set cwd if provided
+      if (commandOrParams.cwd) {
+        this.cwd = commandOrParams.cwd;
+      }
+    } else {
+      command = commandOrParams;
+    }
+
+    // Validate command is a string
+    if (typeof command !== 'string') {
+      console.error('[ShellTool] Command is not a string. Got:', typeof command, command);
+      throw new Error(`Command must be a string. Received: ${JSON.stringify(commandOrParams)}`);
+    }
+
     // Validate the whole command string (before splitting) to catch blocklisted patterns
     this.validateCommand(command);
 

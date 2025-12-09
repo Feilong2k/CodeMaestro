@@ -6,3 +6,8 @@ coverage
 .vscode
 *.log
 
+# Cloned project workspaces (Orion works in these)
+Projects/
+projects/
+backend/CodeMaestro/
+backend/projects/

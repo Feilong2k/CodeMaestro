@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { query, getProject } = require('../db/connection');
+const memoryExtractionService = require('./memoryExtractionService');
 
 // Project root for resolving paths
 const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, '../../../');
@@ -37,7 +38,8 @@ class ProjectContextService {
         techStack: await this.detectTechStack(projectPath),
         structure: await this.getStructure(projectPath),
         keyFiles: await this.getKeyFiles(projectPath),
-        recentActivity: await this.getRecentActivity(projectId)
+        recentActivity: await this.getRecentActivity(projectId),
+        extractedMemories: await memoryExtractionService.getExtractedMemories(projectId)
       };
 
       return context;
@@ -265,22 +267,38 @@ class ProjectContextService {
       formatted += `Description: ${context.project.description}\n`;
     }
     
-    formatted += `Path: ${context.project.path}\n`;
+    // Make path context clear
+    const projectPath = context.project.path;
+    if (projectPath === '.' || projectPath === '' || !projectPath) {
+      formatted += `Working Directory: You are INSIDE the ${context.project.name} project root.\n`;
+      formatted += `  - Use path "." or relative paths like "backend/src" to access files.\n`;
+      formatted += `  - Do NOT look for a "${context.project.name}" subfolder - you're already in it.\n`;
+    } else {
+      formatted += `Working Directory: ${projectPath} (relative to workspace root)\n`;
+      formatted += `  - All file operations are scoped to this directory.\n`;
+    }
 
     // Tech stack
     if (context.techStack) {
-      const { languages, frameworks, tools } = context.techStack;
+      const { languages, frameworks, tools, packageManager } = context.techStack;
       if (languages.length) formatted += `Languages: ${languages.join(', ')}\n`;
       if (frameworks.length) formatted += `Frameworks: ${frameworks.join(', ')}\n`;
       if (tools.length) formatted += `Tools: ${tools.join(', ')}\n`;
+      if (packageManager) formatted += `Package Manager: ${packageManager}\n`;
     }
 
     // Structure summary
     if (context.structure?.length) {
-      formatted += `\nKey folders: ${context.structure
+      formatted += `\nProject Structure:\n`;
+      context.structure
         .filter(s => s.type === 'directory')
-        .map(s => s.name)
-        .join(', ')}\n`;
+        .forEach(s => {
+          formatted += `  📁 ${s.name}/`;
+          if (s.children?.length) {
+            formatted += ` (${s.children.length} items)`;
+          }
+          formatted += `\n`;
+        });
     }
 
     // Recent activity
@@ -288,6 +306,14 @@ class ProjectContextService {
       formatted += `\nRecent discussions:\n`;
       context.recentActivity.recentChats.forEach(c => {
         formatted += `- "${c.message}..."\n`;
+      });
+    }
+
+    // Extracted memories (key facts from past conversations)
+    if (context.extractedMemories?.length) {
+      formatted += `\n## Remembered Facts (from past conversations):\n`;
+      context.extractedMemories.forEach(m => {
+        formatted += `- **${m.key}**: ${m.value}\n`;
       });
     }
 

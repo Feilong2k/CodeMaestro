@@ -63,7 +63,7 @@ const functionDefinitions = [
     type: "function",
     function: {
       name: "ProjectTool_update",
-      description: "Update a project's details (name, description, or path). If path is updated, creates the folder.",
+      description: "Update a project's details (name, description, git_url, or path). If path is updated, creates the folder. Use this to set or change a project's Git repository URL.",
       parameters: {
         type: "object",
         properties: {
@@ -78,6 +78,10 @@ const functionDefinitions = [
           description: { 
             type: "string", 
             description: "New project description (optional)" 
+          },
+          git_url: { 
+            type: "string", 
+            description: "Git repository URL (optional, e.g., 'https://github.com/user/repo.git')" 
           },
           path: { 
             type: "string", 
