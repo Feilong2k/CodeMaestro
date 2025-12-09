@@ -1,5 +1,6 @@
 import { ref, onUnmounted } from 'vue'
 import { io } from 'socket.io-client'
+import { useChatStore } from '../stores/chat'
 
 /**
  * WebSocket client composable for real-time communication with backend
@@ -54,6 +55,14 @@ export function useSocket() {
         timestamp: new Date(),
         type: 'agent_action'
       })
+      
+      // Also send to chat store for display in chat
+      try {
+        const chatStore = useChatStore()
+        chatStore.handleAgentAction(payload)
+      } catch (e) {
+        console.warn('Could not send agent action to chat store:', e)
+      }
     })
 
     socket.value.on('log_entry', (payload) => {

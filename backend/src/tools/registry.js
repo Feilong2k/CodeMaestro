@@ -4,7 +4,9 @@ const fs = require('fs');
 // Tool definitions will be imported here
 const FileSystemTool = require('./FileSystemTool');
 const GitTool = require('./GitTool');
-const DatabaseTool = require('./DatabaseTool');
+const { DatabaseTool } = require('./DatabaseTool'); // Import the class, not instance
+const ShellTool = require('./ShellTool');
+const ProjectTool = require('./ProjectTool');
 
 /**
  * Role-based tool registry.
@@ -13,18 +15,36 @@ const DatabaseTool = require('./DatabaseTool');
 const roleCapabilities = {
   Devon: {
     FileSystemTool,
-    GitTool
+    GitTool,
+    ShellTool,
+    ProjectTool
   },
   Tara: {
     FileSystemTool,
-    GitTool  // Tara might need Git for test setup? We'll include for now.
+    GitTool,
+    ShellTool  // Tara needs shell for running tests
   },
   Orion: {
     FileSystemTool,
     GitTool,
-    DatabaseTool
+    DatabaseTool,
+    ShellTool,
+    ProjectTool
   }
 };
+
+/**
+ * Get list of all available tools with descriptions
+ */
+function getToolDescriptions() {
+  return {
+    FileSystemTool: 'Read/write files with path traversal protection',
+    GitTool: 'Git operations (commit, branch, push, pull) with safety checks',
+    ShellTool: 'Execute shell commands with whitelist/blocklist safety',
+    ProjectTool: 'CRUD operations for project management',
+    DatabaseTool: 'Direct database queries (Orion-only)'
+  };
+}
 
 /**
  * Get the tools allowed for a given role.
@@ -44,5 +64,6 @@ function getToolsForRole(role) {
 }
 
 module.exports = {
-  getToolsForRole
+  getToolsForRole,
+  getToolDescriptions
 };

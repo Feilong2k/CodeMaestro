@@ -119,6 +119,31 @@ class GitTool {
     GitTool.validateInput(branch);
     return this._runGitCommand('checkout', [branch]);
   }
+
+  /**
+   * Generic execute method for AgentExecutor compatibility.
+   * @param {Object} params - { action, ...actionParams }
+   * @returns {Promise<any>} Result of the action
+   */
+  async execute(params) {
+    const { action, ...actionParams } = params;
+    
+    switch (action) {
+      case 'status':
+        return this.status();
+      case 'add':
+        return this.add(actionParams.files || [actionParams.file]);
+      case 'commit':
+        return this.commit(actionParams.message);
+      case 'push':
+        return this.push();
+      case 'checkout':
+        return this.checkout(actionParams.branch);
+      default:
+        throw new Error(`Unknown GitTool action: ${action}`);
+    }
+  }
 }
 
 module.exports = new GitTool();
+module.exports.GitTool = GitTool;

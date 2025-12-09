@@ -4,7 +4,7 @@ module.exports = {
   strategic: {
     // Supports GEMINI_KEY, GEMINI_API_KEY, or OPENAI_API_KEY (if we switch provider)
     key: process.env.GEMINI_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || 'dummy-strategic-key',
-    model: process.env.GEMINI_MODEL || 'gemini-1.5-pro'
+    model: process.env.GEMINI_MODEL || 'gemini-3-pro-preview'
   },
   tactical: {
     // Supports DEEPSEEK_KEY or DEEPSEEK_API_KEY

@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const agentRegistryService = require('./agentRegistryService');
 
 /**
  * Constraint Service for RBAC and one-time override tokens.
@@ -7,41 +8,63 @@ class ConstraintService {
   constructor() {
     // Store granted tokens: token -> { agent, command, used, reason, createdAt }
     this.grants = new Map();
-    // Allowed test file extensions for Tara
+    // Allowed test file extensions for Tara (fallback)
     this.TEST_EXTENSIONS = new Set(['.test.js', '.spec.js', '.test.ts', '.spec.ts']);
   }
 
   /**
-   * RBAC: Check if an agent can write to a given path.
+   * RBAC: Check if an agent can write to a given path (async, uses DB).
    * @param {string} agentRole - 'Devon', 'Tara', or 'Orion'
    * @param {string} path - File path
-   * @returns {boolean} True if allowed
+   * @returns {Promise<boolean>} True if allowed
    */
-  canWrite(agentRole, path) {
-    // Normalize path separators
+  async canWrite(agentRole, path) {
+    try {
+      return await agentRegistryService.checkPermission(agentRole, path, 'write');
+    } catch (error) {
+      console.error('[ConstraintService] DB permission check failed, using fallback:', error.message);
+      return this._canWriteFallback(agentRole, path);
+    }
+  }
+
+  /**
+   * RBAC: Check if an agent can read a given path (async, uses DB).
+   * @param {string} agentRole - 'Devon', 'Tara', or 'Orion'
+   * @param {string} path - File path
+   * @returns {Promise<boolean>} True if allowed
+   */
+  async canRead(agentRole, path) {
+    try {
+      return await agentRegistryService.checkPermission(agentRole, path, 'read');
+    } catch (error) {
+      console.error('[ConstraintService] DB permission check failed, using fallback:', error.message);
+      // Default: all agents can read
+      return true;
+    }
+  }
+
+  /**
+   * Fallback write check if DB is unavailable
+   * @private
+   */
+  _canWriteFallback(agentRole, path) {
     const normalizedPath = path.replace(/\\/g, '/');
 
-    // Orion can write anywhere
-    if (agentRole === 'Orion') {
+    if (agentRole.toLowerCase() === 'orion') {
       return true;
     }
 
-    // Devon: can write to src/ directories, but not to __tests__ directories
-    if (agentRole === 'Devon') {
+    if (agentRole.toLowerCase() === 'devon') {
       return this._isSrcPath(normalizedPath) && !this._isTestPath(normalizedPath);
     }
 
-    // Tara: can write to __tests__ directories, but not to src/ directories
-    if (agentRole === 'Tara') {
-      // Block any path containing 'src'
+    if (agentRole.toLowerCase() === 'tara') {
       if (this._isSrcPath(normalizedPath)) {
         return false;
       }
-      // Allow if it's a test directory or test file extension
       return this._isTestPath(normalizedPath);
     }
 
-    // Default: deny
     return false;
   }
 

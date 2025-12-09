@@ -327,9 +327,20 @@ async function listProjects() {
   return result.rows;
 }
 
+/**
+ * Generic query function for custom SQL
+ * @param {string} sql - SQL query
+ * @param {Array} params - Query parameters
+ * @returns {Promise<Object>} Query result
+ */
+async function query(sql, params = []) {
+  return getPool().query(sql, params);
+}
+
 module.exports = {
   get pool() { return getPool(); }, // Lazy getter for backward compatibility
   getPool,
+  query,
   healthCheck,
   createSubtask,
   getSubtask,

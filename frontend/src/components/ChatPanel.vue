@@ -172,8 +172,37 @@ const formatTimeAgo = (timestamp) => {
 // Auto-scroll to bottom when new messages are added
 watch(() => chatStore.messages.length, async () => {
   await nextTick()
+  scrollToBottom()
+})
+
+// Also scroll when the last message content changes (for typewriter effect)
+watch(() => chatStore.messages[chatStore.messages.length - 1]?.content, async () => {
+  await nextTick()
+  scrollToBottom()
+}, { deep: true })
+
+// Scroll helper function
+const scrollToBottom = () => {
   if (messageListEl.value) {
-    messageListEl.value.scrollTop = messageListEl.value.scrollHeight
+    messageListEl.value.scrollTo({
+      top: messageListEl.value.scrollHeight,
+      behavior: 'smooth'
+    })
+  }
+}
+
+// Periodic scroll during typewriter (for long messages)
+let scrollInterval = null
+watch(() => chatStore.sending, (sending) => {
+  if (sending) {
+    scrollInterval = setInterval(scrollToBottom, 500)
+  } else {
+    if (scrollInterval) {
+      clearInterval(scrollInterval)
+      scrollInterval = null
+    }
+    // Final scroll after sending complete
+    setTimeout(scrollToBottom, 100)
   }
 })
 

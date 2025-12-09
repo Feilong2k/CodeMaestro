@@ -144,6 +144,30 @@ const ProjectTool = {
       }
       throw error;
     }
+  },
+
+  /**
+   * Generic execute method for AgentExecutor compatibility.
+   * @param {Object} params - { action, ...actionParams }
+   * @returns {Promise<any>} Result of the action
+   */
+  async execute(params) {
+    const { action, ...actionParams } = params;
+    
+    switch (action) {
+      case 'create':
+        return this.createProject(actionParams.name, actionParams.description, actionParams.gitUrl, actionParams.path);
+      case 'list':
+        return this.listProjects();
+      case 'get':
+        return this.getProject(actionParams.projectId);
+      case 'update':
+        return this.updateProject(actionParams.projectId, actionParams.updates || actionParams);
+      case 'delete':
+        return this.deleteProject(actionParams.projectId);
+      default:
+        throw new Error(`Unknown ProjectTool action: ${action}`);
+    }
   }
 };
 

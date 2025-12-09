@@ -180,6 +180,47 @@ export const useChatStore = defineStore('chat', {
       } catch (error) {
         console.error('Failed to clear localStorage:', error)
       }
+    },
+
+    // Handle agent action events from websocket
+    handleAgentAction(action) {
+      // Only show certain action types in chat
+      const displayActions = ['llm_response', 'tool_calls', 'executing_tool', 'tool_result', 'tool_error'];
+      
+      if (!displayActions.includes(action.action)) return;
+
+      let content = '';
+      let messageType = 'system';
+      
+      switch (action.action) {
+        case 'llm_response':
+          content = `📝 **LLM Response (Step ${action.step}):**\n\`\`\`\n${action.message?.substring(0, 500)}${action.message?.length > 500 ? '...' : ''}\n\`\`\``;
+          break;
+        case 'tool_calls':
+          if (action.toolCalls?.length > 0) {
+            content = `🔧 **Parsed Tool Calls:**\n${action.toolCalls.map(t => `- ${t.name}: ${JSON.stringify(t.params)}`).join('\n')}`;
+          }
+          break;
+        case 'executing_tool':
+          content = `⚙️ **Executing:** ${action.tool}\n\`\`\`json\n${JSON.stringify(action.params, null, 2)}\n\`\`\``;
+          break;
+        case 'tool_result':
+          content = `✅ **Result from ${action.tool}:**\n\`\`\`json\n${JSON.stringify(action.result, null, 2).substring(0, 500)}\n\`\`\``;
+          break;
+        case 'tool_error':
+          content = `❌ **Error in ${action.tool}:** ${action.error}`;
+          messageType = 'error';
+          break;
+      }
+      
+      if (content) {
+        this.addMessage({
+          sender: 'System',
+          content,
+          timestamp: new Date(),
+          messageType
+        });
+      }
     }
   }
 })

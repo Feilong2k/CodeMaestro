@@ -107,6 +107,27 @@ class FileSystemTool {
       throw new Error(`Failed to list directory ${dirPath}: ${error.message}`);
     }
   }
+
+  /**
+   * Generic execute method for AgentExecutor compatibility.
+   * @param {Object} params - { action, path, content }
+   * @returns {Promise<any>} Result of the action
+   */
+  async execute(params) {
+    const { action, path: filePath, content, dirPath } = params;
+    
+    switch (action) {
+      case 'read':
+        return this.safeRead(filePath);
+      case 'write':
+        return this.safeWrite(filePath, content);
+      case 'list':
+        return this.safeList(dirPath || filePath);
+      default:
+        throw new Error(`Unknown FileSystemTool action: ${action}`);
+    }
+  }
 }
 
 module.exports = new FileSystemTool();
+module.exports.FileSystemTool = FileSystemTool;
