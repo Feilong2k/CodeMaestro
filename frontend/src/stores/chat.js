@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { chat } from '../api/agents'
 import { classifyMessage } from '../api/router'
+import { useProjectStore } from './project'
 
 // LocalStorage key for persistence
 const CHAT_STORAGE_KEY = 'codemaestro_chat'
@@ -98,10 +99,10 @@ export const useChatStore = defineStore('chat', {
           console.warn('[Chat] Routing failed, defaulting to tactical:', routeErr)
         }
 
-        // 2. Get current project ID from app store
-        const { useAppStore } = await import('./appStore');
-        const appStore = useAppStore();
-        const projectId = appStore.currentProject?.id || null;
+        // 2. Get current project ID from project store
+        const projectStore = useProjectStore();
+        const projectId = projectStore.currentProject?.id || null;
+        console.log('[Chat] Using project ID:', projectId, 'Project:', projectStore.currentProject?.name);
         
         // 3. Send message with the determined mode and projectId
         // History is now loaded from database server-side

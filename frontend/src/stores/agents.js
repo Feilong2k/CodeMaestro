@@ -54,13 +54,15 @@ export const useAgentsStore = defineStore('agents', {
     },
 
     updateAgentStatus(agentId, status, currentTask = null) {
-      if (!this.agents[agentId]) {
+      // Normalize to lowercase (backend sends 'Orion', store uses 'orion')
+      const normalizedId = agentId?.toLowerCase()
+      if (!this.agents[normalizedId]) {
         console.warn(`Agent ${agentId} not found`)
         return
       }
-      this.agents[agentId].status = status
-      this.agents[agentId].currentTask = currentTask
-      this.agents[agentId].lastActivity = new Date()
+      this.agents[normalizedId].status = status
+      this.agents[normalizedId].currentTask = currentTask
+      this.agents[normalizedId].lastActivity = new Date()
     },
 
     addActivity(activity) {

@@ -191,7 +191,7 @@ respond with: ESCALATE_TO_STRATEGIC`;
    * @param {boolean} useFunctionCalling - Whether to use function calling (default: true)
    * @returns {Promise<Object>} { type: 'text'|'function_call', content?, toolCalls? }
    */
-  async generateWithFunctions(prompt, useFunctionCalling = true, history = []) {
+  async generateWithFunctions(prompt, useFunctionCalling = true, history = [], projectContext = null) {
     // Check for escalation triggers first
     const lowerPrompt = prompt.toLowerCase();
     const complexTriggers = [
@@ -215,7 +215,12 @@ respond with: ESCALATE_TO_STRATEGIC`;
     }
 
     try {
-      const systemPrompt = this.buildFunctionCallingPrompt();
+      let systemPrompt = this.buildFunctionCallingPrompt();
+      
+      // Append project context if available
+      if (projectContext) {
+        systemPrompt += '\n' + projectContext;
+      }
       
       // Build messages array with history
       const messages = [

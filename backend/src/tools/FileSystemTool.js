@@ -1,44 +1,75 @@
 const fs = require('fs');
 const path = require('path');
 
-// Project root - configurable via env, defaults to CM root (3 levels up from tools/)
-const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, '../../../');
+// Global root - configurable via env, defaults to CM root (3 levels up from tools/)
+const GLOBAL_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, '../../../');
 
 /**
  * Safe file system operations with path traversal protection.
+ * Can be scoped to a specific project directory.
  */
 class FileSystemTool {
   /**
-   * Validates that a given path is within the project root.
-   * @param {string} inputPath - The path to validate.
-   * @throws {Error} If the path is unsafe (outside project root).
+   * Create a FileSystemTool instance.
+   * @param {string} [projectPath] - Base path for this project (relative to GLOBAL_ROOT or absolute)
    */
-  static validatePath(inputPath) {
+  constructor(projectPath = null) {
+    if (projectPath && projectPath !== '.') {
+      // Resolve project path
+      this.basePath = path.isAbsolute(projectPath) 
+        ? projectPath 
+        : path.resolve(GLOBAL_ROOT, projectPath);
+    } else {
+      this.basePath = GLOBAL_ROOT;
+    }
+  }
+
+  /**
+   * Validates that a given path is within the allowed base path.
+   * @param {string} inputPath - The path to validate.
+   * @throws {Error} If the path is unsafe (outside allowed root).
+   */
+  validatePath(inputPath) {
     if (!inputPath || typeof inputPath !== 'string') {
       throw new Error('Invalid path');
     }
 
-    // Resolve the path relative to PROJECT_ROOT (not cwd)
-    const resolvedPath = path.resolve(PROJECT_ROOT, inputPath);
-    const projectRoot = PROJECT_ROOT;
+    // Resolve the path relative to basePath
+    const resolvedPath = path.resolve(this.basePath, inputPath);
 
-    // Check if the resolved path is within the project root
-    if (!resolvedPath.startsWith(projectRoot)) {
-      throw new Error(`Unsafe path: ${inputPath} is outside project root`);
+    // Check if the resolved path is within the base path
+    if (!resolvedPath.startsWith(this.basePath)) {
+      throw new Error(`Unsafe path: ${inputPath} is outside project root (${this.basePath})`);
     }
 
     // Additional check for directory traversal patterns
     const normalized = path.normalize(inputPath);
-    if (normalized.includes('..') && !resolvedPath.startsWith(projectRoot)) {
+    if (normalized.includes('..') && !resolvedPath.startsWith(this.basePath)) {
       throw new Error(`Path traversal detected: ${inputPath}`);
     }
 
-    // Check for absolute paths that bypass the project root
-    if (path.isAbsolute(inputPath) && !resolvedPath.startsWith(projectRoot)) {
+    // Check for absolute paths that bypass the base path
+    if (path.isAbsolute(inputPath) && !resolvedPath.startsWith(this.basePath)) {
       throw new Error(`Absolute path ${inputPath} is not allowed`);
     }
 
     return resolvedPath;
+  }
+
+  /**
+   * Static version for backward compatibility (uses GLOBAL_ROOT).
+   */
+  static validatePath(inputPath) {
+    const instance = new FileSystemTool();
+    return instance.validatePath(inputPath);
+  }
+
+  /**
+   * Get the current base path for this tool instance.
+   * @returns {string} Base path
+   */
+  getBasePath() {
+    return this.basePath;
   }
 
   /**
@@ -48,7 +79,7 @@ class FileSystemTool {
    */
   safeRead(filePath) {
     // Validate the path and get resolved absolute path
-    const resolvedPath = FileSystemTool.validatePath(filePath);
+    const resolvedPath = this.validatePath(filePath);
 
     if (!fs.existsSync(resolvedPath)) {
       throw new Error(`File not found: ${filePath}`);
@@ -71,7 +102,7 @@ class FileSystemTool {
    */
   safeWrite(filePath, content, options = {}) {
     // Validate the path and get resolved absolute path
-    const resolvedPath = FileSystemTool.validatePath(filePath);
+    const resolvedPath = this.validatePath(filePath);
 
     // Check if file exists and overwrite is not allowed
     if (fs.existsSync(resolvedPath) && !options.overwrite) {
@@ -98,7 +129,7 @@ class FileSystemTool {
    */
   safeList(dirPath) {
     // Validate the path and get resolved absolute path
-    const resolvedPath = FileSystemTool.validatePath(dirPath);
+    const resolvedPath = this.validatePath(dirPath);
 
     if (!fs.existsSync(resolvedPath)) {
       throw new Error(`Directory not found: ${dirPath}`);
@@ -119,7 +150,7 @@ class FileSystemTool {
    */
   createDirectory(dirPath) {
     // Validate the path (throws if unsafe)
-    const resolvedPath = FileSystemTool.validatePath(dirPath);
+    const resolvedPath = this.validatePath(dirPath);
 
     try {
       fs.mkdirSync(resolvedPath, { recursive: true });
@@ -136,7 +167,7 @@ class FileSystemTool {
    */
   safeDelete(targetPath) {
     // Validate the path (throws if unsafe)
-    const resolvedPath = FileSystemTool.validatePath(targetPath);
+    const resolvedPath = this.validatePath(targetPath);
 
     if (!fs.existsSync(resolvedPath)) {
       throw new Error(`Path not found: ${targetPath}`);

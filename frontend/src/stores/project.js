@@ -1,6 +1,32 @@
 import { defineStore } from 'pinia'
 import { client as apiClient } from '../api'
 
+// LocalStorage key for persisting current project
+const PROJECT_STORAGE_KEY = 'codemaestro_current_project'
+
+// Load saved project ID from localStorage
+function getSavedProjectId() {
+  try {
+    const saved = localStorage.getItem(PROJECT_STORAGE_KEY)
+    return saved ? parseInt(saved, 10) : null
+  } catch {
+    return null
+  }
+}
+
+// Save project ID to localStorage
+function saveProjectId(projectId) {
+  try {
+    if (projectId) {
+      localStorage.setItem(PROJECT_STORAGE_KEY, projectId.toString())
+    } else {
+      localStorage.removeItem(PROJECT_STORAGE_KEY)
+    }
+  } catch (e) {
+    console.warn('Failed to save project to localStorage:', e)
+  }
+}
+
 export const useProjectStore = defineStore('project', {
   state: () => ({
     projects: [],
@@ -21,10 +47,27 @@ export const useProjectStore = defineStore('project', {
       try {
         const response = await apiClient.get('/projects')
         this.projects = response.data
+        console.log('[ProjectStore] Fetched', this.projects.length, 'projects')
         
-        // Set current project if not set
+        // Restore saved project or default to CodeMaestro
         if (!this.currentProject && this.projects.length > 0) {
-          this.currentProject = this.projects[0]
+          const savedId = getSavedProjectId()
+          let selectedProject = null
+          
+          if (savedId) {
+            selectedProject = this.projects.find(p => p.id === savedId)
+            if (selectedProject) {
+              console.log('[ProjectStore] Restored saved project:', selectedProject.name, 'id:', savedId)
+            }
+          }
+          
+          // Fallback to CodeMaestro or first project
+          if (!selectedProject) {
+            selectedProject = this.projects.find(p => p.id === 1) || this.projects[0]
+            console.log('[ProjectStore] Auto-selected project:', selectedProject?.name, 'id:', selectedProject?.id)
+          }
+          
+          this.currentProject = selectedProject
         }
       } catch (error) {
         this.error = error.message
@@ -73,6 +116,9 @@ export const useProjectStore = defineStore('project', {
 
     setCurrentProject(project) {
       this.currentProject = project
+      // Persist to localStorage
+      saveProjectId(project?.id)
+      console.log('[ProjectStore] Saved project to localStorage:', project?.name, 'id:', project?.id)
     },
 
     async switchProject(projectId) {
@@ -116,8 +162,6 @@ export const useProjectStore = defineStore('project', {
     }
   },
 
-  persist: {
-    key: 'codemaestro-project-store',
-    paths: ['currentProject']
-  }
+  // Note: persist requires pinia-plugin-persistedstate which is not installed
+  // For now, currentProject is set from the first project on fetch
 })

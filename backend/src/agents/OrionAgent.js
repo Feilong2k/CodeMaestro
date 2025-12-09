@@ -113,10 +113,25 @@ class OrionAgent extends BaseAgent {
         }
       }
 
+      // Load project context for LLM
+      let projectContext = null;
+      if (projectId) {
+        try {
+          const projectContextService = require('../services/projectContextService');
+          const context = await projectContextService.buildContext(projectId);
+          if (context) {
+            projectContext = projectContextService.formatForLLM(context);
+            console.log('[OrionAgent] Loaded project context for:', context.project?.name);
+          }
+        } catch (err) {
+          console.warn('[OrionAgent] Failed to load project context:', err.message);
+        }
+      }
+
       // Use function calling for tactical mode
       if (mode === 'tactical') {
         const tacticalAdapter = new TacticalAdapter();
-        const result = await tacticalAdapter.generateWithFunctions(message, true, history);
+        const result = await tacticalAdapter.generateWithFunctions(message, true, history, projectContext);
         
         console.log('[OrionAgent] Function calling result type:', result.type);
         console.log('[OrionAgent] Tool calls:', result.toolCalls);
@@ -132,8 +147,8 @@ class OrionAgent extends BaseAgent {
             timestamp: new Date()
           });
 
-          // Execute via function calling agent mode
-          const agentResponse = await this.runFunctionCallingMode(message, result.toolCalls);
+          // Execute via function calling agent mode (pass projectId for scoped operations)
+          const agentResponse = await this.runFunctionCallingMode(message, result.toolCalls, projectId);
           
           // Save assistant response to database
           if (projectId) {
@@ -244,15 +259,31 @@ class OrionAgent extends BaseAgent {
    * Run agent mode using function calling results.
    * @param {string} query - Original user query
    * @param {Array} toolCalls - Parsed tool calls from function calling
+   * @param {number} projectId - Project ID for scoped operations
    * @returns {Promise<string>} Final response
    */
-  async runFunctionCallingMode(query, toolCalls) {
-    console.log('[runFunctionCallingMode] Starting with', toolCalls.length, 'tool calls');
+  async runFunctionCallingMode(query, toolCalls, projectId = null) {
+    console.log('[runFunctionCallingMode] Starting with', toolCalls.length, 'tool calls, projectId:', projectId);
     try {
       const registry = require('../tools/registry');
       const tools = registry.getToolsForRole('Orion');
       console.log('[runFunctionCallingMode] Available tools:', Object.keys(tools));
       const results = [];
+      
+      // Get project path for scoped file operations
+      let projectPath = null;
+      if (projectId) {
+        try {
+          const { getProject } = require('../db/connection');
+          const project = await getProject(projectId);
+          if (project?.path) {
+            projectPath = project.path;
+            console.log('[runFunctionCallingMode] Project path:', projectPath);
+          }
+        } catch (err) {
+          console.warn('[runFunctionCallingMode] Could not load project:', err.message);
+        }
+      }
 
       // Execute each function call
       for (const toolCall of toolCalls) {
@@ -287,7 +318,26 @@ class OrionAgent extends BaseAgent {
 
           // Instantiate tool if it's a class
           console.log('[runFunctionCallingMode] Tool found, type:', typeof tool);
-          const toolInstance = typeof tool === 'function' ? new tool('Orion') : tool;
+          let toolInstance;
+          if (typeof tool === 'function') {
+            // Special handling for FileSystemTool - pass projectPath
+            if (toolName === 'FileSystemTool' && projectPath) {
+              toolInstance = new tool(projectPath);
+              console.log('[runFunctionCallingMode] FileSystemTool scoped to:', projectPath);
+            } else {
+              toolInstance = new tool('Orion');
+            }
+          } else {
+            // Tool is already an instance
+            // For FileSystemTool, create new scoped instance if needed
+            if (toolName === 'FileSystemTool' && projectPath) {
+              const FileSystemTool = require('../tools/FileSystemTool').FileSystemTool;
+              toolInstance = new FileSystemTool(projectPath);
+              console.log('[runFunctionCallingMode] FileSystemTool scoped to:', projectPath);
+            } else {
+              toolInstance = tool;
+            }
+          }
           
           // Execute with action included in params
           const executeParams = { action, ...params };
