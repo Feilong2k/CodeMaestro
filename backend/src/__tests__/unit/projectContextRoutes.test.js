@@ -1,14 +1,6 @@
-const { describe, test, expect, beforeEach, jest } = require('@jest/globals');
+const { describe, test, expect, beforeEach } = require('@jest/globals');
 const request = require('supertest');
-
-// The app we're testing doesn't exist yet, so we'll try to import it and handle the error.
-let app;
-try {
-  app = require('../../../index');
-} catch (error) {
-  // This is expected in the Red phase. We'll create a dummy object that throws for all methods.
-  app = {};
-}
+const express = require('express');
 
 // Mock the ProjectContextService and MemoryExtractionService
 jest.mock('../../../src/services/projectContextService', () => ({
@@ -22,18 +14,16 @@ jest.mock('../../../src/services/memoryExtractionService', () => ({
 
 const ProjectContextService = require('../../../src/services/projectContextService');
 const MemoryExtractionService = require('../../../src/services/memoryExtractionService');
-
-// Helper to ensure we have an app to test, otherwise skip the test.
-function requireApp() {
-  if (Object.keys(app).length === 0) {
-    throw new Error('App module not found. Tests are expected to fail.');
-  }
-  return app;
-}
+const projectsRouter = require('../../../src/routes/projects');
 
 describe('Project Context API', () => {
+  let app;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    app = express();
+    app.use(express.json());
+    app.use('/api/projects', projectsRouter);
   });
 
   describe('GET /api/projects/:id/context', () => {
@@ -49,7 +39,7 @@ describe('Project Context API', () => {
       };
       ProjectContextService.buildContext.mockResolvedValue(mockContext);
 
-      const response = await request(requireApp())
+      const response = await request(app)
         .get('/api/projects/1/context');
 
       expect(response.status).toBe(200);
@@ -60,7 +50,7 @@ describe('Project Context API', () => {
     test('should return 404 when project not found', async () => {
       ProjectContextService.buildContext.mockResolvedValue(null);
 
-      const response = await request(requireApp())
+      const response = await request(app)
         .get('/api/projects/999/context');
 
       expect(response.status).toBe(404);
@@ -69,7 +59,7 @@ describe('Project Context API', () => {
     test('should handle service errors gracefully', async () => {
       ProjectContextService.buildContext.mockRejectedValue(new Error('DB error'));
 
-      const response = await request(requireApp())
+      const response = await request(app)
         .get('/api/projects/1/context');
 
       // Expect 500 or appropriate error status
@@ -86,7 +76,7 @@ describe('Project Context API', () => {
       // Mock the service to resolve successfully
       MemoryExtractionService.saveExtractedFacts.mockResolvedValue();
 
-      const response = await request(requireApp())
+      const response = await request(app)
         .post('/api/projects/1/context')
         .send({ facts: mockFacts });
 
@@ -97,7 +87,7 @@ describe('Project Context API', () => {
 
     test('should validate request body', async () => {
       // Missing facts array
-      const response = await request(requireApp())
+      const response = await request(app)
         .post('/api/projects/1/context')
         .send({});
 
@@ -107,7 +97,7 @@ describe('Project Context API', () => {
     test('should handle service errors', async () => {
       MemoryExtractionService.saveExtractedFacts.mockRejectedValue(new Error('DB error'));
 
-      const response = await request(requireApp())
+      const response = await request(app)
         .post('/api/projects/1/context')
         .send({ facts: [] });
 

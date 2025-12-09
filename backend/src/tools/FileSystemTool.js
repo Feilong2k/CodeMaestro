@@ -37,19 +37,22 @@ class FileSystemTool {
     // Resolve the path relative to basePath
     const resolvedPath = path.resolve(this.basePath, inputPath);
 
-    // Check if the resolved path is within the base path
-    if (!resolvedPath.startsWith(this.basePath)) {
+    // Check if the resolved path is within the base path (case-insensitive on Windows)
+    const isInside = process.platform === 'win32'
+      ? resolvedPath.toLowerCase().startsWith(this.basePath.toLowerCase())
+      : resolvedPath.startsWith(this.basePath);
+    if (!isInside) {
       throw new Error(`Unsafe path: ${inputPath} is outside project root (${this.basePath})`);
     }
 
     // Additional check for directory traversal patterns
     const normalized = path.normalize(inputPath);
-    if (normalized.includes('..') && !resolvedPath.startsWith(this.basePath)) {
+    if (normalized.includes('..') && !isInside) {
       throw new Error(`Path traversal detected: ${inputPath}`);
     }
 
     // Check for absolute paths that bypass the base path
-    if (path.isAbsolute(inputPath) && !resolvedPath.startsWith(this.basePath)) {
+    if (path.isAbsolute(inputPath) && !isInside) {
       throw new Error(`Absolute path ${inputPath} is not allowed`);
     }
 
