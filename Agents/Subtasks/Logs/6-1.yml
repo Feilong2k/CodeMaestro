@@ -93,6 +93,30 @@ requiredActions:
   - "[x] [TDD] Wire AgentExecutor to AgentFSM and update tests"
   - "[x] [TDD] Add AgentFsmLogService and DB migration for agent_fsm_log table"
   - "[x] [TDD] Add API endpoint and integration tests for /api/agent-fsm-log/:subtaskId"
+  - "[ ] [Coverage] Add tests for AgentFSM updateContext branches (ERROR_HANDLED, VERIFICATION_FAILED increments) and AgentFsmLogService error handling to raise statements/lines > 80%"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement and wire the AgentFSM and logging stack to satisfy Tara's tests
+      without touching test files. All work must stay within backend/src/** and
+      related migration/route files.
+    steps:
+      - "Implement AgentFSM module in backend/src/machines/AgentFSM.js as pure logic (no I/O)."
+      - "Refactor backend/src/services/AgentExecutor.js to drive the loop via AgentFSM but keep existing behavior backward-compatible."
+      - "Implement AgentFsmLogService and DB migration 022_create_agent_fsm_log.sql so each state transition is logged (from_state, to_state, subtask_id, agent, timestamp)."
+      - "Add /api/agent-fsm-log/:subtaskId endpoint and wire route in backend/index.js so logs are queryable."
+      - "Run backend tests locally and ensure all 6-1-related tests pass before pushing feature/6-1-agent-fsm-core-db."
+
+  tara:
+    summary: |
+      Own all tests for AgentFSM and logging behavior, strictly in backend/__tests__/**.
+      Do not modify backend/src/** implementation files.
+    steps:
+      - "Extend backend/__tests__/unit/agentFsm.test.js to cover all valid and invalid FSM transitions (OBSERVE→THINK, THINK→ACT, error states, etc.)."
+      - "Add or extend integration tests that run a simple agent task and assert that multiple rows are written to agent_fsm_log for a known subtask_id."
+      - "Add tests that hit /api/agent-fsm-log/:subtaskId and assert the returned sequence matches the DB order."
+      - "Coordinate with 6-10 so that once SystemLogPanel is wired, you can later verify that System Log shows the same transitions as the DB and API."
 
 verificationChecklist:
   - "[x] [TDD] Failing Unit Tests created (Red)"
@@ -104,6 +128,18 @@ verificationChecklist:
   - "[ ] Running a simple agent task creates multiple rows in agent_fsm_log"
   - "[x] /api/agent-fsm-log/:subtaskId returns the same sequence as seen in DB"
   - "[ ] SystemLogPanel displays a readable list of state changes"
+
+coveragePlan:
+  targets:
+    - file: "backend/src/machines/AgentFSM.js"
+      focus: ["updateContext branches: ERROR_HANDLED, VERIFICATION_FAILED, step counters"]
+    - file: "backend/src/services/AgentFsmLogService.js"
+      focus: ["error handling paths, DB write failures"]
+  suggestedCommands:
+    - "cd c:\\Coding\\CM\\backend; npx jest --coverage --collectCoverageFrom \"src/machines/AgentFSM.js\" \"src/services/AgentFsmLogService.js\" -- src/__tests__/unit/agentFsm.test.js"
+  notes:
+    - "Tara adds tests only under backend/__tests__/**; Devon must not touch tests."
+    - "Aim for >80% statements and lines across the two modules; functions/branches follow as feasible."
 
 human_verification:
   - "Run a small agent task for a known subtask ID (for example, ask Orion to plan for subtask 5-9)."
