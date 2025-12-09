@@ -404,9 +404,6 @@ async function get(endpoint) {
 6-2 (Response Panel) ── Independent, can parallel with 6-1
 
 6-6 (Pattern Harvesting) ── Independent, can parallel
-
-6-7 (Integration/E2E) ── Independent, run after any feature is done
-6-8 (Contract Tests) ── Independent, can define contracts early
 ```
 
 ---
@@ -421,8 +418,6 @@ async function get(endpoint) {
 - [ ] **6-4:** New projects can be onboarded with context
 - [ ] **6-5:** Orion references context in responses
 - [ ] **6-6:** Pattern Harvesting auto-saves patterns
-- [ ] **6-7:** Integration & E2E tests passing
-- [ ] **6-8:** API Contract tests defined and validated
 
 ### Integration Test:
 1. Create new project "Test-Phase6"
@@ -459,8 +454,75 @@ async function get(endpoint) {
 | 6-3 | 1 day | 6-1 |
 | 6-4 | 1 day | 6-1 |
 | 6-5 | 1 day | 6-3 |
+| 6-6 | 1 day | None |
+| 6-7 | 2 days | None |
+| 6-8 | 1 day | None |
+| 6-9 | 2 days | None |
 
-**Total:** ~6-7 days
+**Total:** ~12-14 days
+
+---
+
+### 6-9: Agent Activity Log Integration
+**Owner:** Devon
+**Priority:** High
+
+**Description:**
+Connect agent mode actions (LLM responses, tool calls, results) to the Activity Log view. 
+Make logs persistent, clickable, and filterable.
+
+**Features:**
+1. **Persistent Storage** - Store agent actions in `agent_activity_log` table
+2. **Activity Log View** - Dedicated UI showing all agent activity
+3. **Clickable Details** - Click to expand and see full LLM response, params, results
+4. **Filtering** - By agent, tool, date, status (success/error)
+5. **Link to Chat** - Click to jump to related chat message
+
+**Database Schema:**
+```sql
+CREATE TABLE agent_activity_log (
+  id SERIAL PRIMARY KEY,
+  session_id VARCHAR(50),
+  agent VARCHAR(20) NOT NULL,
+  action_type VARCHAR(50) NOT NULL,  -- 'llm_response', 'tool_call', 'tool_result', 'error'
+  tool_name VARCHAR(50),
+  params JSONB,
+  result JSONB,
+  error TEXT,
+  step_number INTEGER,
+  created_at TIMESTAMP DEFAULT NOW(),
+  -- Retention policy
+  retention_days INTEGER DEFAULT 14,  -- Configurable: debug=7, errors=90
+  expires_at TIMESTAMP GENERATED ALWAYS AS (created_at + (retention_days || ' days')::INTERVAL) STORED
+);
+
+-- Index for cleanup job
+CREATE INDEX idx_activity_log_expires ON agent_activity_log(expires_at);
+```
+
+**Retention Policy:**
+- Debug logs (LLM responses, params): 7-14 days
+- Tool results (success): 14 days  
+- Errors: 90 days (keep longer for debugging)
+- Cleanup job runs daily: `DELETE FROM agent_activity_log WHERE expires_at < NOW()`
+
+**API Endpoints:**
+```
+GET /api/activity                    - List all activity (paginated)
+GET /api/activity/:sessionId         - Get activity for a session
+GET /api/activity/agent/:agentName   - Filter by agent
+```
+
+**Frontend Components:**
+- `ActivityLogView.vue` - Main view with filters
+- `ActivityLogItem.vue` - Expandable log entry
+- Integration with existing Activity panel in sidebar
+
+**Tests:**
+- [ ] Actions are saved to database
+- [ ] Filtering by agent works
+- [ ] Clicking entry shows full details
+- [ ] Pagination works for large logs
 
 ---
 
