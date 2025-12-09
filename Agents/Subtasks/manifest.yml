@@ -153,17 +153,24 @@ subtasks:
   # Phase 5.5: Stabilization & Context API
   - id: "5-10"
     title: "Stabilization (TacticalAdapter & Pathing)"
-    status: pending
+    status: in_progress
     owner: "Devon"
     priority: critical
     dependencies: ["5-3"]
 
   - id: "5-11"
     title: "Project Context API"
-    status: pending
+    status: in_progress
     owner: "Devon"
     priority: high
     dependencies: ["5-10"]
+
+  - id: "5-12"
+    title: "Tooling Upgrade (JSON & Windows)"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["5-11"]
 
   # Phase 6: Self-Service & Context Intelligence
   - id: "6-12"

@@ -1,0 +1,86 @@
+# Subtask Log: 5-12 (Tooling Upgrade)
+id: "5-12"
+title: "Tooling Upgrade (JSON & Windows)"
+status: pending
+branch: "subtask/5-12-tooling-upgrade"
+
+constraint_discovery:
+  subtask_id: "5-12"
+  owner: "Devon"
+  concern: "System Reliability"
+  date: "2025-12-09"
+  
+  atomic_actions:
+    - action: "Refactor FileSystemTool.validatePath"
+      description: "Implement cross-platform path normalization"
+    - action: "Enforce JSON Function Calling"
+      description: "Remove XML fallback, force structured output"
+      
+  resources_touched:
+    - resource: "FileSystemTool.js"
+      action: "Modification"
+    - resource: "TacticalAdapter.js"
+      action: "Prompt Engineering"
+      
+  resource_physics:
+    - resource: "FileSystem"
+      constraint: "Path Separators"
+      risk: "Windows uses backslash, Node uses forward slash internally sometimes"
+      mitigation: "Use path.normalize() everywhere"
+    - resource: "LLM Context"
+      constraint: "Token Limit"
+      risk: "JSON schema consumes tokens"
+      mitigation: "Keep schema concise"
+      
+  verification:
+    - action: "Unit Test"
+      method: "Test FileSystemTool on Windows-style paths"
+
+history:
+  - ts: "2025-12-09T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Log initialized. Prioritizing Windows compatibility and JSON strictness."
+
+requiredActions:
+  - "Logic: Refactor `validatePath` in `backend/src/tools/FileSystemTool.js`"
+  - "Logic: Update `buildFunctionCallingPrompt` in `TacticalAdapter.js` to demand JSON"
+
+# Instructions for Agents
+instructions:
+  tara:
+    role: "Tester"
+    goal: "Create unit tests for FileSystemTool path validation"
+    steps:
+      - "Create `backend/__tests__/unit/tools/FileSystemTool.test.js`"
+      - "Test Case: Valid path inside root"
+      - "Test Case: Invalid path outside root (../)"
+      - "Test Case: Windows casing mismatch (c:\\ vs C:\\)"
+    git_workflow:
+      - "git checkout -b subtask/5-12-tooling-upgrade phase-5.5-base"
+      - "git add backend/__tests__/unit/tools/FileSystemTool.test.js"
+      - "git commit -m 'test: add filesystem tool unit tests'"
+      - "git push origin subtask/5-12-tooling-upgrade"
+
+  devon:
+    role: "Implementer"
+    goal: "Fix path normalization and enforce JSON"
+    steps:
+      - "Edit `backend/src/tools/FileSystemTool.js`"
+      - "Use `path.normalize()` and `path.resolve()` with casing checks"
+      - "Run tests: `npm test backend/__tests__/unit/tools/FileSystemTool.test.js`"
+      - "Edit `backend/src/llm/TacticalAdapter.js`"
+      - "Remove XML fallback logic if present"
+      - "Ensure system prompt strictly enforces JSON format"
+    git_workflow:
+      - "git checkout subtask/5-12-tooling-upgrade"
+      - "git pull origin subtask/5-12-tooling-upgrade"
+      - "git add ."
+      - "git commit -m 'fix: filesystem path normalization and json enforcement'"
+      - "git push origin subtask/5-12-tooling-upgrade"
+      - "Notify Adam to merge"
+
+verificationChecklist:
+  - "[ ] [TDD] FileSystemTool accepts valid Windows paths"
+  - "[ ] [TDD] FileSystemTool rejects traversal attempts"
+  - "[ ] [LLM] TacticalAdapter outputs valid JSON"
