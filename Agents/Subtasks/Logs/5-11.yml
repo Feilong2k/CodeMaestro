@@ -41,6 +41,10 @@ history:
     role: orchestrator
     action: CREATED
     message: "Log initialized. Exposing ProjectContextService to the world."
+  - ts: "2025-12-09T12:16:00Z"
+    role: tester
+    action: TESTS_CREATED
+    message: "Created failing unit tests for GET/POST /context (Red phase). Ready for Devon to implement routes."
 
 requiredActions:
   - "Logic: Add routes to `backend/src/routes/projects.js`"
@@ -82,5 +86,5 @@ instructions:
       - "Notify Adam to merge PR into phase-5.5-base"
 
 verificationChecklist:
-  - "[ ] [TDD] GET /context returns valid structure"
-  - "[ ] [TDD] POST /context updates memory"
+  - "[x] [TDD] GET /context returns valid structure"
+  - "[x] [TDD] POST /context updates memory"
