@@ -46,13 +46,13 @@ import { computed } from 'vue'
 import { useAgentsStore } from '../stores/agents'
 import { useTasksStore } from '../stores/tasks'
 import { useAppStore } from '../stores/appStore'
-import { useSocket } from '../composables/useSocket'
+import { useWebSocket } from '../composables/useWebSocket'
 import TrafficLight from './TrafficLight.vue'
 
 const agentsStore = useAgentsStore()
 const tasksStore = useTasksStore()
 const appStore = useAppStore()
-const socket = useSocket()
+const socket = useWebSocket()
 
 // Connection status
 const isConnected = computed(() => socket.isConnected)
