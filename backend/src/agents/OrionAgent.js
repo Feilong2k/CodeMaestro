@@ -127,6 +127,20 @@ class OrionAgent extends BaseAgent {
         } catch (err) {
           console.warn('[OrionAgent] Failed to load project context:', err.message);
         }
+      } else {
+        // Default context for no project selected
+        const path = require('path');
+        // Use process.cwd() to get the actual runtime directory
+        const currentDir = process.cwd(); 
+        
+        projectContext = `
+=== CURRENT CONTEXT ===
+No active project selected.
+Working Directory: ${currentDir}
+  - You are here.
+  - Use relative paths from this directory.
+=== END CONTEXT ===
+`;
       }
 
       // Use function calling for tactical mode
