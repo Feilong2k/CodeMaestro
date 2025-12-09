@@ -888,25 +888,60 @@ async function cleanupExpiredMemories() {
 
 ### Implementation Phases
 
-**Phase A: Basic Search (MVP - Current Sprint)**
+**Phase A: Basic Search (MVP) ✅ COMPLETED**
 - [x] MemoryTool_search with PostgreSQL full-text search
 - [x] Search chat_messages table
-- [ ] Add to Orion's function definitions
+- [x] Add to Orion's function definitions
+- [x] Increase chat history from 10 to 100 messages
 
-**Phase B: Memory Storage**
-- [ ] Add tier column to memories table
-- [ ] MemoryTool_save function
+**Phase B: Memory Storage & Auto-Extraction ✅ IMPLEMENTED (Dec 9, 2025)**
+- [x] memoryExtractionService.js created
+- [x] Auto-extraction every 50 messages
+- [x] LLM-based fact extraction with structured JSON output
+- [x] Saves to memories table with type='extracted'
+- [x] JSONB format for PostgreSQL compatibility
+- [ ] Add tier column to memories table (deferred)
+- [ ] MemoryTool_save function (can use extraction service)
 - [ ] MemoryTool_list function
 
-**Phase C: Auto-Extraction**
-- [ ] Post-conversation memory extraction
-- [ ] LLM-based fact extraction
-- [ ] Duplicate detection
+**Phase C: ShellTool & Function Calling Fixes ✅ COMPLETED (Dec 9, 2025)**
+- [x] ShellTool handles object params `{action, command}` from function calling
+- [x] ShellTool defaults to PROJECT_ROOT instead of backend folder
+- [x] Force `tool_choice: 'required'` for action keywords (clone, create, run, etc.)
+- [x] Add ShellTool_execute to function calling prompt
+- [x] nodemon.json ignores projects/ folder to prevent restart during clones
 
-**Phase D: Optimizations**
+**Phase D: Optimizations (Future)**
 - [ ] Vector embeddings for semantic search (pgvector)
 - [ ] Memory summarization (compress old memories)
 - [ ] Context budget tracking
+- [ ] Tiered memory system (critical/important/routine/ephemeral)
+
+### Implementation Details (Dec 9, 2025)
+
+**Files Created:**
+- `backend/src/services/memoryExtractionService.js` - Auto-extracts key facts from conversations
+- `backend/nodemon.json` - Ignores projects folder to prevent restart loops
+
+**Files Modified:**
+- `backend/src/agents/OrionAgent.js` - Loads 100 messages, triggers extraction after responses
+- `backend/src/llm/TacticalAdapter.js` - Added ShellTool to prompt, force tool_choice for actions
+- `backend/src/tools/ShellTool.js` - Handle object params, use PROJECT_ROOT as cwd
+- `backend/src/tools/functionDefinitions.js` - Added git_url to ProjectTool_update
+- `backend/src/services/projectContextService.js` - Loads extracted memories into context
+- `.gitignore` - Exclude Projects/ and cloned workspaces
+
+**How Memory Extraction Works:**
+1. After saving each assistant response, `checkAndExtract()` is called
+2. Checks if 50+ messages since last extraction
+3. Fetches messages, sends to LLM with extraction prompt
+4. LLM returns JSON array of `{key, value}` facts
+5. Facts saved to `memories` table with `type='extracted'`
+6. Extracted memories loaded into project context for future conversations
+
+**Known Issues:**
+- Memory extraction JSONB format needs testing
+- NaN in "since last extraction" counter needs fix
 
 ### Tests
 

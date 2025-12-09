@@ -1,18 +1,16 @@
-const { exec } = require('child_process');
-const util = require('util');
+const execa = require('execa');
 const path = require('path');
-
-const execPromise = util.promisify(exec);
 
 // Project root - one level up from backend
 const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, '../../../');
 
 /**
- * Advanced Shell Tool with command validation, chaining, and cwd persistence.
+ * Advanced Shell Tool using execa for reliable cross-platform execution.
+ * Features: command validation, whitelisting, blocklisting, cwd management.
  */
 class ShellTool {
   constructor() {
-    // Current working directory - default to project root, not backend folder
+    // Current working directory - default to project root
     this.cwd = PROJECT_ROOT;
     console.log('[ShellTool] Initialized with cwd:', this.cwd);
 
@@ -21,60 +19,63 @@ class ShellTool {
       'sudo',
       'rm -rf',
       'rm -r',
+      'rmdir /s',
       'del /s',
+      'del /q',
       'format',
       'mkfs',
-      'dd',
+      'dd if=',
       'shutdown',
       'reboot',
       'halt',
-      'init',
-      'kill',
+      'init 0',
+      'init 6',
+      'kill -9',
       'pkill',
       'killall',
       '> /dev',
       '>> /dev',
-      '`',
-      '$(',
-      '..',
+      ':(){',  // fork bomb
+      '`',     // command substitution
+      '$(',    // command substitution
+      '| rm',
+      '| del',
     ];
 
     // Whitelist: allowed command prefixes (first word)
     this.whitelist = [
-      'ls',
+      'ls', 'dir',
       'cd',
       'pwd',
-      'npm',
+      'npm', 'npx',
       'node',
       'git',
       'echo',
-      'cat',
-      'grep',
-      'mkdir',
+      'cat', 'type',  // type is Windows cat
+      'grep', 'findstr',  // findstr is Windows grep
+      'mkdir', 'md',
       'touch',
-      'cp',
-      'mv',
+      'cp', 'copy',
+      'mv', 'move',
       'chmod',
       'chown',
-      'python',
-      'pip',
-      'yarn',
-      'docker', // assuming safe usage
+      'python', 'python3',
+      'pip', 'pip3',
+      'yarn', 'pnpm',
+      'docker',
       'docker-compose',
       'curl',
       'wget',
       'tar',
-      'zip',
-      'unzip',
+      'zip', 'unzip',
       'find',
-      'which',
-      'where',
-      'type',
-      'command',
+      'which', 'where',
       'env',
-      'export',
-      'source',
-      '.',
+      'export', 'set',  // set is Windows export
+      'head', 'tail',
+      'wc',
+      'sort',
+      'tree',
     ];
   }
 
@@ -97,86 +98,106 @@ class ShellTool {
     const lowerCommand = trimmed.toLowerCase();
     for (const blocked of this.blocklist) {
       if (lowerCommand.includes(blocked.toLowerCase())) {
-        throw new Error(`Command blocked: contains '${blocked}'`);
+        throw new Error(`Blocked command: contains '${blocked}'`);
       }
     }
 
     // Extract the first word (command name)
-    const firstWord = trimmed.split(' ')[0].toLowerCase();
+    const firstWord = trimmed.split(/\s+/)[0].toLowerCase();
+    
     // Check whitelist
     let allowed = false;
     for (const allowedCmd of this.whitelist) {
-      if (firstWord.startsWith(allowedCmd.toLowerCase())) {
+      if (firstWord === allowedCmd.toLowerCase() || firstWord.endsWith('/' + allowedCmd.toLowerCase())) {
         allowed = true;
         break;
       }
     }
+    
     if (!allowed) {
-      throw new Error(`Command '${firstWord}' is not allowed`);
+      throw new Error(`Command '${firstWord}' is not in the allowed list. Allowed: ${this.whitelist.join(', ')}`);
     }
   }
 
   /**
-   * Split a chained command by '&&' and trim each part.
-   * @param {string} command - The chained command.
-   * @returns {string[]} Array of individual commands.
-   */
-  splitChain(command) {
-    if (typeof command !== 'string') {
-      throw new Error('Command must be a string');
-    }
-    return command.split('&&').map(part => part.trim()).filter(part => part.length > 0);
-  }
-
-  /**
-   * Execute a single command with current cwd.
+   * Execute a single command using execa.
    * @param {string} command - The command to execute.
-   * @returns {Promise<{stdout: string, stderr: string}>} Execution result.
+   * @returns {Promise<{stdout: string, stderr: string, exitCode: number}>}
    * @private
    */
   async _executeSingle(command) {
-    // Check if it's a cd command
-    if (command.toLowerCase().startsWith('cd ')) {
-      const arg = command.substring(3).trim();
+    // Handle cd command specially (changes cwd for subsequent commands)
+    const cdMatch = command.match(/^cd\s+(.+)$/i);
+    if (cdMatch) {
+      const targetDir = cdMatch[1].trim().replace(/["']/g, '');
       let newPath;
-      if (arg.startsWith('/')) {
-        newPath = arg;
+      
+      if (path.isAbsolute(targetDir)) {
+        newPath = targetDir;
       } else {
-        newPath = path.resolve(this.cwd, arg);
+        newPath = path.resolve(this.cwd, targetDir);
       }
-      // Update cwd
+      
       this.cwd = newPath;
-      // cd doesn't produce output; simulate success
-      return { stdout: '', stderr: '' };
+      console.log('[ShellTool] Changed cwd to:', this.cwd);
+      return { stdout: `Changed directory to ${newPath}`, stderr: '', exitCode: 0 };
     }
 
-    // Regular command execution
+    // Execute with execa (shell: true for complex commands)
     try {
-      const result = await execPromise(command, { cwd: this.cwd });
-      return result;
+      console.log('[ShellTool] Executing:', command, 'in', this.cwd);
+      
+      const result = await execa.command(command, {
+        cwd: this.cwd,
+        shell: true,
+        timeout: 60000,  // 60 second timeout
+        reject: false,   // Don't throw on non-zero exit
+        env: {
+          ...process.env,
+          // Ensure git doesn't open editors
+          GIT_EDITOR: 'true',
+          EDITOR: 'true',
+        }
+      });
+
+      return {
+        stdout: result.stdout || '',
+        stderr: result.stderr || '',
+        exitCode: result.exitCode
+      };
     } catch (error) {
-      // execPromise rejects on non-zero exit code; we still return stdout/stderr
-      return { stdout: error.stdout || '', stderr: error.stderr || error.message };
+      console.error('[ShellTool] Execution error:', error.message);
+      return {
+        stdout: '',
+        stderr: error.message || 'Unknown error',
+        exitCode: error.exitCode || 1
+      };
     }
   }
 
   /**
-   * Execute a command (possibly chained) with validation.
-   * @param {string|Object} commandOrParams - The command string, or an object { action, command, cwd }
-   * @returns {Promise<{stdout: string, stderr: string}>} The result of the last command.
+   * Execute a command (possibly chained with &&) with validation.
+   * @param {string|Object} commandOrParams - Command string or { action, command, cwd }
+   * @returns {Promise<{stdout: string, stderr: string, exitCode?: number}>}
    */
   async execute(commandOrParams) {
     console.log('[ShellTool] execute called with:', JSON.stringify(commandOrParams));
     
-    // Handle both string and object formats for compatibility with function calling
+    // Handle both string and object formats
     let command;
     if (typeof commandOrParams === 'object' && commandOrParams !== null) {
-      // Try multiple possible field names
       command = commandOrParams.command || commandOrParams.cmd || commandOrParams.args;
-      console.log('[ShellTool] Extracted command from object:', command);
-      // Optionally set cwd if provided
+      console.log('[ShellTool] Extracted command:', command);
+      
+      // Set cwd if provided (convert relative to absolute)
       if (commandOrParams.cwd) {
-        this.cwd = commandOrParams.cwd;
+        const requestedCwd = commandOrParams.cwd;
+        if (path.isAbsolute(requestedCwd)) {
+          this.cwd = requestedCwd;
+        } else {
+          this.cwd = path.resolve(PROJECT_ROOT, requestedCwd);
+        }
+        console.log('[ShellTool] Set cwd to:', this.cwd);
       }
     } else {
       command = commandOrParams;
@@ -184,23 +205,57 @@ class ShellTool {
 
     // Validate command is a string
     if (typeof command !== 'string') {
-      console.error('[ShellTool] Command is not a string. Got:', typeof command, command);
+      console.error('[ShellTool] Invalid command type:', typeof command);
       throw new Error(`Command must be a string. Received: ${JSON.stringify(commandOrParams)}`);
     }
 
-    // Validate the whole command string (before splitting) to catch blocklisted patterns
+    // Validate the command
     this.validateCommand(command);
 
-    const parts = this.splitChain(command);
-    let lastResult = { stdout: '', stderr: '' };
+    // Handle chained commands (split by &&)
+    const parts = command.split('&&').map(p => p.trim()).filter(p => p.length > 0);
+    let lastResult = { stdout: '', stderr: '', exitCode: 0 };
+    let allStdout = [];
+    let allStderr = [];
 
     for (const part of parts) {
-      // Validate each part individually (in case splitting creates new issues)
+      // Validate each part
       this.validateCommand(part);
-      lastResult = await this._executeSingle(part);
+      
+      const result = await this._executeSingle(part);
+      lastResult = result;
+      
+      if (result.stdout) allStdout.push(result.stdout);
+      if (result.stderr) allStderr.push(result.stderr);
+      
+      // Stop chain if command failed (like bash &&)
+      if (result.exitCode !== 0) {
+        console.log('[ShellTool] Command failed, stopping chain. Exit code:', result.exitCode);
+        break;
+      }
     }
 
-    return lastResult;
+    return {
+      stdout: allStdout.join('\n'),
+      stderr: allStderr.join('\n'),
+      exitCode: lastResult.exitCode
+    };
+  }
+
+  /**
+   * Get current working directory.
+   * @returns {string}
+   */
+  getCwd() {
+    return this.cwd;
+  }
+
+  /**
+   * Reset cwd to project root.
+   */
+  resetCwd() {
+    this.cwd = PROJECT_ROOT;
+    console.log('[ShellTool] Reset cwd to:', this.cwd);
   }
 }
 

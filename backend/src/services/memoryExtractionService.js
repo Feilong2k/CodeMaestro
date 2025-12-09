@@ -53,8 +53,14 @@ class MemoryExtractionService {
          WHERE project_id = $1 AND key = 'last_extraction_point' AND type = 'system'`,
         [projectId]
       );
-      return result.rows.length > 0 ? parseInt(result.rows[0].count, 10) : 0;
-    } catch {
+      
+      if (result.rows.length > 0 && result.rows[0].count !== null) {
+        const count = parseInt(result.rows[0].count, 10);
+        return isNaN(count) ? 0 : count;
+      }
+      return 0;
+    } catch (err) {
+      console.log('[MemoryExtraction] getLastExtractionPoint error:', err.message);
       return 0;
     }
   }
