@@ -6,6 +6,7 @@ import TheHeader from './components/TheHeader.vue'
 import MatrixBackground from './components/MatrixBackground.vue'
 import MainLayout from './components/MainLayout.vue'
 import ChatPanel from './components/ChatPanel.vue'
+import SystemLogPanel from './components/SystemLogPanel.vue'
 import ActivityLog from './components/ActivityLog.vue'
 import StatusBar from './components/StatusBar.vue'
 import PatternManager from './components/PatternManager.vue'
@@ -46,8 +47,8 @@ onMounted(checkHealth)
     <div class="relative z-10">
       <TheHeader />
       <MainLayout>
-        <!-- Default slot (main content) -->
-        <template #default>
+        <!-- Left slot (Chat/Views) -->
+        <template #left>
           <ChatPanel v-if="currentView === 'dashboard'" />
           <PatternManager v-else-if="currentView === 'patterns'" />
           <Workflows v-else-if="currentView === 'workflows'" />
@@ -57,7 +58,12 @@ onMounted(checkHealth)
           <ChatPanel v-else />
         </template>
 
-        <!-- Right slot (for activity log) -->
+        <!-- Center slot (System Log) -->
+        <template #center>
+          <SystemLogPanel />
+        </template>
+
+        <!-- Right slot (Activity) -->
         <template #right>
           <ActivityLog />
         </template>

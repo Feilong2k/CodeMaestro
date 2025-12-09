@@ -1,37 +1,45 @@
 <template>
   <div class="main-layout">
-    <!-- Desktop: 2-column grid (no left bar), Mobile: single column -->
+    <!-- Desktop: 3-column grid (left, center, right), Mobile: single column -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 w-full max-w-7xl mx-auto px-4 lg:px-6 pt-4 lg:pt-6 pb-0 h-full">
-      <!-- Main content slot - now takes more space because left bar is removed -->
-      <main class="lg:col-span-7 xl:col-span-8 order-1 lg:order-1 flex flex-col h-full min-h-0">
-        <div class="w-full max-w-4xl mx-auto flex-1 h-full min-h-0 flex flex-col">
-          <slot>
-            <!-- Default slot content (placeholder) -->
-            <div class="bg-bg-elevated border border-line-base rounded-xl p-6 shadow-matrix-glow h-full">
-              <h2 class="text-2xl font-bold text-text-primary font-matrix-sans mb-4">Main Content Area</h2>
-              <p class="text-text-secondary font-matrix-sans">
-                This is the main chat area. The layout provides a centered column with a maximum width of 960px.
-              </p>
-            </div>
-          </slot>
-        </div>
-      </main>
+      <!-- Left slot (Chat) -->
+      <div class="lg:col-span-6 order-1 flex flex-col h-full min-h-0">
+        <slot name="left">
+          <!-- Default left slot content (placeholder) -->
+          <div class="bg-bg-elevated border border-line-base rounded-xl p-6 shadow-matrix-glow h-full">
+            <h2 class="text-2xl font-bold text-text-primary font-matrix-sans mb-4">Left Panel (Chat)</h2>
+            <p class="text-text-secondary font-matrix-sans">
+              This is the left panel for chat.
+            </p>
+          </div>
+        </slot>
+      </div>
 
-      <!-- Right sidebar slot - hidden on mobile, visible on large screens -->
-      <aside
-        class="lg:col-span-5 xl:col-span-4 order-2"
-        :class="[!showRightOnMobile ? 'hidden' : '', 'lg:block']"
-      >
-        <div class="sticky top-20">
-          <slot name="right">
-            <!-- Default right slot content (placeholder) -->
-            <div class="bg-bg-layer border border-line-base rounded-lg p-4 text-text-secondary text-sm">
-              <h3 class="font-matrix-sans font-semibold text-text-primary mb-2">Right Sidebar</h3>
-              <p class="font-matrix-mono text-xs">Placeholder for status, tools, etc.</p>
-            </div>
-          </slot>
-        </div>
-      </aside>
+      <!-- Center slot (System Log) -->
+      <div class="lg:col-span-3 order-2 lg:order-2 flex flex-col h-full min-h-0">
+        <slot name="center">
+          <!-- Default center slot content (placeholder) -->
+          <div class="bg-bg-elevated border border-line-base rounded-xl p-6 shadow-matrix-glow h-full">
+            <h2 class="text-2xl font-bold text-text-primary font-matrix-sans mb-4">System Log</h2>
+            <p class="text-text-secondary font-matrix-sans">
+              This is the system log panel.
+            </p>
+          </div>
+        </slot>
+      </div>
+
+      <!-- Right slot (Activity) -->
+      <div class="lg:col-span-3 order-3 lg:order-3 flex flex-col h-full min-h-0">
+        <slot name="right">
+          <!-- Default right slot content (placeholder) -->
+          <div class="bg-bg-elevated border border-line-base rounded-xl p-6 shadow-matrix-glow h-full">
+            <h2 class="text-2xl font-bold text-text-primary font-matrix-sans mb-4">Activity Panel</h2>
+            <p class="text-text-secondary font-matrix-sans">
+              This is the activity panel.
+            </p>
+          </div>
+        </slot>
+      </div>
     </div>
   </div>
 </template>
