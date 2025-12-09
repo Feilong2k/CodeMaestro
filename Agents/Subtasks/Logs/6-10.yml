@@ -116,6 +116,7 @@ agentInstructions:
       - "Implement the Pinia store in frontend/src/stores/systemLogStore.js for { connected, messages } and helper actions (setConnected, addMessage, clear)."
       - "Refactor frontend/src/components/SystemLogPanel.vue to use systemLogStore (no local wsConnected ref or hard-coded messages)."
       - "Update backend/src/socket/index.js to emit basic system_message events (connect, disconnect, optional server-start)."
+      - "Emit system_message for notable Orion actions (e.g., 'list tools', plan generated) from the application layer (service/controller) using the socket helper: const { broadcastToAll } = require('../../socket'); broadcastToAll('system_message', { timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), level: 'info', text: \"Orion: Tools listed (...)\" })."
       - "Coordinate event names and payload shape with Tara so tests remain stable."
 
   tara:
@@ -130,11 +131,12 @@ agentInstructions:
 
 verificationChecklist:
   - "[x] [TDD] Failing integration tests created (Red)"
-  - "[x] [TDD] Implementation satisfies integration tests (Green)"
-  - "[x] [TDD] Refactor pass (Cleanup)"
+  - "[ ] [TDD] Implementation satisfies integration tests (Green)"
+  - "[ ] [TDD] Refactor pass (Cleanup)"
   - "[ ] [TDD] Final test by Tara and Coverage > 80% for new code"
-  - "[x] SystemLogPanel shows connection and disconnection events based on real socket state"
+  - "[ ] SystemLogPanel shows connection and disconnection events based on real socket state"
   - "[ ] Triggering an agent task produces at least one new System Log entry without refreshing the page"
+  - "[ ] Orion actions (e.g., 'list tools') emit system_message and appear in the System Log view"
   - "[ ] Stopping and restarting backend results in visible disconnect and reconnect information in System Log (or at minimum via status indicator)"
 
 human_verification:
