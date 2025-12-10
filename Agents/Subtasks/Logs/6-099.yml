@@ -109,13 +109,13 @@ implementation_plan:
       - Ensure the ActivityLogPanel continues to receive streaming shell‑output events.
 
 requiredActions:
-  - "[ ] [TDD] Create failing unit tests for CombinedLogPanel (Red)"
-  - "[ ] [TDD] Implement CombinedLogPanel and layout changes (Green)"
-  - "[ ] [TDD] Refactor layout to 50/50 split and verify tabs work"
-  - "[ ] [TDD] Update chat styling tests for text wrapping and background colours"
-  - "[ ] [Integration] Test that Activity Log still streams shell output"
-  - "[ ] [Integration] Test that System Log still receives WebSocket events"
-  - "[ ] [Integration] Test that chat messages wrap and display correctly"
+  - "[ ] [TDD] Create failing unit tests for CombinedLogPanel (Red) (Tara)"
+  - "[x] [TDD] Implement CombinedLogPanel and layout changes (Green) (Devon)"
+  - "[x] [TDD] Refactor layout to 50/50 split and verify tabs work (Devon)"
+  - "[ ] [TDD] Update chat styling tests for text wrapping and background colours (Tara)"
+  - "[ ] [Integration] Test that Activity Log still streams shell output (Tara)"
+  - "[ ] [Integration] Test that System Log still receives WebSocket events (Tara)"
+  - "[ ] [Integration] Test that chat messages wrap and display correctly (Tara)"
 
 agentInstructions:
   devon:
@@ -224,3 +224,7 @@ history:
     role: architect
     action: REVISED
     message: "Updated scope to include basic chat cleanup (text wrapping, simplified styling, grey user background, compact view)."
+  - ts: "2025-12-10T17:59:00Z"
+    role: devon
+    action: IMPLEMENTED
+    message: "Implemented 50/50 split layout with CombinedLogPanel (tabs for Activity/System logs). Updated ChatMessage.vue to remove logo/name/time, add text wrapping, grey user background, 95% width. Removed compact toggle from ChatPanel.vue. All changes are in frontend/src/**."

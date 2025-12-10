@@ -13,7 +13,6 @@
         :typing-effect="msg.typingEffect || false"
         :typing-speed="5"
         :alignment="getAlignment(msg.sender)"
-        :compact="compactMode"
       />
       
       <!-- Typing indicator when waiting for response -->
@@ -55,7 +54,7 @@
         </button>
       </div>
 
-      <!-- Compact mode toggle -->
+      <!-- Clear button only (compact toggle removed) -->
       <div class="flex items-center space-x-2">
         <button
           @click="chatStore.clearHistory()"
@@ -63,17 +62,6 @@
           title="Clear Chat History"
         >
           Clear
-        </button>
-        <button
-          @click="compactMode = !compactMode"
-          :class="[
-            'px-4 py-1.5 rounded-md text-sm font-medium transition-colors duration-fast font-matrix-sans border',
-            compactMode
-              ? 'bg-accent-secondary text-bg-base border-accent-secondary shadow-matrix-glow'
-              : 'bg-bg-layer/60 text-text-secondary border-line-base/60 hover:text-text-primary hover:shadow-matrix-glow'
-          ]"
-        >
-          {{ compactMode ? 'Normal' : 'Compact' }}
         </button>
       </div>
     </div>
@@ -122,8 +110,6 @@ const chatStore = useChatStore()
 const appStore = useAppStore()
 const { currentView } = storeToRefs(appStore)
 const { setCurrentView } = appStore
-
-const compactMode = ref(false)
 
 const sendMessage = async () => {
   const text = inputEl.value?.innerText?.trim()

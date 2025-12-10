@@ -1,36 +1,13 @@
 <template>
-  <div 
-    class="message rounded-lg p-4"
-    :class="[
-      compact ? 'p-2' : 'p-4',
-      alignment === 'right' ? 'user-message' : 'orion-message'
-    ]"
-  >
-    <div class="flex items-start space-x-3" :class="{ 'flex-row-reverse space-x-reverse': alignment === 'right' }">
-      <div
-        class="w-8 h-8 rounded-full flex items-center justify-center shadow-matrix-glow shrink-0"
-        :class="avatarBg"
-      >
-        <span class="text-bg-base font-bold" :class="compact ? 'text-xs' : 'text-sm'">{{ avatarText }}</span>
-      </div>
-      <div class="flex-1" :class="{ 'text-right': alignment === 'right' }">
-        <div class="flex items-center justify-between mb-1" :class="{ 'flex-row-reverse': alignment === 'right' }">
-          <span class="font-semibold text-text-primary font-matrix-sans" :class="compact ? 'text-sm' : ''">{{ sender }}</span>
-          <span class="text-xs text-text-muted font-matrix-mono">{{ time }}</span>
-        </div>
-        <div 
-          class="message-content font-matrix-sans whitespace-pre-wrap rounded-lg px-3 py-2 max-w-[80%]"
-          :class="[
-            compact ? 'text-sm' : 'text-text-secondary',
-            alignment === 'right' 
-              ? 'bg-accent-secondary text-bg-base ml-auto' 
-              : 'bg-bg-elevated text-text-secondary border border-line-base'
-          ]"
-          v-html="renderedMessage"
-          ref="messageContent"
-        />
-      </div>
-    </div>
+  <div class="message mb-4">
+    <div 
+      class="message-content font-matrix-sans whitespace-pre-wrap rounded-lg px-4 py-3 w-[95%] mx-auto"
+      :class="[
+        alignment === 'right' ? 'bg-gray-100 text-text-primary' : 'bg-bg-elevated text-text-secondary border border-line-base'
+      ]"
+      v-html="renderedMessage"
+      ref="messageContent"
+    />
   </div>
 </template>
 

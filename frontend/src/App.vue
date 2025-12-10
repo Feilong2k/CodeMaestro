@@ -6,8 +6,7 @@ import TheHeader from './components/TheHeader.vue'
 import MatrixBackground from './components/MatrixBackground.vue'
 import MainLayout from './components/MainLayout.vue'
 import ChatPanel from './components/ChatPanel.vue'
-import SystemLogPanel from './components/SystemLogPanel.vue'
-import ActivityLog from './components/ActivityLog.vue'
+import CombinedLogPanel from './components/CombinedLogPanel.vue'
 import StatusBar from './components/StatusBar.vue'
 import PatternManager from './components/PatternManager.vue'
 import Workflows from './views/Workflows.vue'
@@ -58,14 +57,9 @@ onMounted(checkHealth)
           <ChatPanel v-else />
         </template>
 
-        <!-- Center slot (System Log) -->
-        <template #center>
-          <SystemLogPanel />
-        </template>
-
-        <!-- Right slot (Activity) -->
+        <!-- Right slot (Combined Log Panel) -->
         <template #right>
-          <ActivityLog />
+          <CombinedLogPanel />
         </template>
       </MainLayout>
       <!-- StatusBar fixed at bottom, outside MainLayout -->
