@@ -1,7 +1,7 @@
 <template>
   <div class="message mb-2">
     <div 
-      class="message-content compact-message font-matrix-sans whitespace-pre-wrap break-words rounded-lg px-4 py-2 w-[95%] mx-auto max-w-full"
+      class="message-content compact-message font-matrix-sans whitespace-pre-wrap break-words rounded-lg px-4 pt-2 w-[95%] mx-auto max-w-full"
       :class="alignment === 'right' ? 'user-message' : 'bg-bg-elevated text-text-secondary border border-line-base'"
       v-html="renderedMessage"
       ref="messageContent"
@@ -149,7 +149,7 @@ watch(() => props.message, () => {
 .compact-message {
   font-size: 0.875rem; /* 14px, 2 points smaller than base 16px */
   line-height: 1.3;
-  padding: 0.5rem 1rem !important; /* py-2 px-4 already present, but ensure */
+  padding: 0.5rem 1rem 0 1rem !important; /* top, right, bottom, left - bottom padding removed */
 }
 
 .compact-message :deep(*) {
@@ -180,6 +180,51 @@ watch(() => props.message, () => {
 .compact-message :deep(ol) {
   margin: 0;
   padding-left: 1.25rem;
+}
+
+.compact-message :deep(li) {
+  margin: 0;
+  padding: 0;
+}
+
+.compact-message :deep(li + li) {
+  margin-top: 0;
+}
+
+/* Remove spacing between lists and surrounding content */
+.compact-message :deep(ul + *),
+.compact-message :deep(ol + *),
+.compact-message :deep(* + ul),
+.compact-message :deep(* + ol) {
+  margin-top: 0;
+}
+
+/* Remove all heading spacing including before/after */
+.compact-message :deep(h1),
+.compact-message :deep(h2),
+.compact-message :deep(h3),
+.compact-message :deep(h4),
+.compact-message :deep(h5),
+.compact-message :deep(h6) {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Remove spacing between consecutive headings */
+.compact-message :deep(h1 + h2),
+.compact-message :deep(h2 + h3),
+.compact-message :deep(h3 + h4),
+.compact-message :deep(h4 + h5),
+.compact-message :deep(h5 + h6),
+.compact-message :deep(h1 + h1),
+.compact-message :deep(h2 + h2),
+.compact-message :deep(h3 + h3),
+.compact-message :deep(h4 + h4),
+.compact-message :deep(h5 + h5),
+.compact-message :deep(h6 + h6) {
+  margin-top: 0;
 }
 
 .user-message {
