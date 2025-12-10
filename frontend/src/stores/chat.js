@@ -108,12 +108,15 @@ export const useChatStore = defineStore('chat', {
         // History is now loaded from database server-side
         const response = await chat(content, mode, projectId)
         
-        // Add Orion's response
+        // Add Orion's response (disable typing effect for large messages to reduce CPU/GC churn)
+        const respText = response.data?.response || 'I received your message.'
+        // Adaptive typing: disable for very long messages, adjust speed based on length
+        const enableTyping = respText.length < 1500 // threshold: no typing for very long messages
         this.addMessage({
           sender: 'Orion',
-          content: response.data?.response || 'I received your message.',
+          content: respText,
           timestamp: new Date(),
-          typingEffect: true,
+          typingEffect: enableTyping,
           mode: mode // Optional: store mode to display icon/badge later
         })
       } catch (error) {

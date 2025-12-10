@@ -1,0 +1,176 @@
+# Subtask Log: 6-105 (Manifest‑Driven Consultation & Advisory Report UI)
+id: "6-105"
+title: "Manifest‑Driven Consultation & Advisory Report UI"
+status: pending
+branch: "subtask/6-105-manifest-consultation"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Implement the manifest‑driven consultation workflow: for complex architectural requests, the first brain creates a manifest (structured JSON) and sends it to a second‑tier consultant (DeepSeek‑Reasoner or GPT‑4) for advisory analysis. The consultant returns an advisory report (constraints, gaps, conditions, recommendations) that is rendered as an interactive document in the Orion’s Workspace tab.
+
+constraint_discovery:
+  subtask_id: "6-105"
+  owner: "Orion"
+  concern: "Architectural Review & Advisory Transparency"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Design manifest schema"
+      description: "Define the JSON schema for the manifest that the first brain will produce."
+    - action: "Implement manifest generation"
+      description: "Create a service that builds the manifest from the agent context and classification."
+    - action: "Implement consultant adapter"
+      description: "Create an adapter that sends the manifest to a second‑tier LLM (DeepSeek‑Reasoner) and parses the advisory report."
+    - action: "Render advisory report in Workspace"
+      description: "Stream the advisory report to the Workspace tab and display it as a formatted document."
+
+  resources_touched:
+    - resource: "UnifiedAdapter (6‑100)"
+      constraint: "The first brain uses UnifiedAdapter to generate the manifest."
+    - resource: "Second‑tier LLM (DeepSeek‑Reasoner)"
+      constraint: "Must be configured separately from the primary adapter, with higher rate limits and costs."
+    - resource: "Workspace tab"
+      constraint: "Advisory report must be displayed alongside reasoning and CDP audit."
+
+  resource_physics:
+    - resource: "Consultant Latency"
+      constraint: "Second‑tier LLM may be slower (e.g., DeepSeek‑Reasoner) and add seconds to the response."
+      risk: "User may perceive a delay for complex requests."
+      mitigation: "Stream the first brain's preliminary plan immediately while the consultation runs in the background; update the Workspace when the advisory arrives."
+
+    - resource: "Advisory Report Size"
+      constraint: "The report may be lengthy (multiple paragraphs)."
+      risk: "Overwhelming the Workspace UI."
+      mitigation: "Render the report as a collapsible document with sections."
+
+  verification:
+    - action: "Manifest Generation Unit Tests"
+      method: "Test that the manifest generator produces valid JSON according to the schema."
+    - action: "Consultant Integration Tests"
+      method: "Test that a manifest is sent to the consultant and an advisory report is returned and displayed in the Workspace."
+
+implementation_plan:
+  - component: "Manifest Schema"
+    path: "backend/src/schemas/manifestSchema.js (new)"
+    details: |
+      - Define the manifest structure:
+        ```json
+        {
+          "intent": "string",
+          "escalation_reason": "string",
+          "risk_assessment": "Low|Medium|High",
+          "files": [
+            { "path": "...", "operation": "read|write|delete", "purpose": "..." }
+          ],
+          "dependencies": [],
+          "approach": "string",
+          "context": {
+            "relevantFileSnippets": ["..."],
+            "conversationSummary": "string",
+            "knownConstraints": []
+          }
+        }
+        ```
+
+  - component: "ManifestGenerator Service"
+    path: "backend/src/services/ManifestGenerator.js (new)"
+    details: |
+      - Builds a manifest from the agent's current context, classification, and file operations.
+      - Called by the first brain when the observation classification indicates a complex architectural task.
+
+  - component: "ConsultantAdapter"
+    path: "backend/src/llm/ConsultantAdapter.js (new)"
+    details: |
+      - Extends BaseAdapter but uses a different model (DeepSeek‑Reasoner or GPT‑4).
+      - Accepts a manifest and returns an advisory report (structured JSON or Markdown).
+      - The advisory report includes sections: constraints, gaps, conditions, recommendations.
+
+  - component: "Advisory Report Streaming"
+    path: "backend/src/services/AdvisoryReportService.js (new)"
+    details: |
+      - Listens for the consultant's response.
+      - Emits a WebSocket event `orion:advisory_report` with the report content.
+      - The event is streamed to the Workspace tab.
+
+  - component: "Workspace Advisory Report Renderer"
+    path: "frontend/src/components/OrionWorkspace.vue"
+    details: |
+      - Listen for `orion:advisory_report` events.
+      - Render the report as a formatted Markdown document with expandable sections.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for ManifestGenerator (Red)"
+  - "[ ] [TDD] Implement ManifestGenerator and ConsultantAdapter (Green)"
+  - "[ ] [TDD] Implement AdvisoryReportService and WebSocket integration"
+  - "[ ] [Integration] Test that a complex request triggers a manifest and advisory report visible in the Workspace"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement the manifest‑driven consultation workflow, including manifest generation, consultant adapter, and advisory report display.
+      All work must stay within backend/src/** and frontend/src/**.
+    steps:
+      - "Create the manifest schema and `ManifestGenerator.js`."
+      - "Create `ConsultantAdapter.js` that calls the second‑tier LLM."
+      - "Create `AdvisoryReportService.js` to stream the report to the Workspace."
+      - "Update the Workspace component to render advisory reports."
+      - "Run tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for manifest generation, consultant adapter, and advisory report streaming, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for ManifestGenerator that validate the generated manifest."
+      - "Create integration tests for ConsultantAdapter that mock the second‑tier LLM and verify advisory report parsing."
+      - "Create frontend unit tests for the Workspace component rendering of advisory reports."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify that a complex architectural request triggers a manifest generation."
+      method: "Send a request like 'Design a new microservice for user authentication' and check the logs."
+      expected: "A manifest JSON is generated and logged (or visible in the Workspace)."
+      verified: false
+    - id: "HV-2"
+      action: "Check that an advisory report appears in the Workspace tab."
+      method: "After sending the complex request, watch the Workspace tab for an advisory report."
+      expected: "Workspace displays a structured advisory report with constraints, gaps, recommendations."
+      verified: false
+    - id: "HV-3"
+      action: "Confirm that the advisory report is streamed in real time (not all at once)."
+      method: "Observe the Workspace during the consultation; the report should appear incrementally."
+      expected: "Report sections appear as they are generated by the consultant."
+      verified: false
+    - id: "HV-4"
+      action: "Verify that the manifest includes the correct risk assessment and file operations."
+      method: "Inspect the generated manifest (via logs or UI) for a high‑risk task."
+      expected: "Manifest contains risk_assessment: High and lists files to be touched."
+      verified: false
+
+internal_logic: |
+  **Workflow**:
+  1. The observation stage classifies a request as complex architectural (e.g., >5 steps, high risk).
+  2. The first brain (UnifiedAdapter) generates a manifest using the ManifestGenerator.
+  3. The manifest is sent to the ConsultantAdapter, which calls the second‑tier LLM.
+  4. The consultant returns an advisory report (structured JSON or Markdown).
+  5. The AdvisoryReportService streams the report to the Workspace via WebSocket.
+  6. The first brain may proceed with a preliminary plan while the consultation runs in the background; the advisory report is added as an update.
+
+  **Manifest Trigger**:
+  - Triggered when the observation classification includes `needs_analysis: true` and `estimated_steps > 5` (or manually flagged as architectural).
+
+expected_output: |
+  - A working manifest generation service that produces structured manifests for complex tasks.
+  - A consultant adapter that returns advisory reports from a second‑tier LLM.
+  - Real‑time streaming of advisory reports to the Orion’s Workspace tab, rendered as interactive documents.
+
+history:
+  - ts: "2025-12-10T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for Manifest‑Driven Consultation & Advisory Report UI (Task 6‑105)."

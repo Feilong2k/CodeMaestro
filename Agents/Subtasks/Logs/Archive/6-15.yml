@@ -1,0 +1,46 @@
+# Subtask Log: 6-15 (FSM Error Sub-machine)
+id: "6-15"
+title: "FSM Error Sub-machine (Retry/Escalate/Abort)"
+status: pending
+branch: "subtask/6-15-fsm-error-submachine"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Enhance the Agent FSM to model ERROR as a sub-machine with deterministic
+  exits (RETRY, ESCALATE, ABORT). This reduces triage time, improves
+  observability, and prevents zombie states by providing clear recovery paths.
+
+dependencies:
+  - "6-1"   # Agent FSM Core + DB logging
+
+acceptanceCriteria:
+  - "On tool failure, transition to ERROR_INIT with 'cause' captured in log."
+  - "RETRY path: ERROR_INIT → RETRY_WAIT (exponential backoff + jitter) → OBSERVE; cap attempts (e.g., 3)."
+  - "ESCALATE path: ERROR_INIT → ESCALATE_PENDING; System Log and agent_fsm_log record reason; can RESUME or ABORT."
+  - "ABORT path: ERROR_INIT → ABORTED (final) with root cause recorded."
+  - "Policy is configurable (retry count, base backoff, max backoff, jitter)."
+
+requiredActions:
+  - "Update backend/src/machines/AgentFSM.js to add ERROR sub-machine (states: ERROR_INIT, RETRY_WAIT, ESCALATE_PENDING, ABORTED)."
+  - "Wire default policy into backend/src/services/AgentExecutor.js; ensure transitions are locked per subtask."
+  - "Extend AgentFsmLogService to log cause, attempt, and backoff duration for ERROR transitions."
+  - "Unit tests: simulate tool failure; assert RETRY attempts, ESCALATE, and ABORT flows."
+
+links:
+  - scope: "Docs/Futures/Phase6_FSM_Error_and_HealthCheck_Scope.md"
+
+audit:
+  risks:
+    - risk: "Double-exit race between retry timer and manual escalation"
+      mitigation: "Use per-subtask transition locks and cancel timers on manual actions."
+    - risk: "Over-aggressive retries"
+      mitigation: "Conservative defaults; make policy configurable; add max backoff."
+
+history:
+  - ts: "2025-12-09T19:39:00Z"
+    role: architect
+    action: CREATED
+    message: "Initialized subtask log with explicit ERROR flows and tests"

@@ -1,0 +1,226 @@
+# Subtask Log: 6-099 (UI Panel Reorganization & Basic Chat Cleanup)
+id: "6-099"
+title: "UI Panel Reorganization & Basic Chat Cleanup (50/50 Split + Text Wrapping, Compact View)"
+status: pending
+branch: "subtask/6-099-ui-panel-reorg"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Reorganize the main UI to split the screen 50/50 between the Chat panel (left) and a combined Activity/System Log panel (right).
+  The right panel will have two tabs: "Activity Log" (streaming shell output) and "System Log" (WebSocket events).
+  Additionally, implement low‑effort chat UI improvements:
+  - Text wrapping (no horizontal scroll).
+  - Remove Orion logo, name, and timestamps; left‑align messages with padding.
+  - User messages have grey background for visual distinction.
+  - Compact view only, with messages using 95% of the panel width and side padding.
+
+constraint_discovery:
+  subtask_id: "6-099"
+  owner: "Orion"
+  concern: "UI Layout & Chat Cleanup"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Design 50/50 split layout using CSS grid/flex"
+      description: "Adjust the main container to have two equal‑width columns."
+    - action: "Combine Activity Log and System Log into a tabbed panel"
+      description: "Create a tab component that switches between Activity and System logs within the right panel."
+    - action: "Ensure real‑time streaming continues in Activity Log tab"
+      description: "Shell output must stream into the Activity Log tab without interruption."
+    - action: "Ensure System Log WebSocket events display in System Log tab"
+      description: "Existing SystemLogPanel must work within the new tabbed container."
+    - action: "Implement chat text wrapping (CSS: white‑space: pre‑wrap; word‑wrap: break‑word)"
+      description: "Prevent horizontal scrollbars in chat messages."
+    - action: "Simplify chat message styling"
+      description: "Remove Orion logo, name, and time; left‑align with padding; set user message background to grey."
+    - action: "Enforce compact view and width constraints"
+      description: "Remove view‑toggle button, set chat messages to 95% width with side padding."
+
+  resources_touched:
+    - resource: "StatusBar.vue (or main layout component)"
+      constraint: "Must not break existing functionality of other UI components."
+    - resource: "ActivityLogPanel.vue"
+      constraint: "Must remain functional and responsive when placed in a tab."
+    - resource: "SystemLogPanel.vue"
+      constraint: "Must remain functional and responsive when placed in a tab."
+    - resource: "ChatPanel.vue"
+      constraint: "Styling changes must not break existing chat functionality."
+    - resource: "ChatMessage.vue"
+      constraint: "Must retain all message data while hiding logo, name, and timestamp."
+
+  resource_physics:
+    - resource: "Screen Real Estate"
+      constraint: "50/50 split must leave enough room for both chat and logs to be usable."
+      risk: "Logs may become too narrow on smaller screens."
+      mitigation: "Use min‑width and allow horizontal scrolling within log panels."
+
+    - resource: "WebSocket Connections"
+      constraint: "Moving SystemLogPanel into a tab should not disrupt the WebSocket connection."
+      risk: "Re‑mounting the component could disconnect."
+      mitigation: "Keep the WebSocket connection at a higher level (e.g., in App.vue) and pass events down."
+
+    - resource: "Chat Message Layout"
+      constraint: "Removing logo and timestamps changes the visual hierarchy."
+      risk: "Messages may become harder to distinguish (user vs. AI)."
+      mitigation: "Use background color (grey for user) and consistent padding."
+
+  verification:
+    - action: "Layout Unit Tests"
+      method: "Test that the grid/flex layout renders two columns of equal width."
+    - action: "Tab Switching Integration Tests"
+      method: "Test that clicking tabs switches between Activity and System logs, and each log displays its content."
+    - action: "Chat Styling Unit Tests"
+      method: "Test that chat messages wrap text, have no horizontal scroll, and user messages have grey background."
+
+implementation_plan:
+  - component: "Main Layout Container"
+    path: "frontend/src/components/StatusBar.vue (or equivalent main layout)"
+    details: |
+      - Replace the current 3‑panel layout (chat, activity, system) with a 2‑column layout.
+      - Left column: Chat panel (existing ChatPanel component).
+      - Right column: New `CombinedLogPanel` component that contains two tabs.
+      - Use CSS grid or flexbox to enforce 50/50 split.
+
+  - component: "CombinedLogPanel.vue (new)"
+    path: "frontend/src/components/CombinedLogPanel.vue"
+    details: |
+      - Create a Vue component with two tabs: "Activity Log" and "System Log".
+      - Use a simple tab‑switching mechanism (e.g., `v‑if` or dynamic component).
+      - Embed the existing `ActivityLogPanel` and `SystemLogPanel` components as tab content.
+      - Style tabs to match the existing UI theme.
+
+  - component: "Chat Styling Updates"
+    path: "frontend/src/components/ChatPanel.vue, frontend/src/components/ChatMessage.vue"
+    details: |
+      - In `ChatMessage.vue`: Remove the Orion logo, name, and timestamp elements.
+      - Apply left‑padding to message text.
+      - Conditionally set background colour: grey for user messages, default for AI.
+      - Add CSS rules for text wrapping: `white‑space: pre‑wrap; word‑wrap: break‑word;`
+      - In `ChatPanel.vue`: Remove the Normal/Compact toggle button (but leave space for the future Pause/Resume button in 6‑110).
+      - Set message container width to 95% with auto margins for side padding.
+
+  - component: "WebSocket Event Forwarding"
+    path: "frontend/src/socket/index.js or frontend/src/stores/logStore.js"
+    details: |
+      - Ensure the WebSocket event bus still delivers events to the SystemLogPanel when it's inside a tab.
+      - Ensure the ActivityLogPanel continues to receive streaming shell‑output events.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for CombinedLogPanel (Red)"
+  - "[ ] [TDD] Implement CombinedLogPanel and layout changes (Green)"
+  - "[ ] [TDD] Refactor layout to 50/50 split and verify tabs work"
+  - "[ ] [TDD] Update chat styling tests for text wrapping and background colours"
+  - "[ ] [Integration] Test that Activity Log still streams shell output"
+  - "[ ] [Integration] Test that System Log still receives WebSocket events"
+  - "[ ] [Integration] Test that chat messages wrap and display correctly"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement the 50/50 split UI, tabbed log panels, and basic chat styling improvements.
+      All work must stay within frontend/src/**.
+    steps:
+      - "Create `CombinedLogPanel.vue` with tabs for Activity and System logs."
+      - "Modify the main layout (likely `StatusBar.vue` or `App.vue`) to use a 50/50 grid/flex and place ChatPanel left, CombinedLogPanel right."
+      - "Update `ChatMessage.vue` to remove logo, name, and time; add text wrapping and conditional background colour."
+      - "Update `ChatPanel.vue` to remove view‑toggle button and adjust message width."
+      - "Ensure the existing ActivityLogPanel and SystemLogPanel components are correctly embedded and receive their respective data streams."
+      - "Run frontend tests and verify the layout looks correct in the browser."
+
+  tara:
+    summary: |
+      Own all tests for the new layout, tab behavior, and chat styling, strictly in frontend/__tests__/**.
+      Do not modify frontend/src/** implementation files.
+    steps:
+      - "Create unit tests for CombinedLogPanel that verify tab switching."
+      - "Create integration tests that verify the 50/50 split renders correctly."
+      - "Create unit tests for chat styling (text wrapping, background colours, element removal)."
+      - "Ensure existing tests for ActivityLogPanel, SystemLogPanel, and ChatPanel still pass."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify the UI layout splits 50/50 between Chat and Log panels."
+      method: "Load the web app; visually confirm the screen is divided evenly."
+      expected: "Chat panel on left half, combined Activity/System Log panel on right half."
+      verified: false
+    - id: "HV-2"
+      action: "Check that the right panel has two tabs: 'Activity Log' and 'System Log'."
+      method: "Look at the right panel; see two tab headers."
+      expected: "Tabs visible and labeled correctly."
+      verified: false
+    - id: "HV-3"
+      action: "Verify switching tabs shows the correct log content."
+      method: "Click 'Activity Log' tab; see shell‑output streaming. Click 'System Log' tab; see WebSocket events."
+      expected: "Each tab displays its respective log content; no mixing."
+      verified: false
+    - id: "HV-4"
+      action: "Confirm chat messages wrap text (no horizontal scroll)."
+      method: "Send a long message; ensure it wraps within the chat panel."
+      expected: "No horizontal scrollbar appears at the bottom of the chat panel."
+      verified: false
+    - id: "HV-5"
+      action: "Verify chat messages are simplified (no logo, name, time)."
+      method: "Inspect a chat message; confirm only the message text is displayed with left padding."
+      expected: "No Orion logo, no name, no timestamp."
+      verified: false
+    - id: "HV-6"
+      action: "Check user messages have grey background."
+      method: "Send a message as user; see the background colour is grey."
+      expected: "User message background is grey; AI message background is default."
+      verified: false
+    - id: "HV-7"
+      action: "Verify compact view is enforced (no view‑toggle button)."
+      method: "Look for the Normal/Compact toggle button; it should be gone."
+      expected: "No view‑toggle button present."
+      verified: false
+    - id: "HV-8"
+      action: "Confirm chat messages use 95% width with side padding."
+      method: "Inspect a chat message; check its width and padding."
+      expected: "Message width is 95% of the chat panel with equal left/right margins."
+      verified: false
+
+internal_logic: |
+  **Layout Decision**: 
+  - The current 3‑panel layout (chat, activity, system) is replaced by a 2‑column grid.
+  - Left column: existing ChatPanel component (with styling updates).
+  - Right column: new CombinedLogPanel component that houses two tabs (Activity and System logs).
+
+  **Chat Styling Updates**:
+  - Text wrapping: CSS `white‑space: pre‑wrap; word‑wrap: break‑word;` applied to message content.
+  - Simplified message: Remove the div/span that contain the Orion logo, name, and timestamp.
+  - User message background: Conditional class that applies a grey background (e.g., `bg-gray-100`).
+  - Compact view: Remove the toggle button and set message width to 95% with auto margins.
+
+  **Data Flow**:
+  - ActivityLogPanel remains subscribed to the shell‑output event bus (via the existing store).
+  - SystemLogPanel remains subscribed to the WebSocket event bus (via the existing store).
+  - Changing tabs does not affect subscriptions; both panels stay alive but are hidden when not active.
+
+expected_output: |
+  - A visually clean 50/50 split layout.
+  - Two tabs in the right panel that switch between Activity Log (streaming text) and System Log (structured events).
+  - Chat messages that wrap text, have no horizontal scroll, and display in a simplified format (no logo, name, time).
+  - User messages with grey background for easy identification.
+  - Compact view only, with messages occupying 95% of the chat panel width.
+  - No disruption to real‑time streaming or WebSocket events.
+
+notes_and_answers: |
+  **Architect's Notes**:
+  - This subtask now includes low‑effort chat improvements (notes 1‑4) as requested.
+  - The Pause/Resume button, thinking line, and reverse‑chronological chat are moved to 6‑110.
+  - Thinking and observation stages are displayed in the Workspace tab automatically (handled by 6‑100 and 6‑101).
+
+history:
+  - ts: "2025-12-10T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for UI panel reorganization (Task 6‑099)."
+  - ts: "2025-12-10T10:44:00Z"
+    role: architect
+    action: REVISED
+    message: "Updated scope to include basic chat cleanup (text wrapping, simplified styling, grey user background, compact view)."

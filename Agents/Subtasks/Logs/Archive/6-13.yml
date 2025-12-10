@@ -1,0 +1,55 @@
+# Subtask Log: 6-13 (Deterministic Resource Queue)
+id: "6-13"
+title: "Deterministic Resource Queue (BodyInterface)"
+status: pending
+branch: "subtask/6-13-resource-queue"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Introduce a lightweight per-resource execution queue to serialize access to
+  shared resources (fs, git, shell) and eliminate race conditions across
+  parallel subtasks. Keys like "fs:/abs/path", "git:repo", and
+  "shell:global" (or "shell:/abs/path") enforce deterministic ordering. The
+  queue is feature-flagged and integrates behind FileSystemTool, GitTool, and
+  ShellTool entry points.
+
+dependencies:
+  - "6-2"   # AgentExecutor + schema enforcement (tools integration point)
+
+acceptanceCriteria:
+  - "Parallel calls to the same resource key are executed strictly FIFO."
+  - "Calls to different keys may run concurrently."
+  - "Max per-op overhead under light load is < 5ms (measured)."
+  - "Feature flag ORION_RESOURCE_QUEUE enables/disables queueing without code changes."
+  - "System Log shows compact enqueue/start/finish markers when flag is on (optional)."
+
+requiredActions:
+  - "Implement backend/src/tools/ResourceQueue.js (per-key FIFO, single worker per key; optional priority, timeout)."
+  - "Wrap FileSystemTool.safeRead/safeWrite/safeList with queue.enqueue('fs:<resolvedPath>', fn)."
+  - "Wrap GitTool.execute with queue.enqueue('git:repo', fn)."
+  - "Wrap ShellTool.execute with queue.enqueue('shell:global' or 'shell:<cwd>', fn)."
+  - "Expose ORION_RESOURCE_QUEUE env flag; default off; add basic metrics hooks (enqueued/started/completed)."
+  - "Add unit tests that simulate N parallel ops against the same key and assert serialized order."
+  - "Add integration test: create two concurrent chat requests that target the same Docs folder; assert ordered results and no interleaving errors."
+
+links:
+  - plan: "Docs/Futures/Orion_Chat_Tools_Stabilization_Plan.md"
+  - exec-summary: "Docs/Futures/Orion_Chat_Tools_Exec_Summary.md"
+
+audit:
+  risks:
+    - risk: "Global bottleneck if keys are too coarse (e.g., single 'shell:global')"
+      mitigation: "Use path-scoped keys where safe; allow tuning via config."
+    - risk: "Starvation with priorities"
+      mitigation: "Start FIFO-only; add priorities later if needed."
+    - risk: "Deadlocks if nested enqueues"
+      mitigation: "Disallow nested same-key awaits; document constraints."
+
+history:
+  - ts: "2025-12-09T19:38:00Z"
+    role: architect
+    action: CREATED
+    message: "Initialized subtask log with scope, acceptance criteria, and risks for Resource Queue"

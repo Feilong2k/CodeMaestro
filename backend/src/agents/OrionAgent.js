@@ -1,11 +1,56 @@
 const BaseAgent = require('./BaseAgent');
 const AiService = require('../services/aiService');
 const { broadcastToSubtask, broadcastToAll } = require('../socket/index');
-const { AgentExecutor } = require('../services/agentExecutor');
+const { AgentExecutor } = require('../services/AgentExecutor');
 const TaskQueueService = require('../services/TaskQueueService');
 const TacticalAdapter = require('../llm/TacticalAdapter');
 const chatHistoryService = require('../services/chatHistoryService');
 const memoryExtractionService = require('../services/memoryExtractionService');
+
+// Synthetic event control (default: off). Set ORION_EMIT_SYNTHETIC=true to re-enable.
+const EMIT_SYNTHETIC = String(process.env.ORION_EMIT_SYNTHETIC || 'false').toLowerCase() === 'true';
+function emitSynthetic(event, payload) {
+  if (!EMIT_SYNTHETIC) return;
+  try {
+    const enriched = { ...payload, synthetic: true };
+    if (event === 'system_message' && typeof enriched.text === 'string') {
+      enriched.text = `[synthetic] ${enriched.text}`;
+    }
+    broadcastToAll(event, enriched);
+  } catch (e) {}
+}
+
+// Verbose thought logging (disabled by default). Set ORION_VERBOSE_THOUGHTS=true to enable.
+const VERBOSE_THOUGHTS = String(process.env.ORION_VERBOSE_THOUGHTS || 'false').toLowerCase() === 'true';
+function emitThought(stage, text, extra = {}) {
+  if (!VERBOSE_THOUGHTS) return;
+  try {
+    broadcastToAll('agent_action', {
+      agent: 'Orion',
+      action: 'thought',
+      stage,
+      text,
+      ...extra,
+      timestamp: new Date()
+    });
+  } catch (e) {}
+}
+
+// Optional chat toggles: allow "debug thoughts on/off" via chat
+function handleDebugToggles(msg) {
+  const m = (msg || '').trim().toLowerCase();
+  if (m === 'debug thoughts on') {
+    process.env.ORION_VERBOSE_THOUGHTS = 'true';
+    broadcastToAll('agent_action', { agent: 'Orion', action: 'config_update', key: 'ORION_VERBOSE_THOUGHTS', value: true, timestamp: new Date() });
+    return 'Verbose thoughts enabled (session)';
+  }
+  if (m === 'debug thoughts off') {
+    process.env.ORION_VERBOSE_THOUGHTS = 'false';
+    broadcastToAll('agent_action', { agent: 'Orion', action: 'config_update', key: 'ORION_VERBOSE_THOUGHTS', value: false, timestamp: new Date() });
+    return 'Verbose thoughts disabled (session)';
+  }
+  return null;
+}
 
 /**
  * OrionAgent - orchestrator agent that coordinates tasks and state transitions.
@@ -90,6 +135,7 @@ class OrionAgent extends BaseAgent {
         projectId: projectId,
         timestamp: new Date()
       });
+      emitThought('OBSERVE', `User message: ${String(message).slice(0,200)}`);
 
       // Load conversation history from database
       let history = [];
@@ -143,6 +189,136 @@ Working Directory: ${currentDir}
 `;
       }
 
+      // Local intent router (optional) — enables file/git basics without external LLM
+      const LOCAL_ROUTER = String(process.env.ORION_LOCAL_ROUTER || 'true').toLowerCase() === 'true';
+      if (LOCAL_ROUTER) {
+        const msg = (message || '').trim();
+        const tools = require('../tools/registry').getToolsForRole('Orion');
+        // Simple patterns: list docs, read Docs/<file>, git status
+        const listDocs = /^(list|show)\s+docs[:\\\/]?$/i;
+        const readDocsFile = /^read\s+docs[:\\\/]([^]+)$/i;
+        const gitStatus = /^(git\s+status|what\s+branch|which\s+branch)/i;
+
+        // Helper to get a FileSystemTool instance (default root)
+        function getFsTool() {
+          const T = tools.FileSystemTool;
+          return (typeof T === 'function') ? new T('Orion') : T;
+        }
+
+        if (listDocs.test(msg)) {
+          try {
+            const fsTool = getFsTool();
+            broadcastToAll('agent_action', { agent: 'Orion', action: 'executing_function', tool: 'FileSystemTool', functionAction: 'list', params: { path: 'Docs' }, timestamp: new Date() });
+            const items = fsTool.safeList('Docs');
+            const response = `Docs contents (top-level):\n- ${items.join('\n- ')}`;
+            if (projectId) { this.saveResponseToHistory(projectId, response, mode).catch(() => {}); }
+            broadcastToAll('agent_action', { agent: 'Orion', action: 'function_result', tool: 'FileSystemTool', functionAction: 'list', result: items, timestamp: new Date() });
+            return { response, usedAgentMode: false };
+          } catch (err) {
+            const response = `Could not list Docs: ${err.message}`;
+            if (projectId) { this.saveResponseToHistory(projectId, response, mode).catch(() => {}); }
+            return { response, usedAgentMode: false };
+          }
+        }
+
+        const readMatch = msg.match(readDocsFile);
+        if (readMatch) {
+          try {
+            const rel = `Docs/${readMatch[1]}`.replace(/^[.:]+/,'').replace(/\\/g, '/');
+            const fsTool = getFsTool();
+            broadcastToAll('agent_action', { agent: 'Orion', action: 'executing_function', tool: 'FileSystemTool', functionAction: 'read', params: { path: rel }, timestamp: new Date() });
+            const content = fsTool.safeRead(rel);
+            const snippet = content.length > 1200 ? content.slice(0, 1200) + '\n…(truncated)…' : content;
+            const response = `Contents of ${rel}:\n\n${snippet}`;
+            if (projectId) { this.saveResponseToHistory(projectId, response, mode).catch(() => {}); }
+            broadcastToAll('agent_action', { agent: 'Orion', action: 'function_result', tool: 'FileSystemTool', functionAction: 'read', result: { path: rel, length: content.length }, timestamp: new Date() });
+            return { response, usedAgentMode: false };
+          } catch (err) {
+            const response = `Could not read file: ${err.message}`;
+            if (projectId) { this.saveResponseToHistory(projectId, response, mode).catch(() => {}); }
+            return { response, usedAgentMode: false };
+          }
+        }
+
+        // list docs/<folder>
+        const listSubMatch = msg.match(/^list\s+docs[:\\\/]([^]+)$/i);
+        if (listSubMatch) {
+          try {
+            const relDir = `Docs/${listSubMatch[1]}`.replace(/^[.:]+/,'').replace(/\\/g, '/');
+            const fsTool = getFsTool();
+            broadcastToAll('agent_action', { agent: 'Orion', action: 'executing_function', tool: 'FileSystemTool', functionAction: 'list', params: { path: relDir }, timestamp: new Date() });
+            const items = fsTool.safeList(relDir);
+            const response = `Docs listing for ${relDir}:\n- ${items.join('\n- ')}`;
+            if (projectId) { this.saveResponseToHistory(projectId, response, mode).catch(() => {}); }
+            broadcastToAll('agent_action', { agent: 'Orion', action: 'function_result', tool: 'FileSystemTool', functionAction: 'list', result: { path: relDir, count: items.length }, timestamp: new Date() });
+            return { response, usedAgentMode: false };
+          } catch (err) {
+            const response = `Could not list directory: ${err.message}`;
+            if (projectId) await this.saveResponseToHistory(projectId, response, mode);
+            return { response, usedAgentMode: false };
+          }
+        }
+
+        // search docs for <term>
+        const searchMatch = msg.match(/^search\s+docs\s+for\s+(.+)$/i);
+        if (searchMatch) {
+          const term = searchMatch[1].trim();
+          try {
+            const fsTool = getFsTool();
+            const results = [];
+
+            function safeListRecursive(dirRel, depth = 0, maxDepth = 2) {
+              if (depth > maxDepth) return;
+              let entries;
+              try { entries = fsTool.safeList(dirRel); } catch { return; }
+              for (const name of entries) {
+                const child = `${dirRel}/${name}`.replace(/\\/g, '/');
+                // Heuristic: try to read; if it fails as a file, assume it's a dir and recurse
+                try {
+                  const content = fsTool.safeRead(child);
+                  if (content && content.toLowerCase().includes(term.toLowerCase())) {
+                    results.push(child);
+                  }
+                } catch (e) {
+                  // Not a readable file; try descending
+                  safeListRecursive(child, depth + 1, maxDepth);
+                }
+              }
+            }
+
+            safeListRecursive('Docs', 0, 2);
+            const header = `Search Docs for "${term}": ${results.length} match(es)`;
+            const body = results.length ? `\n- ${results.join('\n- ')}` : '\n(no matches)';
+            const response = header + body;
+            if (projectId) await this.saveResponseToHistory(projectId, response, mode);
+            broadcastToAll('agent_action', { agent: 'Orion', action: 'function_result', tool: 'FileSystemTool', functionAction: 'read', result: { search: term, matches: results.length }, timestamp: new Date() });
+            return { response, usedAgentMode: false };
+          } catch (err) {
+            const response = `Search failed: ${err.message}`;
+            if (projectId) await this.saveResponseToHistory(projectId, response, mode);
+            return { response, usedAgentMode: false };
+          }
+        }
+
+        if (gitStatus.test(msg)) {
+          try {
+            const T = tools.GitTool;
+            const git = (typeof T === 'function') ? new T('Orion') : T;
+            broadcastToAll('agent_action', { agent: 'Orion', action: 'executing_function', tool: 'GitTool', functionAction: 'status', timestamp: new Date() });
+            const result = await git.execute({ action: 'status' });
+            const branch = result?.branch || result?.stdout || JSON.stringify(result);
+            const response = `Git status: ${branch}`;
+            if (projectId) await this.saveResponseToHistory(projectId, response, mode);
+            broadcastToAll('agent_action', { agent: 'Orion', action: 'function_result', tool: 'GitTool', functionAction: 'status', result, timestamp: new Date() });
+            return { response, usedAgentMode: false };
+          } catch (err) {
+            const response = `Could not get git status: ${err.message}`;
+            if (projectId) await this.saveResponseToHistory(projectId, response, mode);
+            return { response, usedAgentMode: false };
+          }
+        }
+      }
+
       // Use function calling for tactical mode
       if (mode === 'tactical') {
         const tacticalAdapter = new TacticalAdapter();
@@ -151,6 +327,15 @@ Working Directory: ${currentDir}
         console.log('[OrionAgent] Function calling result type:', result.type);
         console.log('[OrionAgent] Tool calls:', result.toolCalls);
         console.log('[OrionAgent] Content:', result.content?.substring(0, 200));
+        emitThought('THINK', `Model preview: ${(result.content || '').slice(0,200)}`, { toolCallsCount: Array.isArray(result.toolCalls) ? result.toolCalls.length : 0 });
+        // Emit OBSERVE -> THINK for System Log visibility (chat path)
+        emitSynthetic('state_change', {
+          subtaskId: 'chat',
+          agent: 'Orion',
+          from: 'OBSERVE',
+          to: 'THINK',
+          timestamp: new Date().toISOString()
+        });
 
         // Handle function calls
         if (result.type === 'function_call' && result.toolCalls?.length > 0) {
@@ -159,11 +344,22 @@ Working Directory: ${currentDir}
             action: 'function_calls_detected',
             status: 'executing',
             toolCalls: result.toolCalls,
-            timestamp: new Date()
+          timestamp: new Date()
           });
 
+          // Emit THINK -> ACT when executing functions
+          emitSynthetic('state_change', {
+            subtaskId: 'chat',
+            agent: 'Orion',
+            from: 'THINK',
+            to: 'ACT',
+            timestamp: new Date().toISOString()
+          });
+
+          emitThought('ACT', `Executing ${result.toolCalls.length} tool call(s)`);
           // Execute via function calling agent mode (pass projectId for scoped operations)
           const agentResponse = await this.runFunctionCallingMode(message, result.toolCalls, projectId);
+          emitThought('VERIFY', 'Tool call(s) completed');
           
           // Save assistant response to database
           if (projectId) {
@@ -176,6 +372,10 @@ Working Directory: ${currentDir}
             status: 'idle',
             timestamp: new Date()
           });
+
+          // Emit ACT -> VERIFY -> COMPLETE for System Log visibility
+          emitSynthetic('state_change', { subtaskId: 'chat', agent: 'Orion', from: 'ACT', to: 'VERIFY', timestamp: new Date().toISOString() });
+          emitSynthetic('state_change', { subtaskId: 'chat', agent: 'Orion', from: 'VERIFY', to: 'COMPLETE', timestamp: new Date().toISOString() });
 
           return { response: agentResponse, usedAgentMode: true };
         }
@@ -210,10 +410,23 @@ Working Directory: ${currentDir}
             timestamp: new Date()
           });
 
+          // Emit ACT -> VERIFY -> COMPLETE for System Log visibility (XML fallback)
+          try {
+            broadcastToAll('state_change', {
+              subtaskId: 'chat', agent: 'Orion', from: 'ACT', to: 'VERIFY', timestamp: new Date().toISOString()
+            });
+            broadcastToAll('state_change', {
+              subtaskId: 'chat', agent: 'Orion', from: 'VERIFY', to: 'COMPLETE', timestamp: new Date().toISOString()
+            });
+          } catch (e) {}
+
           return { response: agentResponse, usedAgentMode: true };
         }
 
         // Normal text response
+        // Emit OBSERVE -> THINK -> COMPLETE for System Log visibility
+        emitSynthetic('state_change', { subtaskId: 'chat', agent: 'Orion', from: 'OBSERVE', to: 'THINK', timestamp: new Date().toISOString() });
+        emitSynthetic('state_change', { subtaskId: 'chat', agent: 'Orion', from: 'THINK', to: 'COMPLETE', timestamp: new Date().toISOString() });
         // Save assistant response to database
         if (projectId && result.content) {
           await this.saveResponseToHistory(projectId, result.content, mode);
@@ -225,6 +438,7 @@ Working Directory: ${currentDir}
           timestamp: new Date()
         });
 
+        emitThought('COMPLETE', 'Replying to user');
         return { response: result.content || '', usedAgentMode: false };
       }
 
@@ -397,7 +611,7 @@ Working Directory: ${currentDir}
               const count = Array.isArray(result?.items) ? result.items.length : (Array.isArray(result) ? result.length : undefined);
               extra = typeof count === 'number' ? ` (${count} items)` : '';
             }
-            broadcastToAll('system_message', {
+            emitSynthetic('system_message', {
               timestamp: ts,
               level: 'info',
               text: `Orion: ${toolName}.${action} completed${extra}`

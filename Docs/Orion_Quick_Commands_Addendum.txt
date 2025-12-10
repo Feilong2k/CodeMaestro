@@ -1,0 +1,24 @@
+# Quick Commands — Chat Harnesses (API + WebSocket)
+
+Prereqs:
+- Backend running: npm run dev (http://localhost:4000)
+- Optional for thought logs: set ORION_VERBOSE_THOUGHTS=true in backend/.env and restart
+
+NPM scripts (backend/package.json):
+- npm run test:chat          # runs API + WebSocket harness sequentially
+- npm run test:chat:api      # HTTP-only harness
+- npm run test:chat:ws       # WebSocket + HTTP combined harness
+
+Direct node usage:
+- node backend/scripts/test-orion-chat.js
+- node backend/scripts/test-orion-socket.js
+
+What they assert:
+- API harness: basic POST /api/agents/orion/chat works for cases: list docs, list docs/AfterPhase5, read Docs/Phase5_Plan.md
+- WS harness: connects to ws://localhost:4000; asserts agent_action sequence executing_function → function_result per case
+- When ORION_VERBOSE_THOUGHTS=true and wantThoughts enabled in the script, the WS harness can also assert thought stages OBSERVE → THINK → ACT → VERIFY → COMPLETE
+
+Troubleshooting:
+- If socket connect fails: ensure backend is running; check PORT in backend/.env
+- If thoughts missing: verify ORION_VERBOSE_THOUGHTS=true and restart backend
+- If Docs path errors: try list docs first to see available files; then use a listed path

@@ -1,0 +1,180 @@
+# Subtask Log: 6-107 (AgentExecutor as Lightweight Tool Runtime)
+id: "6-107"
+title: "AgentExecutor as Lightweight Tool Runtime"
+status: pending
+branch: "subtask/6-107-agent-executor-tool-runtime"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Refactor the existing AgentExecutor into a lightweight, non‑blocking tool runtime that executes standardized tool‑call objects (from ThinkingAdapter) and streams execution events to the Workspace tab. The executor is role‑specific (Orion, Devon, Tara) and has no business logic—it only runs the tools provided by the thinking stage.
+
+constraint_discovery:
+  subtask_id: "6-107"
+  owner: "Orion"
+  concern: "Reliable Tool Execution with Real‑Time Visibility"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Define standardized tool‑call object format"
+      description: "Adopt a function‑call‑style JSON schema for tool calls (tool name, parameters, purpose)."
+    - action: "Refactor AgentExecutor to accept tool‑call objects"
+      description: "Modify the existing AgentExecutor to execute a list of tool‑call objects, streaming start, progress, result, and error events."
+    - action: "Implement role‑specific tool access"
+      description: "Ensure each agent (Orion, Devon, Tara) can only call tools allowed for their role via the tool registry."
+    - action: "Add WebSocket streaming for tool execution"
+      description: "Emit events (tool_start, tool_progress, tool_result, tool_error) to the Workspace tab in real time."
+
+  resources_touched:
+    - resource: "backend/src/services/AgentExecutor.js"
+      constraint: "Must maintain backward compatibility with existing agent loops during transition."
+    - resource: "WebSocket event bus"
+      constraint: "Must not interfere with other WebSocket streams (System Log, Activity Log, Plan stream)."
+
+  resource_physics:
+    - resource: "Tool Execution Timeouts"
+      constraint: "Some tools (e.g., ShellTool) may run indefinitely."
+      risk: "AgentExecutor could hang waiting for a tool to finish."
+      mitigation: "Set a configurable timeout per tool call; kill long‑running processes and emit an error event."
+
+    - resource: "Event Stream Overload"
+      constraint: "Many concurrent tool calls could flood the WebSocket connection."
+      risk: "Frontend may lag or miss events."
+      mitigation: "Throttle events and/or aggregate progress updates."
+
+  verification:
+    - action: "Unit Tests for Tool Execution"
+      method: "Test that AgentExecutor correctly executes a tool‑call object and returns the expected result."
+    - action: "Streaming Integration Tests"
+      method: "Test that a tool execution triggers the expected WebSocket events in the correct order."
+
+implementation_plan:
+  - component: "Standardized Tool‑Call Schema"
+    path: "backend/src/tools/schemas/toolCallSchema.js (new)"
+    details: |
+      - Define the JSON schema for a tool call:
+        ```json
+        {
+          "tool": "string",
+          "parameters": {},
+          "purpose": "string",
+          "callId": "string (optional, for tracking)"
+        }
+        ```
+
+  - component: "Refactored AgentExecutor Class"
+    path: "backend/src/services/AgentExecutor.js"
+    details: |
+      - Modify the existing `AgentExecutor` to have a method `executeToolCalls(toolCalls, context)`.
+      - For each tool call:
+        1. Emit `tool_start` event with the callId and tool name.
+        2. Look up the tool in the registry (role‑specific).
+        3. Execute the tool with the given parameters, handling timeouts and errors.
+        4. Emit `tool_result` (or `tool_error`) event with the result/error.
+      - Support optional `tool_progress` events for tools that report incremental progress (e.g., ShellTool streaming output).
+
+  - component: "Tool Streaming Service"
+    path: "backend/src/services/ToolStreamService.js (new)"
+    details: |
+      - Listens for tool‑execution events from AgentExecutor.
+      - Emits WebSocket events:
+        - `orion:tool_start`: { callId, tool, timestamp }
+        - `orion:tool_progress`: { callId, progress, message }
+        - `orion:tool_result`: { callId, result }
+        - `orion:tool_error`: { callId, error }
+
+  - component: "Frontend Workspace Integration"
+    path: "frontend/src/components/OrionWorkspace.vue (or existing Workspace component)"
+    details: |
+      - Extend the Workspace tab to also display tool‑execution events alongside the reasoning plan.
+      - Show a timeline of tool calls with status (running, success, error) and optional details.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for the new AgentExecutor interface (Red)"
+  - "[ ] [TDD] Implement standardized tool‑call schema and update AgentExecutor (Green)"
+  - "[ ] [TDD] Implement ToolStreamService and WebSocket integration"
+  - "[ ] [Integration] Test that a simple tool call (e.g., read_file) triggers events visible in the Workspace tab"
+
+agentInstructions:
+  devon:
+    summary: |
+      Refactor AgentExecutor to become a lightweight tool runtime with event streaming. Ensure the existing agent loops (Devon, Tara, Orion) continue to work during the transition.
+      All work must stay within backend/src/** and frontend/src/** for the Workspace component.
+    steps:
+      - "Define the tool‑call schema in a new file."
+      - "Modify AgentExecutor to accept and execute tool‑call objects, emitting events via ToolStreamService."
+      - "Create ToolStreamService to broadcast tool events via WebSocket."
+      - "Update the frontend Workspace component to listen for tool events and display them."
+      - "Run backend and frontend tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for the refactored AgentExecutor and tool streaming, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for AgentExecutor that verify tool‑call execution and error handling."
+      - "Create integration tests that verify WebSocket events are emitted for tool execution."
+      - "Create frontend unit tests for the Workspace component rendering of tool events."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify AgentExecutor executes a tool‑call object and returns the result."
+      method: "Run a test script that calls AgentExecutor with a simple tool call (e.g., read_file)."
+      expected: "Tool executes successfully and returns the file content."
+      verified: false
+    - id: "HV-2"
+      action: "Check that tool execution events are streamed to the Workspace tab."
+      method: "Trigger an Orion chat request that uses a tool (e.g., 'list files in backend') and watch the Workspace tab."
+      expected: "Workspace tab shows a timeline of tool execution with start, progress (if any), and result."
+      verified: false
+    - id: "HV-3"
+      action: "Verify role‑specific tool access works."
+      method: "Attempt to call a tool not allowed for the current agent (e.g., Tara trying to write a source file)."
+      expected: "AgentExecutor rejects the tool call with an appropriate error."
+      verified: false
+    - id: "HV-4"
+      action: "Confirm timeout handling for long‑running tools."
+      method: "Mock a tool that sleeps for 10 seconds and set a 2‑second timeout."
+      expected: "Tool execution is cancelled after 2 seconds and an error event is emitted."
+      verified: false
+
+internal_logic: |
+  **AgentExecutor Flow**:
+  1. The thinking stage (6‑102) produces a JSON plan that includes a list of `toolCalls`.
+  2. The plan is passed to the AgentExecutor (via the action phase).
+  3. For each tool call in the list:
+      - AgentExecutor validates the tool call against the role‑specific registry.
+      - Emits a `tool_start` event.
+      - Executes the tool with the given parameters (with a timeout).
+      - On success, emits `tool_result` with the result.
+      - On error or timeout, emits `tool_error` with the error details.
+  4. The ToolStreamService broadcasts these events via WebSocket to the frontend Workspace tab.
+  5. The frontend renders the tool‑execution timeline, updating in real time.
+
+  **Note on Existing Agent Loops**:
+  - The existing agent loops (e.g., Devon’s implementation loop) currently call tools directly. They will be updated in subtask 6‑108 to use the new AgentExecutor interface, but for now the refactored AgentExecutor should remain compatible with the old calling pattern (if possible) to avoid breaking existing functionality.
+
+  **Streaming Considerations**:
+  - Tools that support streaming (e.g., ShellTool) can emit multiple `tool_progress` events as they run.
+  - The frontend can use these events to show a progress bar or live output.
+
+expected_output: |
+  - A refactored AgentExecutor that can execute standardized tool‑call objects and stream events.
+  - Real‑time streaming of tool execution (start, progress, result, error) to the Orion’s Workspace tab.
+  - A frontend Workspace component that displays tool‑execution events alongside the reasoning plan.
+
+notes_and_answers: |
+  **Architect's Notes**:
+  - This subtask is about making the AgentExecutor a reliable, observable tool runtime. It does not include business logic (planning, retry, conditional execution) — those belong to the thinking stage or future enhancements.
+  - The existing AgentExecutor already has an XState FSM for managing agent internal state. We are not changing that; we are adding a new interface for executing tool‑call objects.
+  - The tool‑call schema is inspired by the OpenAI function‑calling format, which we already use for the LLM. This ensures consistency.
+
+history:
+  - ts: "2025-12-10T09:50:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for AgentExecutor as Lightweight Tool Runtime (Task 6‑107)."

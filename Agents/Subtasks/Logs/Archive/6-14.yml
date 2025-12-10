@@ -1,0 +1,54 @@
+# Subtask Log: 6-14 (WebSocket/API Harness for SystemLog & Chat)
+id: "6-14"
+title: "WebSocket/API Harness for SystemLog & Chat"
+status: pending
+branch: "subtask/6-14-ws-api-harness"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Build a headless Node-based harness to exercise Orion chat and assert emitted
+  WebSocket events without relying on the frontend (vite). This unblocks and
+  supports 6-10 by providing a deterministic way to validate System Log chips
+  (executing_function → function_result) and, when enabled, thought entries
+  (OBSERVE/THINK/ACT/VERIFY/COMPLETE) via ORION_VERBOSE_THOUGHTS.
+
+  How this differs from 6-10:
+  - 6-10 wires the UI panel to WebSocket and renders events in the frontend.
+  - 6-14 is a backend dev/test harness: it posts to /api/agents/orion/chat and
+    attaches a Socket.IO client to validate the sequence, timing, and shape of
+    backend events. It runs without vite and can gate CI.
+
+links:
+  - docs: "Docs/Futures/Orion_Chat_Tools_Stabilization_Plan.md"
+  - exec-summary: "Docs/Futures/Orion_Chat_Tools_Exec_Summary.md"
+  - scope-related: "backend/scripts/test-orion-chat.js"  # already added HTTP harness
+
+dependencies:
+  - "6-0" # WebSocket foundation
+
+acceptanceCriteria:
+  - "Harness connects to ws://localhost:4000 and subscribes to system_message, agent_action, state_change"
+  - "Posting {message:'list docs'} yields executing_function then function_result (FileSystemTool.list) within 1s"
+  - "When ORION_VERBOSE_THOUGHTS=true, thought entries appear in order: OBSERVE→THINK→ACT→VERIFY→COMPLETE"
+  - "Harness prints a compact pass/fail summary per case and exits non-zero on failure"
+
+requiredActions:
+  - "Create backend/scripts/test-orion-socket.js that spins a socket.io-client, runs a few chat cases, and asserts events"
+  - "Add npm script: test:chat to run both API and WS harness variants"
+  - "Document usage in Docs/Orion_Quick_Commands.txt"
+
+audit:
+  risks:
+    - risk: "Flaky timing on slow machines"
+      mitigation: "Use generous per-step timeouts (e.g., 1500ms) and retry subscription once"
+    - risk: "Verbose logs overwhelm console"
+      mitigation: "Compact summaries; optional --verbose flag"
+
+history:
+  - ts: "2025-12-09T19:36:00Z"
+    role: architect
+    action: CREATED
+    message: "Initialized subtask log clarifying difference vs 6-10 and acceptance criteria"

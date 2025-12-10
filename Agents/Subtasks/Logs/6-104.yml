@@ -1,0 +1,153 @@
+# Subtask Log: 6-104 (Dynamic Context Sliding Window with Read‑Log)
+id: "6-104"
+title: "Dynamic Context Sliding Window with Read‑Log"
+status: pending
+branch: "subtask/6-104-context-window"
+
+phase: 6
+owner: "Devon"
+priority: medium
+
+description: |
+  Implement a dynamic context sliding window that manages token usage by keeping static prompt parts (identity, tool definitions) and dynamically including only relevant file snippets and recent conversation turns. When the agent needs more context, it proactively uses `FileSystemTool.read` to fetch additional files. The tool logs which files are read and when, and this read‑log is displayed in the Activity Log for monitoring.
+
+constraint_discovery:
+  subtask_id: "6-104"
+  owner: "Orion"
+  concern: "Efficient Context Management & Transparency"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Design context window manager"
+      description: "Create a module that tracks token counts and decides which parts of the conversation and file content to include in the next prompt."
+    - action: "Implement proactive file reading"
+      description: "When the context window is about to exceed the limit, the agent should automatically read relevant files (based on the conversation) and include them as context."
+    - action: "Add read‑logging to FileSystemTool"
+      description: "Extend the FileSystemTool to log every file read operation (path, timestamp, agent) and emit an Activity Log event."
+    - action: "Display read‑log in Activity Log"
+      description: "Stream the file‑read events to the Activity Log tab so the user can see which files Orion is accessing in real time."
+
+  resources_touched:
+    - resource: "FileSystemTool"
+      constraint: "Must not break existing tool functionality; add logging as a side effect."
+    - resource: "Activity Log WebSocket"
+      constraint: "Read‑log events must be sent via the same channel as shell‑output streaming."
+
+  resource_physics:
+    - resource: "Token Limit (DeepSeek‑Chat: 128K, GPT‑4o: 128K)"
+      constraint: "The context window must stay under the model's token limit."
+      risk: "Including too many file snippets could exceed the limit and cause API errors."
+      mitigation: "Implement a token counter and a priority queue for context snippets; drop least relevant ones first."
+
+    - resource: "File I/O Overhead"
+      constraint: "Reading many files on every agent step could slow down the system."
+      risk: "Increased latency for simple requests."
+      mitigation: "Cache file contents for a short time (e.g., 5 seconds) and avoid re‑reading the same file in the same step."
+
+  verification:
+    - action: "Context Window Unit Tests"
+      method: "Test that the context manager correctly adds and removes snippets based on token count."
+    - action: "Read‑Log Integration Tests"
+      method: "Test that a file read via FileSystemTool triggers an Activity Log event."
+
+implementation_plan:
+  - component: "ContextWindowManager"
+    path: "backend/src/services/ContextWindowManager.js (new)"
+    details: |
+      - Maintains a list of context snippets (each with a token count and priority).
+      - Snippets can be: static prompt parts, recent conversation turns, file contents.
+      - Provides a method `addSnippet(snippet, priority)` and `getContext()` that returns a concatenated string staying under a configurable token limit.
+      - Uses a simple tokenizer (approximate, e.g., 4 chars per token) for estimation.
+
+  - component: "Proactive File Reader"
+    path: "backend/src/services/ProactiveFileReader.js (new)"
+    details: |
+      - Listens to the agent's conversation and identifies mentioned file paths (via regex or LLM analysis).
+      - When the context window has room, it automatically reads those files and adds them as snippets.
+      - Works in tandem with the ContextWindowManager.
+
+  - component: "Enhanced FileSystemTool with Logging"
+    path: "backend/src/tools/FileSystemTool.js"
+    details: |
+      - Extend the `read` method to emit a WebSocket event `activity:file_read` with `{ path, agent, timestamp }`.
+      - The event is sent to the same channel as shell‑output streaming.
+
+  - component: "Activity Log Integration"
+    path: "frontend/src/components/ActivityLogPanel.vue"
+    details: |
+      - Listen for `activity:file_read` WebSocket events.
+      - Display them in the Activity Log tab with a distinct style (e.g., "📖 Read file: backend/src/llm/UnifiedAdapter.js").
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for ContextWindowManager (Red)"
+  - "[ ] [TDD] Implement ContextWindowManager with token counting (Green)"
+  - "[ ] [TDD] Extend FileSystemTool with read‑logging and test WebSocket emission"
+  - "[ ] [Integration] Test that a file read during an agent task appears in the Activity Log"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement the dynamic context sliding window and file‑read logging, ensuring that context management is efficient and file reads are visible in the Activity Log.
+      All work must stay within backend/src/** and frontend/src/**.
+    steps:
+      - "Create `ContextWindowManager.js` that manages token‑limited context snippets."
+      - "Create `ProactiveFileReader.js` that automatically reads relevant files and adds them to the context."
+      - "Extend `FileSystemTool.read` to emit a WebSocket event."
+      - "Update the ActivityLogPanel to display file‑read events."
+      - "Run tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for context window management and read‑logging, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for ContextWindowManager that verify token counting and snippet prioritization."
+      - "Create integration tests that verify file‑read events are emitted and appear in the Activity Log."
+      - "Create frontend unit tests for ActivityLogPanel rendering of file‑read events."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify that the context window stays within token limits for a long conversation."
+      method: "Have a multi‑turn conversation with Orion and monitor the token count (logged or via debug)."
+      expected: "No token‑limit errors from the LLM API; context is trimmed appropriately."
+      verified: false
+    - id: "HV-2"
+      action: "Check that file‑read events appear in the Activity Log."
+      method: "Ask Orion to read a file (e.g., 'Show me backend/index.js') and watch the Activity Log tab."
+      expected: "Activity Log shows an entry like '📖 Read file: backend/index.js'."
+      verified: false
+    - id: "HV-3"
+      action: "Verify that the agent proactively reads files mentioned in the conversation."
+      method: "In a conversation, mention a file (e.g., 'I want to edit backend/src/llm/UnifiedAdapter.js') and observe the Activity Log."
+      expected: "Activity Log shows a read event for that file even before an explicit read command."
+      verified: false
+    - id: "HV-4"
+      action: "Confirm that the context window manager prioritizes recent conversation turns."
+      method: "Have a long conversation and then ask a question that depends on recent context."
+      expected: "Orion correctly recalls recent information despite the long history."
+      verified: false
+
+internal_logic: |
+  **Context Window Algorithm**:
+  1. Static parts (identity, tool definitions) are always included and counted once.
+  2. Recent conversation turns (user messages, assistant responses) are kept in a sliding window (e.g., last 10 turns).
+  3. File snippets are added when the agent reads a file or when the ProactiveFileReader detects a relevant file.
+  4. The total token count is estimated (using a simple heuristic: tokens ≈ chars / 4).
+  5. When the limit is approached, the manager drops the lowest‑priority snippets (oldest conversation turns first, then less‑relevant file snippets).
+
+  **Read‑Log Integration**:
+  - The FileSystemTool's `read` method already returns the file content. We add a side‑effect: emit a WebSocket event to the activity log channel.
+  - The frontend ActivityLogPanel already streams shell output; we add a handler for file‑read events and display them similarly.
+
+expected_output: |
+  - A working context window manager that keeps the prompt within token limits.
+  - File‑read operations logged in real time in the Activity Log.
+  - Proactive file reading that enriches the context automatically.
+
+history:
+  - ts: "2025-12-10T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for Dynamic Context Sliding Window with Read‑Log (Task 6‑104)."

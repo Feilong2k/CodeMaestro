@@ -1,6 +1,6 @@
 const TaskQueueService = require('./TaskQueueService');
 const registry = require('../tools/registry');
-const DeepseekClient = require('../llm/DeepseekClient');
+const TacticalAdapter = require('../llm/TacticalAdapter');
 const AgentFSM = require('../machines/AgentFSM');
 const AgentFsmLogService = require('./AgentFsmLogService');
 const { broadcastToAll } = require('../socket/index');
@@ -101,11 +101,14 @@ class AgentExecutor {
             // Build prompt based on current context
             const prompt = this.buildPrompt(context, tools);
             try {
-              llmResponse = await DeepseekClient.chatCompletion(prompt);
+              // Use TacticalAdapter which supports a mock mode when no API key is configured
+              const adapter = new TacticalAdapter();
+              const content = await adapter.generate(prompt);
+              llmResponse = { content };
               event = this.fsm.EVENTS.OBSERVE_COMPLETE;
               context.lastResult = llmResponse.content;
             } catch (error) {
-              // Network error -> transition to ERROR
+              // LLM error -> transition to ERROR
               event = this.fsm.EVENTS.ERROR_OCCURRED;
               context.error = `LLM call failed: ${error.message}`;
             }

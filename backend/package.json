@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "jest"
+    "test": "jest",
+    "test:chat:api": "node scripts/test-orion-chat.js",
+    "test:chat:ws": "node scripts/test-orion-socket.js",
+    "test:chat": "npm run test:chat:api && npm run test:chat:ws"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +30,7 @@
   "devDependencies": {
     "jest": "^30.2.0",
     "nodemon": "^3.1.11",
+    "socket.io-client": "^4.8.1",
     "supertest": "^7.1.4"
   }
 }

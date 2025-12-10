@@ -92,14 +92,21 @@ const displayedText = ref('')
 const typingInterval = ref(null)
 const isTypingComplete = ref(false)
 
+// Simple HTML escape for plain text display during typing
+const escapeHtml = (text) => {
+  const div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
+}
+
 const renderedMessage = computed(() => {
   if (props.typingEffect && !isTypingComplete.value) {
-    // For typing effect, we need to render markdown incrementally
-    // This is complex with markdown, so we'll show plain text while typing
-    // and switch to markdown when complete
-    return DOMPurify.sanitize(md.render(displayedText.value))
+    // During typing, show plain text (escaped) with line breaks
+    const escaped = escapeHtml(displayedText.value)
+    return escaped.replace(/\n/g, '<br>')
   }
   
+  // After typing complete, render markdown
   const unsafeHtml = md.render(props.message)
   return DOMPurify.sanitize(unsafeHtml)
 })
@@ -110,11 +117,13 @@ const startTypingEffect = () => {
   displayedText.value = ''
   isTypingComplete.value = false
   let index = 0
-  const chunkSize = 5 // Type 5 characters at a time for faster display
+  // Adaptive chunk size: larger chunks for longer messages to reduce updates
+  const baseChunkSize = 5
+  const chunkSize = props.message.length > 1000 ? 20 : baseChunkSize
   
   typingInterval.value = setInterval(() => {
     if (index < props.message.length) {
-      // Add multiple characters per tick
+      // Add chunk of characters per tick
       const endIndex = Math.min(index + chunkSize, props.message.length)
       displayedText.value = props.message.substring(0, endIndex)
       index = endIndex

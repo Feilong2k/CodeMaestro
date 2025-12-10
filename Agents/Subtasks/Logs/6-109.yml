@@ -1,0 +1,192 @@
+# Subtask Log: 6-109 (Investigate TaskQueueService & design dispatch_subtask tool)
+id: "6-109"
+title: "Investigate TaskQueueService & design dispatch_subtask tool"
+status: pending
+branch: "subtask/6-109-dispatch-subtask-tool"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Investigate the existing TaskQueueService and design a new tool `dispatch_subtask` that allows Orion to enqueue subtasks for Devon or Tara. The tool must accept a subtask description, assignee (Devon/Tara), and optional metadata, and return a task ID. It must also emit WebSocket events for task lifecycle (enqueued, started, completed, failed) to be displayed in the System Log.
+
+constraint_discovery:
+  subtask_id: "6-109"
+  owner: "Orion"
+  concern: "Reliable Subtask Delegation & Real‑Time Visibility"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Analyze existing TaskQueueService"
+      description: "Review the current TaskQueueService implementation (backend/src/services/TaskQueueService.js) and understand its API and database schema."
+    - action: "Design dispatch_subtask tool interface"
+      description: "Define the tool's input parameters (subtask description, assignee, priority, etc.) and output (task ID, status)."
+    - action: "Implement dispatch_subtask tool"
+      description: "Create a new tool in the tool registry that calls TaskQueueService.enqueue with the appropriate payload."
+    - action: "Integrate WebSocket events for task lifecycle"
+      description: "Emit events (task_enqueued, task_started, task_completed, task_failed) via the System Log WebSocket channel."
+    - action: "Test with a simple subtask"
+      description: "Verify that Orion can dispatch a subtask, and that Devon/Tara can pick it up using their existing agent loops."
+
+  resources_touched:
+    - resource: "backend/src/services/TaskQueueService.js"
+      constraint: "Must not break existing enqueue/dequeue operations."
+    - resource: "backend/src/tools/registry.js"
+      constraint: "New tool must be registered with the correct permissions (Orion can call it)."
+    - resource: "WebSocket event bus"
+      constraint: "Task lifecycle events must be emitted on the System Log channel (or a new channel if needed)."
+
+  resource_physics:
+    - resource: "Database Locking"
+      constraint: "The TaskQueueService uses SKIP LOCKED for concurrent workers."
+      risk: "If we change the table schema or locking strategy, we could break existing workers."
+      mitigation: "Keep the existing schema and locking; only add new columns if absolutely necessary."
+
+    - resource: "Task Payload Size"
+      constraint: "The payload column is JSONB; large payloads could affect performance."
+      risk: "Subtasks with large context (e.g., entire file contents) might bloat the database."
+      mitigation: "Store only references (file paths) and let the agent fetch the content when needed."
+
+  verification:
+    - action: "Unit Tests for dispatch_subtask tool"
+      method: "Test that the tool correctly enqueues a task and returns a task ID."
+    - action: "Integration Tests for Task Lifecycle Events"
+      method: "Test that enqueuing a task triggers a WebSocket event visible in the System Log."
+
+implementation_plan:
+  - component: "TaskQueueService Analysis"
+    path: "backend/src/services/TaskQueueService.js"
+    details: |
+      - Review the current implementation: enqueue, dequeue, complete, fail methods.
+      - Check the database schema (tasks table) for any missing columns needed for subtasks (e.g., assignee, subtask_id, project_id).
+      - If needed, create a migration to add columns (but keep changes minimal).
+
+  - component: "dispatch_subtask Tool"
+    path: "backend/src/tools/DispatchSubtaskTool.js (new)"
+    details: |
+      - Input parameters:
+        - `subtaskId` (string, optional): The subtask ID from the manifest (e.g., "6-100").
+        - `title` (string): Short title of the subtask.
+        - `description` (string): Detailed description.
+        - `assignee` (string): "devon" or "tara".
+        - `priority` (string, optional): "low", "medium", "high", "critical".
+        - `context` (object, optional): Additional context (e.g., files to modify, test expectations, relevant conversation snippets). This context is stored in the task payload and passed to the worker so they start with the necessary background.
+      - Tool logic:
+        1. Validate input (assignee must be valid, description non‑empty).
+        2. Call `TaskQueueService.enqueue` with type `"subtask"` and a payload containing all input fields.
+        3. Emit a WebSocket event `orion:task_enqueued` with the task details.
+        4. Return the task ID and a success message.
+
+  - component: "Tool Registration"
+    path: "backend/src/tools/registry.js"
+    details: |
+      - Import the new tool and register it with the tool registry.
+      - Set permissions: Orion can call it, Devon and Tara cannot (they are the workers).
+
+  - component: "Task Lifecycle WebSocket Events"
+    path: "backend/src/services/TaskQueueService.js (modify existing methods)"
+    details: |
+      - In `enqueue`: Emit `orion:task_enqueued` (already done by the tool, but could also be done here for consistency).
+      - In `dequeue`: When a worker picks up a task, emit `orion:task_started`.
+      - In `complete` and `fail`: Emit `orion:task_completed` or `orion:task_failed` with the result/error.
+      - All events should be sent via the existing System Log WebSocket channel (or a dedicated task channel if preferred).
+
+  - component: "Frontend System Log Integration"
+    path: "frontend/src/components/SystemLogPanel.vue"
+    details: |
+      - Extend the System Log to listen for task lifecycle events and display them with appropriate icons and timestamps.
+      - Show task ID, assignee, and status changes.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for dispatch_subtask tool (Red)"
+  - "[ ] [TDD] Implement dispatch_subtask tool (Green)"
+  - "[ ] [TDD] Modify TaskQueueService to emit WebSocket events for task lifecycle"
+  - "[ ] [Integration] Test that a subtask dispatched by Orion appears in the System Log and can be picked up by Devon/Tara"
+
+agentInstructions:
+  devon:
+    summary: |
+      Investigate TaskQueueService, design and implement the dispatch_subtask tool, and integrate WebSocket events for task lifecycle.
+      All work must stay within backend/src/** and frontend/src/** for the System Log display.
+    steps:
+      - "Analyze TaskQueueService and note any required schema changes (if any)."
+      - "Create `DispatchSubtaskTool.js` with the specified input/output."
+      - "Register the tool in the registry with appropriate permissions."
+      - "Modify TaskQueueService methods to emit WebSocket events (or create a wrapper service)."
+      - "Update SystemLogPanel to display task lifecycle events."
+      - "Run tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for the dispatch_subtask tool and task lifecycle events, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for dispatch_subtask tool that verify task enqueueing and error handling."
+      - "Create integration tests that verify WebSocket events are emitted for each task state change."
+      - "Create frontend unit tests for SystemLogPanel rendering of task events."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify dispatch_subtask tool enqueues a task and returns a task ID."
+      method: "Run a test script that calls the tool with a sample subtask and logs the returned task ID."
+      expected: "Tool returns a task ID and the task appears in the tasks table with status 'pending'."
+      verified: false
+    - id: "HV-2"
+      action: "Check that task enqueuing triggers a WebSocket event in the System Log."
+      method: "Dispatch a subtask via Orion (or a test script) and watch the System Log tab."
+      expected: "System Log shows a 'task_enqueued' event with the subtask title and assignee."
+      verified: false
+    - id: "HV-3"
+      action: "Verify Devon can pick up the dispatched subtask."
+      method: "Start Devon's agent loop (or simulate it) and check that the task is dequeued and marked as 'running'."
+      expected: "Task status changes to 'running' and a 'task_started' event appears in the System Log."
+      verified: false
+    - id: "HV-4"
+      action: "Confirm task completion emits a 'task_completed' event."
+      method: "Have Devon complete the subtask (or mock completion) and watch the System Log."
+      expected: "System Log shows a 'task_completed' event with the result."
+      verified: false
+
+internal_logic: |
+  **Flow for Subtask Dispatch**:
+  1. Orion's thinking stage (6‑102) produces a JSON plan that includes a subtask to be delegated.
+  2. Orion calls the `dispatch_subtask` tool with the subtask details (title, description, assignee, etc.).
+  3. The tool validates the input, enqueues the task via TaskQueueService, and emits a `task_enqueued` event.
+  4. The task is stored in the `tasks` table with status `pending`.
+  5. Devon (or Tara) periodically polls for pending tasks (via `TaskQueueService.dequeue`). When a task is claimed, its status changes to `running` and a `task_started` event is emitted.
+  6. Devon/Tara execute the subtask using their existing agent loops (current AgentExecutor and tool registry).
+  7. Upon completion, they call `TaskQueueService.complete` (or `fail`), which updates the task status and emits a `task_completed` (or `task_failed`) event.
+  8. Orion does not block after step 2. Instead, it transitions to a monitoring state (implemented in 6‑106) where it listens for WebSocket events related to the task ID. When a `task_completed` event is received, Orion can proceed with the next steps (if any) or inform the user.
+
+  **Integration with Existing Agent Loops**:
+  - Devon and Tara already have agent loops that use the TaskQueueService to pick up tasks. The `dispatch_subtask` tool simply adds a new type of task (subtask) to the same queue.
+  - No changes are required to Devon/Tara's execution logic; they will continue to dequeue tasks of type `"subtask"` and process them.
+
+  **WebSocket Events**:
+  - All task lifecycle events are emitted on the same WebSocket channel used by the System Log (`system:log` or a dedicated `task:lifecycle` channel).
+  - The frontend System Log panel listens for these events and displays them with appropriate formatting.
+
+expected_output: |
+  - A working `dispatch_subtask` tool that enqueues subtasks and returns a task ID.
+  - Real‑time WebSocket events for task lifecycle (enqueued, started, completed, failed) displayed in the System Log.
+  - Seamless integration with existing Devon/Tara agent loops for task execution.
+
+notes_and_answers: |
+  **Architect's Notes**:
+  - This subtask is critical for Orion's orchestration capability. It allows Orion to break down a complex request into subtasks and delegate them to the appropriate agents.
+  - The existing TaskQueueService is already used by Devon and Tara for their work; we are just adding a new tool for Orion to enqueue subtasks.
+  - WebSocket events provide the necessary visibility for the user to monitor delegated work.
+
+  **Feedback Addressed**:
+  1. **Fire-and-Forget with Monitoring**: Orion does not block after dispatching. Instead, it transitions to a monitoring state (6‑106) and listens for WebSocket events for that task ID. When a `task_completed` event is received, Orion proceeds.
+  2. **Context Propagation**: The `dispatch_subtask` tool accepts a `context` parameter (object) that is stored in the task payload and passed to the worker (Devon/Tara) so they start with the necessary background.
+  3. **Recursion Safety**: The tool is registered with role‑based permissions: only Orion can call it. Devon and Tara are configured without access to this tool, preventing them from creating subtasks for Orion (or each other) and thus avoiding infinite loops.
+
+history:
+  - ts: "2025-12-10T10:20:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for Investigate TaskQueueService & design dispatch_subtask tool (Task 6‑109)."

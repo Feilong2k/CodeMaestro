@@ -1,0 +1,166 @@
+# Subtask Log: 6-101 (Observation Stage with UI‑Displayed Classification)
+id: "6-101"
+title: "Observation Stage with UI‑Displayed Classification"
+status: pending
+branch: "subtask/6-101-observation-stage"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Implement the observation stage for all three agents (Orion, Devon, Tara). For Orion, it classifies user requests (chat, question, request) and selects the thinking protocol (direct, basic OTA, CDP‑enhanced). For Devon and Tara, it analyzes the assigned subtask and determines the appropriate thinking protocol for their role (implementation vs testing). The classification results are displayed in the System Log in real time.
+
+constraint_discovery:
+  subtask_id: "6-101"
+  owner: "Orion"
+  concern: "Request Classification & Protocol Selection"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Design observation prompt"
+      description: "Create a prompt that instructs the LLM to classify the request and output a specific JSON schema."
+    - action: "Implement observation classifier"
+      description: "Build a service that calls the LLM with the observation prompt and parses the JSON response."
+    - action: "Integrate classification into OrionAgent"
+      description: "Make OrionAgent run the observation stage before any thinking, and pass the classification to the thinking stage."
+    - action: "Display classification in System Log"
+      description: "Emit a WebSocket event with the classification result so it appears in the System Log tab."
+
+  resources_touched:
+    - resource: "UnifiedAdapter (6‑100)"
+      constraint: "Observation stage must use UnifiedAdapter for LLM calls."
+    - resource: "System Log WebSocket"
+      constraint: "Classification events must be sent via the existing WebSocket channel for System Log."
+
+  resource_physics:
+    - resource: "LLM Latency for Every Request"
+      constraint: "Every user message will trigger an extra LLM call for classification."
+      risk: "Increased response latency for simple requests (e.g., greetings)."
+      mitigation: "Implement a fast‑path for explicit commands (regex) and cache classification for multi‑turn conversations."
+
+    - resource: "Classification Accuracy"
+      constraint: "LLM may misclassify requests, leading to wrong protocol selection."
+      risk: "High‑risk tasks might be handled with insufficient safety (basic OTA instead of CDP)."
+      mitigation: "Include safety keywords (`delete`, `drop`) that force CDP‑enhanced protocol regardless of step count."
+
+  verification:
+    - action: "Observation Prompt Unit Tests"
+      method: "Test that the prompt produces the expected JSON schema for a set of example inputs."
+    - action: "Classifier Integration Tests"
+      method: "Test that the classifier returns valid classifications for a variety of requests and that the System Log displays them."
+
+implementation_plan:
+  - component: "Observation Prompt"
+    path: "backend/src/prompts/observation.md (new)"
+    details: |
+      - A concise prompt that asks the LLM to classify the request and output JSON with:
+        ```json
+        {
+          "classification": "chat|question|request",
+          "intent": "brief description",
+          "confidence": 0.0-1.0,
+          "action_required": true|false,
+          "needs_analysis": true|false,
+          "estimated_steps": 1-10,
+          "protocol": "direct|basic_ota|cdp_enhanced",
+          "reasoning": "brief explanation"
+        }
+        ```
+      - Include examples of different request types and their expected output.
+
+  - component: "ObservationClassifier Service"
+    path: "backend/src/services/ObservationClassifier.js (new)"
+    details: |
+      - A service that uses UnifiedAdapter to call the LLM with the observation prompt.
+      - Parses the JSON response and validates against the schema.
+      - Applies safety overrides (e.g., if request contains high‑risk keywords, force `cdp_enhanced`).
+      - Returns the classification object.
+
+  - component: "OrionAgent Integration"
+    path: "backend/src/agents/OrionAgent.js"
+    details: |
+      - Modify `OrionAgent.chat` to call ObservationClassifier for each user message.
+      - Store the classification in the agent context and pass it to the thinking stage (6‑102).
+      - Emit a WebSocket event `orion:classification` with the classification result.
+
+  - component: "System Log Display"
+    path: "frontend/src/components/SystemLogPanel.vue"
+    details: |
+      - Listen for `orion:classification` WebSocket events.
+      - Display a formatted message in the System Log tab, e.g., "Observation: classified as 'request', estimated steps: 3, protocol: basic OTA".
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for ObservationClassifier (Red)"
+  - "[ ] [TDD] Implement ObservationClassifier with safety overrides (Green)"
+  - "[ ] [TDD] Integrate observation stage into OrionAgent and test WebSocket emission"
+  - "[ ] [Integration] Test that a user request triggers a classification event visible in the System Log"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement the observation stage, including prompt design, classifier service, and integration with OrionAgent and System Log.
+      All work must stay within backend/src/** and frontend/src/** for the System Log display.
+    steps:
+      - "Create the observation prompt in `backend/src/prompts/observation.md`."
+      - "Implement `ObservationClassifier.js` that uses UnifiedAdapter and includes safety overrides."
+      - "Modify `OrionAgent.chat` to run the observation stage and emit a WebSocket event."
+      - "Update SystemLogPanel to display classification events."
+      - "Run tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for the observation stage, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for ObservationClassifier that verify classification output and safety overrides."
+      - "Create integration tests that verify OrionAgent emits classification events and they appear in the System Log."
+      - "Create frontend unit tests for SystemLogPanel rendering of classification events."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify the observation prompt returns valid JSON for a greeting."
+      method: "Run a test script that calls the observation classifier with 'Hi Orion'."
+      expected: "Output includes classification:chat, protocol:direct, confidence > 0.8."
+      verified: false
+    - id: "HV-2"
+      action: "Check that classification appears in the System Log in real time."
+      method: "Send a request (e.g., 'Save our chat to Docs') and watch the System Log tab."
+      expected: "System Log shows a classification event with details (intent, steps, protocol)."
+      verified: false
+    - id: "HV-3"
+      action: "Verify safety overrides force CDP‑enhanced for high‑risk keywords."
+      method: "Send a request containing 'delete node_modules'."
+      expected: "Classification shows protocol:cdp_enhanced regardless of step count."
+      verified: false
+    - id: "HV-4"
+      action: "Confirm that explicit commands bypass the observation stage."
+      method: "Send a command like '/read Docs/README.md'."
+      expected: "No classification event in System Log (or a special 'fast‑path' classification)."
+      verified: false
+
+internal_logic: |
+  **Observation Flow**:
+  1. User message arrives at OrionAgent.
+  2. OrionAgent first checks for explicit commands (regex patterns like `/read`, `/list`). If matched, skip observation and go directly to the appropriate tool call (fast‑path).
+  3. Otherwise, call ObservationClassifier with the user message.
+  4. ObservationClassifier loads the observation prompt, injects the user message, and calls UnifiedAdapter.
+  5. The LLM returns the classification JSON, which is then validated and optionally overridden by safety rules.
+  6. The classification is stored in the agent context and emitted via WebSocket to the System Log.
+  7. The classification determines the thinking protocol (direct, basic OTA, CDP‑enhanced) for the next stage (6‑102).
+
+  **Safety Overrides**:
+  - If the request contains any of the high‑risk keywords (`delete`, `drop`, `format`, `rm -rf`, etc.), the protocol is forced to `cdp_enhanced` and the classification is adjusted accordingly.
+
+expected_output: |
+  - A working observation stage that classifies every non‑fast‑path request and outputs a structured JSON classification.
+  - Real‑time display of classification in the System Log tab.
+  - Safety overrides that ensure high‑risk tasks are automatically escalated to CDP‑enhanced protocol.
+
+history:
+  - ts: "2025-12-10T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for Observation Stage with UI‑displayed classification (Task 6‑101)."

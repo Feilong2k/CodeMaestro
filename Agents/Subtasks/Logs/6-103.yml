@@ -1,0 +1,178 @@
+# Subtask Log: 6-103 (First‑Brain Prompt & Tool Guide – Editable via UI)
+id: "6-103"
+title: "First‑Brain Prompt & Tool Guide (Editable via UI)"
+status: pending
+branch: "subtask/6-103-prompt-editing"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Create the comprehensive first‑brain prompt that includes identity, core instructions, project context, tool guide with examples, and CDP Level 0 template. The prompt will be stored as a file (`backend/src/prompts/first_brain.md`) and also cached in a database table for fast retrieval. A UI panel will allow the user to view and edit the prompt in real time, with changes saved to both the file and the database.
+
+constraint_discovery:
+  subtask_id: "6-103"
+  owner: "Orion"
+  concern: "Prompt Management & Live Editing"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Design first‑brain prompt structure"
+      description: "Define the sections: identity, instructions, project context, tool guide, CDP Level 0 template, examples."
+    - action: "Implement hybrid storage (file + DB)"
+      description: "Store the prompt as an `.md` file in the repo and also in a `prompts` table for caching and versioning."
+    - action: "Create API endpoints for prompt management"
+      description: "Provide GET and PUT endpoints to read and update the prompt, with validation and file‑write."
+    - action: "Build UI prompt editor"
+      description: "Add a panel in the Orion’s Workspace (or a separate settings page) that displays the prompt and allows editing."
+
+  resources_touched:
+    - resource: "File system (`backend/src/prompts/`)"
+      constraint: "Prompt file must be readable and writable by the server process."
+    - resource: "Database (Postgres)"
+      constraint: "New table `prompts` must store prompt content and version metadata."
+    - resource: "Frontend Workspace UI"
+      constraint: "The editor must integrate seamlessly with the existing Workspace tab or a new tab."
+
+  resource_physics:
+    - resource: "Concurrent Edits"
+      constraint: "If multiple users edit the prompt simultaneously, changes may conflict."
+      risk: "Last write wins could overwrite earlier edits."
+      mitigation: "Implement simple optimistic locking with a version column; show a diff if conflict."
+
+    - resource: "Prompt Size"
+      constraint: "The first‑brain prompt may be large (several thousand tokens)."
+      risk: "Loading the entire prompt in the UI could slow down the editor."
+      mitigation: "Use a textarea with lazy loading or pagination for very large prompts."
+
+  verification:
+    - action: "Prompt Storage Unit Tests"
+      method: "Test that the prompt can be read from file, written to DB, and updated via API."
+    - action: "UI Editor Integration Tests"
+      method: "Test that the UI editor loads the prompt and can save changes that persist in both file and DB."
+
+implementation_plan:
+  - component: "First‑Brain Prompt File"
+    path: "backend/src/prompts/first_brain.md (new)"
+    details: |
+      - Structure the prompt with clear sections:
+        1. Identity & Core Instructions
+        2. Project Context (directory tree, key config files)
+        3. Tool Guide (each tool described with when‑to‑use scenarios and concrete examples)
+        4. CDP Level 0 Template (structured format for assumption checks)
+        5. Observation Examples (sample classifications and protocol selections)
+      - Use placeholders for dynamic parts (e.g., `{{project_tree}}`) that will be replaced at runtime.
+
+  - component: "Prompts Database Table"
+    path: "backend/src/db/migrations/023_create_prompts_table.sql (new)"
+    details: |
+      - Create table `prompts` with columns: `id`, `name` (unique), `content`, `version` (integer), `created_at`, `updated_at`.
+      - Seed the table with the content from `first_brain.md` on migration.
+
+  - component: "PromptService"
+    path: "backend/src/services/PromptService.js (new)"
+    details: |
+      - Provides methods to `getPrompt(name)` and `updatePrompt(name, newContent)`.
+      - `getPrompt` reads from the database (or file if not in DB) and returns the content.
+      - `updatePrompt` writes the new content to the database (incrementing version) and also updates the file on disk.
+      - Includes validation (e.g., minimum length, required sections).
+
+  - component: "Prompt API Endpoints"
+    path: "backend/src/routes/prompts.js (new)"
+    details: |
+      - `GET /api/prompts/:name` – returns the prompt content and version.
+      - `PUT /api/prompts/:name` – accepts `{ content, version }`, updates if version matches, returns new version.
+
+  - component: "Prompt Editor UI"
+    path: "frontend/src/components/PromptEditor.vue (new)"
+    details: |
+      - A Vue component that fetches the prompt via the API and displays it in a large textarea (or code editor).
+      - Provides a "Save" button that sends the updated content and version to the API.
+      - Shows a success/error message after save.
+      - Optionally, a "Reset to File" button that reloads the content from the file (overriding the DB).
+
+  - component: "Workspace Integration"
+    path: "frontend/src/components/OrionWorkspace.vue"
+    details: |
+      - Add a tab "Prompt Editor" to the Workspace (or a button that opens the editor in a modal).
+      - The PromptEditor component is placed inside this tab.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for PromptService (Red)"
+  - "[ ] [TDD] Implement PromptService with file+DB synchronization (Green)"
+  - "[ ] [TDD] Implement API endpoints and integration tests"
+  - "[ ] [Integration] Build the UI editor and verify that changes persist in both file and DB"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement the first‑brain prompt storage, API, and UI editor, ensuring that prompts are editable and changes are saved to both file and database.
+      All work must stay within backend/src/** and frontend/src/**.
+    steps:
+      - "Create the `first_brain.md` prompt file with the defined structure."
+      - "Create the database migration for the `prompts` table and seed it with the prompt content."
+      - "Implement `PromptService.js` with read/update methods that sync file and DB."
+      - "Create the API routes for prompts."
+      - "Build the `PromptEditor.vue` component and integrate it into the Workspace tab."
+      - "Run tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for prompt storage, API, and UI editor, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for PromptService that verify file‑DB synchronization and versioning."
+      - "Create integration tests for the prompt API endpoints."
+      - "Create frontend unit tests for the PromptEditor component (loading, saving, error handling)."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify the first‑brain prompt file exists and has the expected sections."
+      method: "Open `backend/src/prompts/first_brain.md` in VS Code and inspect its content."
+      expected: "File contains sections: Identity, Project Context, Tool Guide, CDP Level 0 Template, Observation Examples."
+      verified: false
+    - id: "HV-2"
+      action: "Check that the prompt loads in the UI editor."
+      method: "Open the Orion’s Workspace tab, click on the Prompt Editor tab (or button)."
+      expected: "The editor displays the full prompt content in an editable textarea."
+      verified: false
+    - id: "HV-3"
+      action: "Verify that editing and saving the prompt updates both the file and the database."
+      method: "In the UI editor, add a comment (e.g., '<!-- test -->') and save. Then check the file and DB."
+      expected: "The comment appears in the file `first_brain.md` and in the `prompts` table."
+      verified: false
+    - id: "HV-4"
+      action: "Confirm that the API returns the prompt with version information."
+      method: "Call `GET /api/prompts/first_brain` via curl or browser and examine the JSON."
+      expected: "Response includes `content` and `version` fields."
+      verified: false
+
+internal_logic: |
+  **Storage Strategy**:
+  - The primary source of truth is the file `first_brain.md` in the repository (for version control and easy editing by developers).
+  - The database table `prompts` acts as a cache and provides versioning for concurrent edits.
+  - When the server starts, it ensures the DB has a copy of the file (if not, it seeds it).
+  - The `PromptService.updatePrompt` method writes to the DB and then updates the file. If the file write fails, the DB update is rolled back.
+
+  **Versioning**:
+  - Each prompt row has a `version` integer that increments on every update.
+  - The UI sends the current version when saving; the server checks that it matches the DB version to prevent overwrites.
+
+  **UI Integration**:
+  - The PromptEditor is a simple textarea with a save button. It fetches the prompt via the API and stores the version locally.
+  - On save, it sends the new content and the stored version; if the server responds with a conflict, the UI shows a diff and asks the user to resolve.
+
+expected_output: |
+  - A well‑structured first‑brain prompt file that serves as the main prompt for the UnifiedAdapter.
+  - A database table `prompts` that stores the prompt with versioning.
+  - A working API to read and update the prompt.
+  - A UI editor inside the Orion’s Workspace that allows the user to view and edit the prompt, with changes persisted to both file and DB.
+
+history:
+  - ts: "2025-12-10T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for First‑Brain Prompt & Tool Guide with UI editing (Task 6‑103)."

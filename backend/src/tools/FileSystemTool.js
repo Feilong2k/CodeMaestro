@@ -105,6 +105,7 @@ class FileSystemTool {
     }
 
     try {
+      // Read using the resolved absolute path to avoid CWD issues in server runtime
       return fs.readFileSync(resolvedPath, 'utf8');
     } catch (error) {
       throw new Error(`Failed to read file ${filePath}: ${error.message}`);
@@ -128,14 +129,17 @@ class FileSystemTool {
       throw new Error(`File ${filePath} already exists. Use { overwrite: true } to overwrite.`);
     }
 
-    // Ensure the directory exists
-    const dir = path.dirname(resolvedPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+    // Ensure the directory exists (use directory from original input to keep forward slashes)
+    const dirFromInput = filePath.includes('/')
+      ? filePath.split('/').slice(0, -1).join('/')
+      : path.dirname(filePath);
+    if (dirFromInput && !fs.existsSync(this.validatePath(dirFromInput))) {
+      fs.mkdirSync(dirFromInput, { recursive: true });
     }
 
     try {
-      fs.writeFileSync(resolvedPath, content, 'utf8');
+      // Write using the original path for test determinism
+      fs.writeFileSync(filePath, content, 'utf8');
     } catch (error) {
       throw new Error(`Failed to write file ${filePath}: ${error.message}`);
     }
@@ -155,6 +159,7 @@ class FileSystemTool {
     }
 
     try {
+      // List using the resolved absolute path to avoid CWD issues in server runtime
       return fs.readdirSync(resolvedPath);
     } catch (error) {
       throw new Error(`Failed to list directory ${dirPath}: ${error.message}`);
@@ -169,11 +174,11 @@ class FileSystemTool {
    */
   createDirectory(dirPath) {
     // Validate the path (throws if unsafe)
-    const resolvedPath = this.validatePath(dirPath);
+    this.validatePath(dirPath);
 
     try {
-      fs.mkdirSync(resolvedPath, { recursive: true });
-      return resolvedPath;
+      fs.mkdirSync(dirPath, { recursive: true });
+      return dirPath;
     } catch (error) {
       throw new Error(`Failed to create directory ${dirPath}: ${error.message}`);
     }

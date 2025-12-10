@@ -1,0 +1,199 @@
+# Subtask Log: 6-100 (ThinkingAdapter with JSON Plan Output & Live UI Stream)
+id: "6-100"
+title: "ThinkingAdapter with JSON Plan Output & Live UI Stream"
+status: pending
+branch: "subtask/6-100-thinking-adapter"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Build a single LLM adapter (`ThinkingAdapter`) that takes a thinking prompt (one of three: direct, basic OTA, CDP‑enhanced) and a list of tools, and returns a structured JSON plan with reasoning steps and tool calls. The adapter streams this plan to the Orion’s Workspace tab in real time, providing full visibility into Orion’s cognitive process.
+
+constraint_discovery:
+  subtask_id: "6-100"
+  owner: "Orion"
+  concern: "Structured Plan Generation & Transparency"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Design ThinkingAdapter interface"
+      description: "Define an adapter that accepts a prompt and tools, returns a JSON plan (reasoning + tool calls)."
+    - action: "Integrate DeepSeek‑Chat with function‑calling"
+      description: "Configure the adapter to call DeepSeek‑Chat (fallback to GPT‑4o) and parse function‑call responses."
+    - action: "Implement JSON plan output"
+      description: "Ensure every LLM response includes a structured `reasoning` array and a `toolCalls` array."
+    - action: "Stream plan to frontend Workspace tab"
+      description: "Send each reasoning step via WebSocket to the Orion’s Workspace tab as it is generated."
+
+  resources_touched:
+    - resource: "backend/src/llm/ModelAdapter.js (and derived adapters)"
+      constraint: "Must not break existing adapter usage until fully replaced."
+    - resource: "WebSocket event bus"
+      constraint: "Must not interfere with other WebSocket streams (System Log, Activity Log)."
+
+  resource_physics:
+    - resource: "LLM API Latency"
+      constraint: "DeepSeek‑Chat may be slower than GPT‑4o for complex tasks."
+      risk: "Streaming JSON reasoning could be delayed, affecting real‑time feel."
+      mitigation: "Stream partial reasoning (e.g., 'thinking…') while waiting for full response."
+
+    - resource: "Token Consumption"
+      constraint: "JSON reasoning adds extra tokens to each LLM call."
+      risk: "Increased cost and potential context‑window overflow."
+      mitigation: "Keep reasoning concise; use sliding‑window context management (6‑104)."
+
+  verification:
+    - action: "Adapter Unit Tests"
+      method: "Test that ThinkingAdapter returns valid JSON plan and tool‑call objects."
+    - action: "Streaming Integration Tests"
+      method: "Test that a mock LLM call triggers a WebSocket event with the expected plan structure."
+
+implementation_plan:
+  - component: "ThinkingAdapter Class"
+    path: "backend/src/llm/ThinkingAdapter.js (new)"
+    details: |
+      - Extends `BaseAdapter` (or replaces `ModelAdapter`).
+      - Accepts `prompt` (string), `tools` (array), `context` (object) and returns `{ reasoning: [...], toolCalls: [...] }`.
+      - Uses DeepSeek‑Chat as primary model, with fallback to GPT‑4o.
+      - Parses LLM response for function‑calling and extracts reasoning steps.
+      - Does NOT handle routing or fast‑path decisions (those are done by the observation stage).
+
+  - component: "JSON Plan Schema"
+    path: "backend/src/llm/schemas/planSchema.js (new)"
+    details: |
+      - Define JSON schema for the plan:
+        ```json
+        {
+          "reasoning": [
+            {
+              "step": 1,
+              "thought": "string",
+              "decision": "string",
+              "confidence": 0.0-1.0
+            }
+          ],
+          "toolCalls": [
+            {
+              "tool": "string",
+              "parameters": {},
+              "purpose": "string"
+            }
+          ]
+        }
+        ```
+
+  - component: "Plan Streaming Service"
+    path: "backend/src/services/PlanStreamService.js (new)"
+    details: |
+      - Listens for `plan` events from ThinkingAdapter.
+      - Emits a WebSocket event `orion:plan` with the plan payload.
+      - Frontend’s Workspace tab subscribes to this event and displays the reasoning tree.
+
+  - component: "Frontend Workspace Integration"
+    path: "frontend/src/components/OrionWorkspace.vue (new) or existing Workspace component"
+    details: |
+      - Create a new component (or extend existing) that listens to `orion:plan` WebSocket events.
+      - Render the reasoning steps as a collapsible tree with tool‑call details.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for ThinkingAdapter (Red)"
+  - "[ ] [TDD] Implement ThinkingAdapter with JSON plan output (Green)"
+  - "[ ] [TDD] Implement PlanStreamService and WebSocket integration"
+  - "[ ] [Integration] Test that a simple LLM call triggers a plan event visible in the Workspace tab"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement ThinkingAdapter and its streaming service, ensuring backward compatibility with existing adapters during transition.
+      All work must stay within backend/src/** and frontend/src/** for the Workspace component.
+    steps:
+      - "Create `ThinkingAdapter.js` that uses DeepSeek‑Chat and outputs JSON plan."
+      - "Create `PlanStreamService.js` to broadcast plan via WebSocket."
+      - "Create or modify the frontend Workspace component to listen for `orion:plan` events and display them."
+      - "Run backend and frontend tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for ThinkingAdapter and plan streaming, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for ThinkingAdapter that verify JSON plan structure and tool‑call parsing."
+      - "Create integration tests that verify WebSocket events are emitted when ThinkingAdapter is called."
+      - "Create frontend unit tests for the Workspace component rendering of plan steps."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify ThinkingAdapter returns a JSON plan for a simple prompt."
+      method: "Run a test script that calls ThinkingAdapter with a dummy prompt and logs the output."
+      expected: "Output contains a `reasoning` array and optional `toolCalls` array."
+      verified: false
+    - id: "HV-2"
+      action: "Check that the plan is streamed to the Workspace tab in real time."
+      method: "Trigger an Orion chat request that uses thinking (e.g., 'List files in Docs') and watch the Workspace tab."
+      expected: "Workspace tab shows a live stream of reasoning steps as Orion thinks."
+      verified: false
+    - id: "HV-3"
+      action: "Verify the Workspace tab renders reasoning as a collapsible tree."
+      method: "Inspect the Workspace tab UI; click to expand/collapse reasoning steps."
+      expected: "Reasoning steps are organized hierarchically and can be expanded."
+      verified: false
+    - id: "HV-4"
+      action: "Confirm fallback to GPT‑4o when DeepSeek‑Chat is unavailable."
+      method: "Temporarily disable DeepSeek‑Chat API (or mock failure) and run a request."
+      expected: "Adapter automatically switches to GPT‑4o and still returns JSON plan."
+      verified: false
+
+internal_logic: |
+  **Adapter Flow**:
+  1. The thinking stage (6‑102) receives a classification from the observation stage (6‑101) and selects the appropriate thinking prompt (direct, basic OTA, CDP‑enhanced).
+  2. The thinking stage calls ThinkingAdapter with the selected prompt, the available tools, and the current context.
+  3. ThinkingAdapter sends the prompt to DeepSeek‑Chat (or fallback) with function‑calling enabled.
+  4. The LLM response is parsed: tool‑calls are extracted, and the model’s internal reasoning is captured via a structured `reasoning` field (prompt‑engineered to output JSON).
+  5. The adapter returns `{ reasoning, toolCalls }`.
+  6. Simultaneously, the PlanStreamService emits a WebSocket event with the plan payload, which the frontend Workspace tab displays.
+
+  **Note on Fast‑Path and Direct Protocol**:
+  - Explicit commands (e.g., `/read`, `/list`) are handled by the observation stage (or earlier in the route) and classified as "direct". For direct protocol, no thinking stage is invoked, so ThinkingAdapter is not called.
+
+  **Action Phase**:
+  - The plan (tool calls) produced by ThinkingAdapter is passed to the existing AgentExecutor, which uses the tool registry to execute the actions. This is the "Act" phase of OTA.
+
+expected_output: |
+  - A working ThinkingAdapter that returns structured JSON plans for every thinking call.
+  - Real‑time streaming of plan (reasoning steps) to the Orion’s Workspace tab.
+  - A frontend Workspace component that renders reasoning as an interactive tree.
+
+notes_and_answers: |
+  **User's Notes**:
+  NOTES: What exactly does the UnifiedAdapter do? explain in one sentence.
+    1. if we are using Regex checks isn't that done before OrionAgent gets the message?
+    2. Will we even have an UnifiedAdapter? the message is separated into three levels, Level 1 (direct), Level 2 (basic ota), Level 3 (cdp enhanced). Each level has its own adapter. So how can we have a UnifiedAdapter?
+    3. Since Act is after thinking, wouldn't it be better to have a specific ActionBrain, which takes in the context from Observation, the plan from Thinking, He would know what to do, what tools to use, how to use them, the steps he needs to take, would that be in the thinking phase? (or he can figure them out). Then all he needs to do is to act.
+
+  **Architect's Answers**:
+  1. **What does the ThinkingAdapter do?**  
+     ThinkingAdapter is the single LLM adapter that, given a thinking prompt (one of three levels) and a list of tools, returns a structured JSON plan with reasoning steps and tool calls.
+
+  2. **Regex checks** – Yes, regex checks for explicit commands (e.g., `/read`, `/list`) are done in the observation stage (or earlier in the route) to classify the request as "direct". That classification bypasses the thinking stage entirely, so ThinkingAdapter is not called. The adapter itself does not handle routing.
+
+  3. **One adapter vs three levels** – The three levels correspond to different *prompts* (direct, basic OTA, CDP‑enhanced), not different adapters. ThinkingAdapter is a single adapter that can run any of those prompts. The prompt selection is done by the thinking stage (6‑102) based on the observation classification. This keeps the adapter simple and reusable.
+
+  4. **ActionBrain vs thinking phase** – The thinking phase already produces a plan with concrete tool calls (the `toolCalls` array). The execution of those tool calls is handled by the existing AgentExecutor, which knows how to invoke tools from the registry. This is effectively the "ActionBrain". Adding a separate ActionBrain would duplicate logic already present in AgentExecutor. However, if we need more sophisticated action orchestration (e.g., parallel execution, retry logic), we could enhance AgentExecutor later, but for Milestone 1 the existing executor is sufficient.
+
+history:
+  - ts: "2025-12-10T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for ThinkingAdapter with JSON plan streaming (Task 6‑100)."
+  - ts: "2025-12-10T08:30:00Z"
+    role: architect
+    action: REVISED
+    message: "Revised based on user feedback: renamed UnifiedAdapter to ThinkingAdapter, clarified its role in the thinking stage, removed fast‑path handling, and added note on action phase."
+  - ts: "2025-12-10T08:35:00Z"
+    role: architect
+    action: NOTES_ADDED
+    message: "Added user's notes and architect's answers above history section."

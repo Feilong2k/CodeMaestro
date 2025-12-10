@@ -1,0 +1,235 @@
+# Subtask Log: 6-110 (Advanced Chat Modernization – Pause/Resume, Thinking Line, Reverse‑Chronological Chat)
+id: "6-110"
+title: "Advanced Chat Modernization – Pause/Resume, Thinking Line, Reverse‑Chronological Chat"
+status: pending
+branch: "subtask/6-110-advanced-chat"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Enhance the chat UI with advanced features inspired by Cline and Cursor:
+  - **Pause/Resume button**: Replace the Normal/Compact toggle with a button that pauses/resumes the current agent (Orion). When paused, the agent stops sending new tool‑calls and thinking steps; when resumed, it continues.
+  - **Thinking line**: Display a single‑line "Thinking: …" with a typewriter effect in the chat panel when Orion is in the thinking stage. Clicking the line switches the right panel to the Workspace tab (if available) where the full thinking stream is automatically displayed (by 6‑100).
+  - **Reverse‑chronological chat**: New messages appear at the top of the chat panel, with a fixed buffer of 10 messages. When the user scrolls back, load older messages in batches of 10.
+
+constraint_discovery:
+  subtask_id: "6-110"
+  owner: "Orion"
+  concern: "Chat UX & Agent Control"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Implement Pause/Resume button frontend"
+      description: "Replace the Normal/Compact toggle with a button that toggles between 'Pause' and 'Resume'. Emit a WebSocket event when clicked."
+    - action: "Implement Pause/Resume backend handling"
+      description: "OrionAgent listens for the pause/resume event and sets a flag that prevents new tool‑calls and thinking steps (but does not interrupt ongoing execution)."
+    - action: "Design Thinking line component"
+      description: "Create a lightweight component that displays a single‑line 'Thinking: …' with a typewriter effect. It appears only when Orion is in the thinking stage (detected via WebSocket event)."
+    - action: "Connect Thinking line to Workspace tab"
+      description: "When the thinking line is clicked, switch the right panel's active tab to the Workspace tab (if it exists) and optionally highlight the relevant thinking entry."
+    - action: "Implement reverse‑chronological message ordering"
+      description: "Change ChatPanel to render messages in reverse order (newest on top). Maintain a fixed buffer of 10 messages; when the user scrolls near the top, load the next 10 older messages."
+    - action: "Add scroll‑based pagination"
+      description: "Detect when the user scrolls to the top of the chat panel and trigger loading of older messages (batch of 10)."
+
+  resources_touched:
+    - resource: "ChatPanel.vue"
+      constraint: "Must maintain existing message data and event handling while changing order and adding pagination."
+    - resource: "ChatMessage.vue"
+      constraint: "Thinking line is a new message type; must not break existing message rendering."
+    - resource: "WebSocket event bus"
+      constraint: "Need new events for pause/resume and thinking‑stage detection."
+    - resource: "CombinedLogPanel.vue (from 6‑099)"
+      constraint: "Must be able to programmatically switch tabs when thinking line is clicked."
+    - resource: "OrionAgent (backend)"
+      constraint: "Must respect the paused flag and stop sending new tool‑calls and thinking steps."
+
+  resource_physics:
+    - resource: "Message Buffer Memory"
+      constraint: "Storing only 10 messages at a time reduces memory usage but requires efficient loading of older messages."
+      risk: "Loading older messages may cause performance lag if the chat history is large."
+      mitigation: "Load only the necessary batch; consider caching previously loaded messages."
+
+    - resource: "WebSocket Event Volume"
+      constraint: "Adding new events (pause/resume, thinking‑stage) increases WebSocket traffic."
+      risk: "Potential for event collisions or missed events."
+      mitigation: "Use distinct event names and ensure reliable delivery."
+
+    - resource: "UI Responsiveness"
+      constraint: "Typewriter effect and scroll‑based pagination must not block the main thread."
+      risk: "Chat may feel sluggish during thinking or loading."
+      mitigation: "Use requestAnimationFrame for typewriter effect and debounce scroll events."
+
+  verification:
+    - action: "Pause/Resume Unit Tests"
+      method: "Test that clicking the button toggles its label and emits the correct WebSocket event."
+    - action: "Thinking Line Integration Tests"
+      method: "Test that a thinking‑stage WebSocket event triggers the thinking line, and clicking it switches the right panel tab."
+    - action: "Reverse‑Chronological Chat Tests"
+      method: "Test that new messages appear at the top, and scrolling up loads older messages in batches."
+
+implementation_plan:
+  - component: "Pause/Resume Button"
+    path: "frontend/src/components/ChatPanel.vue"
+    details: |
+      - Replace the Normal/Compact toggle button with a new button labeled "Pause".
+      - When clicked, change label to "Resume" and emit a WebSocket event `orion:pause` (or `orion:resume`).
+      - The button should be disabled while the agent is not active (e.g., when no task is running).
+      - Style the button to match the existing UI (use Tailwind classes).
+
+  - component: "Backend Pause/Resume Handling"
+    path: "backend/src/agents/OrionAgent.js"
+    details: |
+      - Add a `paused` flag (default false) to the OrionAgent instance.
+      - Listen for `orion:pause` and `orion:resume` WebSocket events.
+      - When paused, set `paused = true`. OrionAgent should check this flag before sending any tool‑calls or thinking steps (but allow ongoing execution to complete).
+      - When resumed, set `paused = false` and continue processing.
+      - Emit a System Log event when pause/resume occurs for visibility.
+
+  - component: "Thinking Line Component"
+    path: "frontend/src/components/ThinkingLine.vue (new)"
+    details: |
+      - A component that renders a single line: "Thinking: …" with a typewriter effect (characters appear one by one).
+      - It subscribes to a WebSocket event `orion:thinking_start` (emitted by the thinking stage) and hides on `orion:thinking_end`.
+      - The line is clickable; when clicked, emit a custom event `thinking-line-clicked`.
+      - The component is placed inside ChatPanel as a special message type (distinct from user/AI messages).
+
+  - component: "Thinking Line Integration"
+    path: "frontend/src/components/ChatPanel.vue"
+    details: |
+      - Listen for `thinking-line-clicked` and trigger a method that switches the right panel's active tab to "Workspace".
+      - If the Workspace tab does not yet exist (6‑100 not complete), fall back to logging a console message.
+      - Optionally, emit a WebSocket event to request highlighting the relevant thinking entry in the Workspace tab.
+
+  - component: "Reverse‑Chronological Chat & Pagination"
+    path: "frontend/src/components/ChatPanel.vue"
+    details: |
+      - Change the message array order: newest first.
+      - Maintain a `messageBuffer` of max 10 messages initially.
+      - When the user scrolls to the top (within a threshold), trigger a `loadOlderMessages` function.
+      - `loadOlderMessages` fetches the next 10 older messages (via existing store or API) and prepends them to the buffer.
+      - Show a loading indicator while fetching.
+      - Ensure smooth scrolling when new messages arrive (new messages should not jump the scroll position).
+
+  - component: "WebSocket Events Extension"
+    path: "backend/src/services/AgentExecutor.js or backend/src/agents/OrionAgent.js"
+    details: |
+      - Emit `orion:thinking_start` when the thinking stage begins (with a unique thinking ID).
+      - Emit `orion:thinking_end` when thinking ends.
+      - Emit `orion:pause` and `orion:resume` events when the user triggers them (already handled above).
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for Pause/Resume button (Red)"
+  - "[ ] [TDD] Implement Pause/Resume button and backend handling (Green)"
+  - "[ ] [TDD] Create failing unit tests for ThinkingLine component (Red)"
+  - "[ ] [TDD] Implement ThinkingLine with typewriter effect and click handling (Green)"
+  - "[ ] [TDD] Create failing unit tests for reverse‑chronological chat and pagination (Red)"
+  - "[ ] [TDD] Implement reverse‑chronological ordering and scroll‑based loading (Green)"
+  - "[ ] [Integration] Test that pausing Orion stops new tool‑calls (mock OrionAgent)"
+  - "[ ] [Integration] Test that clicking thinking line switches to Workspace tab (mock CombinedLogPanel)"
+  - "[ ] [Integration] Test that scrolling up loads older messages"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement advanced chat features: Pause/Resume button, thinking line, reverse‑chronological chat with pagination.
+      Work spans frontend/src/** and backend/src/agents/OrionAgent.js for pause/resume logic.
+    steps:
+      - "Add Pause/Resume button to ChatPanel.vue and emit WebSocket events."
+      - "Update OrionAgent.js to listen for pause/resume events and set a paused flag."
+      - "Create ThinkingLine.vue component with typewriter effect and click event."
+      - "Integrate thinking line into ChatPanel and connect click to tab switching (via event bus)."
+      - "Modify ChatPanel to display messages newest‑first and implement scroll‑based pagination (load 10 older messages at a time)."
+      - "Extend WebSocket events in the thinking stage to emit thinking_start/thinking_end."
+      - "Run frontend and backend tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for the new features, strictly in frontend/__tests__/** and backend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for Pause/Resume button (frontend) and OrionAgent pause flag (backend)."
+      - "Create unit tests for ThinkingLine component (typewriter effect, click event)."
+      - "Create unit tests for reverse‑chronological chat and scroll‑based pagination."
+      - "Create integration tests that simulate pause/resume behavior and verify thinking line appears/disappears."
+      - "Ensure existing chat tests still pass."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify Pause/Resume button toggles and emits WebSocket events."
+      method: "Click the button; observe label changes and check Network tab for WebSocket events."
+      expected: "Button label switches between 'Pause' and 'Resume'; appropriate WebSocket events are sent."
+      verified: false
+    - id: "HV-2"
+      action: "Check that pausing stops new tool‑calls and thinking."
+      method: "Pause Orion, then send a command that would normally trigger a tool‑call (e.g., '/list')."
+      expected: "No new tool‑calls or thinking steps occur until resume is clicked."
+      verified: false
+    - id: "HV-3"
+      action: "Confirm thinking line appears during thinking stage."
+      method: "Trigger a request that requires thinking (e.g., a complex question)."
+      expected: "A single‑line 'Thinking: …' appears in the chat panel with typewriter effect."
+      verified: false
+    - id: "HV-4"
+      action: "Verify clicking thinking line switches to Workspace tab."
+      method: "Click the thinking line while the right panel is on Activity or System Log."
+      expected: "Right panel switches to Workspace tab (if available)."
+      verified: false
+    - id: "HV-5"
+      action: "Check reverse‑chronological ordering."
+      method: "Send several messages; observe that newer messages appear at the top of the chat panel."
+      expected: "Messages are ordered newest‑first."
+      verified: false
+    - id: "HV-6"
+      action: "Test scroll‑based pagination (load older messages)."
+      method: "Scroll to the top of the chat panel; wait for older messages to load."
+      expected: "Older messages appear above the current buffer, and a loading indicator is shown during fetch."
+      verified: false
+
+internal_logic: |
+  **Pause/Resume Flow**:
+  1. User clicks "Pause" button in ChatPanel.
+  2. ChatPanel emits WebSocket event `orion:pause`.
+  3. OrionAgent receives the event and sets `this.paused = true`.
+  4. While `paused` is true, OrionAgent skips sending new tool‑calls and thinking steps (but ongoing execution, if any, continues).
+  5. User clicks "Resume"; event `orion:resume` is sent, `this.paused = false`, and OrionAgent resumes normal operation.
+
+  **Thinking Line Flow**:
+  1. Thinking stage begins (6‑102); backend emits `orion:thinking_start` with a thinking ID.
+  2. ThinkingLine component listens for this event and becomes visible, starting a typewriter effect with placeholder text "Thinking: …".
+  3. When thinking ends, backend emits `orion:thinking_end`; ThinkingLine hides.
+  4. If the user clicks the thinking line, ChatPanel emits an event that triggers the CombinedLogPanel to switch its active tab to "Workspace" (if the tab exists). The Workspace tab already displays the full thinking stream (via 6‑100).
+
+  **Reverse‑Chronological Chat**:
+  - ChatPanel stores messages in an array `messageBuffer` (max 10 items initially, newest first).
+  - When a new message arrives (user or AI), it is prepended to the buffer (and the buffer may be trimmed to keep 10 items).
+  - The template renders `messageBuffer` as‑is (newest at top).
+  - A scroll listener detects when the user scrolls to the top of the chat container. When that happens, ChatPanel calls `loadOlderMessages`, which fetches the next 10 older messages (via store or API) and prepends them to the buffer (increasing its size).
+  - A loading indicator is shown during the fetch.
+
+  **Integration with 6‑099 and 6‑100**:
+  - 6‑099 provides the CombinedLogPanel with tabs; 6‑110 assumes a "Workspace" tab will be added by 6‑100 (or later). If the Workspace tab is not present, clicking the thinking line will have no visible effect (but will not break).
+  - Thinking line depends on WebSocket events emitted by the thinking stage (6‑102). If those events are not yet implemented, the thinking line will not appear.
+
+expected_output: |
+  - A working Pause/Resume button that toggles and effectively pauses Orion's new tool‑calls and thinking.
+  - A thinking line that appears during thinking stages, with a typewriter effect, and switches to the Workspace tab when clicked.
+  - Chat messages displayed newest‑first, with scroll‑based pagination loading older messages in batches of 10.
+  - No regression in existing chat functionality.
+
+notes_and_answers: |
+  **Architect's Notes**:
+  - This subtask depends on 6‑099 (layout) and 6‑100 (Workspace tab for thinking expansion). If 6‑100 is not complete, the thinking‑line click will have no tab to switch to, but the line will still appear.
+  - The thinking line is a lightweight indicator; the full thinking stream is automatically displayed in the Workspace tab (by 6‑100). This aligns with the user's note: "currently thinking should just be displayed to the workspace tab automatically".
+  - Pause/Resume applies only to the current agent (Orion) as per Option A. A future "Stop" button for all agents can be added later.
+  - Reverse‑chronological chat with fixed buffer improves performance and mimics modern chat interfaces (Cursor, Cline).
+
+history:
+  - ts: "2025-12-10T10:48:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for Advanced Chat Modernization (Task 6‑110)."

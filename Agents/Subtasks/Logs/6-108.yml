@@ -1,0 +1,190 @@
+# Subtask Log: 6-108 (Agent‑Specific OTA Loops for Devon & Tara)
+id: "6-108"
+title: "Agent‑Specific OTA Loops for Devon & Tara"
+status: pending
+branch: "subtask/6-108-agent-specific-ota-loops"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Implement the complete OTA (Observe‑Think‑Act) loop for Devon and Tara, using role‑specific observation prompts and thinking prompts. When Devon or Tara picks up a subtask, they run their own observation stage (analyzing the subtask context), then the thinking stage (producing a JSON plan with tool calls), and finally execute the plan by calling tools directly (using the existing tool registry). The entire process is streamed to the Workspace and System Log tabs.
+
+constraint_discovery:
+  subtask_id: "6-108"
+  owner: "Orion"
+  concern: "Role‑Specific OTA Execution & Stream Visibility"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Design Devon observation prompt"
+      description: "Create a prompt that helps Devon analyze a subtask (implementation) and decide on thinking protocol."
+    - action: "Design Tara observation prompt"
+      description: "Create a prompt that helps Tara analyze a subtask (testing) and decide on thinking protocol."
+    - action: "Design Devon thinking prompt"
+      description: "Create a thinking prompt for Devon that focuses on implementation tasks (writing code, refactoring)."
+    - action: "Design Tara thinking prompt"
+      description: "Create a thinking prompt for Tara that focuses on testing tasks (writing tests, verifying)."
+    - action: "Integrate OTA loop into DevonAgent and TaraAgent"
+      description: "Modify DevonAgent and TaraAgent to run the OTA loop when they receive a subtask, using the new prompts and calling tools directly (without AgentExecutor)."
+    - action: "Stream OTA stages to UI"
+      description: "Emit WebSocket events for each OTA stage (observation, thinking, action) so they appear in the Workspace and System Log tabs."
+
+  resources_touched:
+    - resource: "Observation stage (6‑101)"
+      constraint: "Must reuse the observation classifier infrastructure but with role‑specific prompts."
+    - resource: "ThinkingAdapter (6‑100)"
+      constraint: "Must be called with role‑specific thinking prompts."
+    - resource: "Tool registry (existing)"
+      constraint: "Devon and Tara must use the existing tool registry to execute tool calls, without the AgentExecutor abstraction."
+    - resource: "WebSocket event bus"
+      constraint: "Must not interfere with Orion’s event streams."
+
+  resource_physics:
+    - resource: "Parallel OTA Loops"
+      constraint: "Devon and Tara may be working on multiple subtasks simultaneously."
+      risk: "Event streams could become interleaved, causing confusion in the UI."
+      mitigation: "Include subtask ID in every WebSocket event and have the UI filter by active subtask."
+
+    - resource: "Role‑Specific Tool Access"
+      constraint: "Devon and Tara have different tool permissions (e.g., Tara cannot write source files)."
+      risk: "A thinking plan might include a tool call that the agent is not allowed to use."
+      mitigation: "The tool registry will reject unauthorized tool calls, but the thinking prompt should be designed to avoid generating them."
+
+  verification:
+    - action: "Devon OTA Loop Unit Tests"
+      method: "Test that DevonAgent runs the OTA loop for a sample subtask and produces a valid plan."
+    - action: "Tara OTA Loop Unit Tests"
+      method: "Test that TaraAgent runs the OTA loop for a sample testing subtask and produces a valid plan."
+    - action: "Streaming Integration Tests"
+      method: "Test that each OTA stage emits WebSocket events that are captured by the frontend."
+
+implementation_plan:
+  - component: "Role‑Specific Observation Prompts"
+    path: "backend/src/prompts/observation_devon.md, observation_tara.md (new)"
+    details: |
+      - **Devon observation prompt**: Analyzes a subtask description and context, decides if the task is straightforward (basic OTA) or requires CDP (e.g., architectural changes). Outputs the same JSON schema as Orion’s observation but with role‑specific intent.
+      - **Tara observation prompt**: Analyzes a subtask description and context, decides if the testing task is simple (basic OTA) or complex (CDP). Outputs the same JSON schema.
+
+  - component: "Role‑Specific Thinking Prompts"
+    path: "backend/src/prompts/thinking_devon.md, thinking_tara.md (new)"
+    details: |
+      - **Devon thinking prompt**: Guides the LLM to think like a developer—write code, refactor, integrate, etc. Includes examples of implementation tool calls (FileSystemTool, GitTool, ShellTool for building).
+      - **Tara thinking prompt**: Guides the LLM to think like a tester—write unit tests, run tests, verify coverage, etc. Includes examples of testing tool calls (FileSystemTool for test files, ShellTool for running tests).
+
+  - component: "OTA Loop Service"
+    path: "backend/src/services/OTALoopService.js (new)"
+    details: |
+      - A reusable service that runs the OTA loop for a given agent (Orion, Devon, Tara).
+      - Inputs: agent role, subtask context, available tools.
+      - Steps:
+        1. Run observation stage with the role‑specific observation prompt.
+        2. Based on the observation, select thinking prompt (direct, basic OTA, CDP‑enhanced).
+        3. Run thinking stage (ThinkingAdapter) with the selected prompt.
+        4. Execute the resulting tool calls by calling the tool registry directly (without AgentExecutor).
+        5. Stream events for each step.
+      - Returns the final result of the action stage.
+
+  - component: "DevonAgent & TaraAgent Integration"
+    path: "backend/src/agents/DevonAgent.js, TaraAgent.js"
+    details: |
+      - Modify the existing `execute` or `processSubtask` methods to use the OTALoopService.
+      - Pass the agent’s role and the subtask context to the service.
+      - Ensure that the agent’s tool registry is used (without AgentExecutor).
+
+  - component: "Frontend Workspace Integration"
+    path: "frontend/src/components/OrionWorkspace.vue"
+    details: |
+      - Extend the Workspace tab to show OTA loops from Devon and Tara, distinguishing them by agent (e.g., color‑coded).
+      - Display the observation classification, thinking plan, and tool‑execution timeline for each agent.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for OTALoopService (Red)"
+  - "[ ] [TDD] Implement OTALoopService with role‑specific prompts (Green)"
+  - "[ ] [TDD] Integrate OTALoopService into DevonAgent and TaraAgent"
+  - "[ ] [Integration] Test that a subtask assigned to Devon triggers an OTA loop and streams events to the Workspace"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement the OTA loop for Devon and Tara, including prompt design, OTALoopService, and integration with existing agents.
+      All work must stay within backend/src/** and frontend/src/** for the Workspace component.
+    steps:
+      - "Create role‑specific observation and thinking prompts for Devon and Tara."
+      - "Implement OTALoopService that runs the OTA loop using the prompts, ThinkingAdapter, and the tool registry (without AgentExecutor)."
+      - "Modify DevonAgent and TaraAgent to use OTALoopService for processing subtasks."
+      - "Update the frontend Workspace component to display Devon and Tara OTA events."
+      - "Run tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for the OTA loops, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for OTALoopService that verify each stage (observation, thinking, action) for both Devon and Tara."
+      - "Create integration tests that verify DevonAgent and TaraAgent emit OTA events and the frontend displays them."
+      - "Create frontend unit tests for the Workspace component rendering of Devon/Tara OTA events."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify Devon’s observation prompt returns a valid classification for an implementation subtask."
+      method: "Run a test script that calls the observation stage with a Devon‑specific prompt and a sample subtask."
+      expected: "Output includes classification:request, protocol:basic_ota or cdp_enhanced, and role‑specific intent."
+      verified: false
+    - id: "HV-2"
+      action: "Check that Tara’s thinking prompt produces a plan with testing tool calls."
+      method: "Run a test script that calls ThinkingAdapter with Tara’s thinking prompt and a sample testing subtask."
+      expected: "Plan includes tool calls for writing tests, running tests, etc."
+      verified: false
+    - id: "HV-3"
+      action: "Observe OTA loop streaming in the Workspace for Devon."
+      method: "Assign a simple implementation subtask to Devon and watch the Workspace tab."
+      expected: "Workspace shows Devon’s observation classification, thinking plan, and tool‑execution timeline."
+      verified: false
+    - id: "HV-4"
+      action: "Observe OTA loop streaming in the Workspace for Tara."
+      method: "Assign a simple testing subtask to Tara and watch the Workspace tab."
+      expected: "Workspace shows Tara’s observation classification, thinking plan, and tool‑execution timeline."
+      verified: false
+
+internal_logic: |
+  **OTA Loop for Devon/Tara**:
+  1. Devon (or Tara) receives a subtask (via task queue or direct assignment).
+  2. The agent calls OTALoopService with:
+      - `role`: "devon" or "tara"
+      - `subtaskContext`: { id, description, files, etc. }
+      - `availableTools`: the agent’s tool registry.
+  3. OTALoopService runs the observation stage using the role‑specific observation prompt.
+  4. Based on the observation, it selects a thinking protocol (direct, basic OTA, CDP‑enhanced) and loads the corresponding role‑specific thinking prompt.
+  5. The thinking stage (ThinkingAdapter) is called with the prompt and available tools, producing a JSON plan.
+  6. The action stage executes the plan by calling the tool registry directly (which streams tool events).
+  7. Each stage (observation, thinking, action) emits WebSocket events that are displayed in the Workspace and System Log.
+
+  **Event Streaming**:
+  - Observation: `orion:observation` (with agent field)
+  - Thinking: `orion:thinking` (with agent field and plan)
+  - Action: `orion:tool_*` events (with agent field)
+
+  **Integration with Existing Subtask Workflow**:
+  - The existing XState TDD workflow (subtaskMachine) is updated by the orchestrator when Devon/Tara complete steps (e.g., tests written, tests passed). This is done via tools (or the orchestrator) that transition the subtask state.
+
+expected_output: |
+  - Role‑specific observation and thinking prompts for Devon and Tara.
+  - A working OTALoopService that runs the complete OTA loop for both agents.
+  - DevonAgent and TaraAgent updated to use the OTA loop for subtask execution.
+  - Real‑time streaming of Devon and Tara’s OTA stages in the Workspace tab.
+
+notes_and_answers: |
+  **Architect's Notes**:
+  - The OTA loop for Devon and Tara mirrors Orion’s OTA loop, but with role‑specific prompts and tools. This ensures each agent thinks and acts according to its specialty.
+  - The OTALoopService is designed to be reusable, so in the future we can add more agents (e.g., a design agent) without rewriting the OTA logic.
+  - The frontend Workspace tab must be able to distinguish between agents and possibly filter by agent or subtask.
+
+history:
+  - ts: "2025-12-10T09:55:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for Agent‑Specific OTA Loops for Devon & Tara (Task 6‑108)."

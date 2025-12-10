@@ -172,7 +172,7 @@ subtasks:
     priority: critical
     dependencies: ["5-11"]
 
-  # Phase 6: Self-Service & Context Intelligence
+  # Phase 6: Two‑Tiered Brain with OTA/CDP Integration (Milestone 1)
   - id: "6-12"
     title: "Function Calling API Support"
     status: completed
@@ -196,63 +196,96 @@ subtasks:
 
   - id: "6-1"
     title: "Agent FSM Core + DB Logging"
-    status: pending
+    status: completed
     owner: "Devon"
     priority: critical
     dependencies: ["5-3", "6-0", "6-10"]
 
-  - id: "6-2"
-    title: "AgentExecutor Integration + JSON Schema Enforcement"
+  # New Milestone 1 subtasks (UI‑first, monitorable)
+  - id: "6-099"
+    title: "UI Panel Reorganization & Basic Chat Cleanup (50/50 Split + Text Wrapping, Compact View)"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["6-0", "6-10"]
+
+  - id: "6-110"
+    title: "Advanced Chat Modernization – Pause/Resume, Thinking Line, Reverse‑Chronological Chat"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["6-099", "6-100"]
+
+  - id: "6-100"
+    title: "UnifiedAdapter with JSON Reasoning & Live UI Stream"
     status: pending
     owner: "Devon"
     priority: critical
-    dependencies: ["6-1"]
+    dependencies: ["6-12"]
 
-  - id: "6-3"
-    title: "BodyInterface Core + Tool Execution Logging"
+  - id: "6-101"
+    title: "Observation Stage with UI‑Displayed Classification"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["6-100"]
+
+  - id: "6-102"
+    title: "Thinking Protocols with CDP Level 0 Audit Trail & Verification"
+    status: pending
+    owner: "Devon"
+    priority: critical
+    dependencies: ["6-101"]
+
+  - id: "6-103"
+    title: "First‑Brain Prompt & Tool Guide (Editable via UI)"
     status: pending
     owner: "Devon"
     priority: high
-    dependencies: ["5-1", "5-6", "6-2"]
+    dependencies: ["6-100"]
 
-  - id: "6-4"
-    title: "Shell Output Streaming & Structured Errors"
-    status: pending
-    owner: "Devon"
-    priority: high
-    dependencies: ["6-0", "6-3"]
-
-  - id: "6-5"
-    title: "Proprioception & Context Wiring (First Slice)"
+  - id: "6-104"
+    title: "Dynamic Context Sliding Window with Read‑Log"
     status: pending
     owner: "Devon"
     priority: medium
-    dependencies: ["5-11", "6-3"]
+    dependencies: ["6-100"]
 
-  - id: "6-6"
-    title: "State Machine Action Hooks & Automated Orchestration"
+  - id: "6-105"
+    title: "Manifest‑Driven Consultation & Advisory Report UI"
+    status: pending
+    owner: "Devon"
+    priority: high
+    dependencies: ["6-102"]
+
+  - id: "6-106"
+    title: "Updated OrionAgent.chat with Protocol‑Selection Dashboard"
     status: pending
     owner: "Devon"
     priority: critical
-    dependencies: ["6-1", "6-2", "6-3"]
+    dependencies: ["6-101", "6-102"]
 
-  - id: "6-7"
-    title: "Body Interface & Cross-Platform Reliability"
+  - id: "6-108"
+    title: "Agent‑Specific OTA Loops (Devon & Tara)"
     status: pending
     owner: "Devon"
-    priority: high
-    dependencies: ["6-3"]
+    priority: medium
+    dependencies: ["6-101"]
 
-  - id: "6-8"
-    title: "Sensory Feedback & Network Telemetry"
+  - id: "6-109"
+    title: "Investigate TaskQueueService & design dispatch_subtask tool"
     status: pending
     owner: "Devon"
-    priority: high
-    dependencies: ["6-3", "6-4"]
+    priority: critical
+    dependencies: ["6-101", "6-102"]
 
-  - id: "6-9"
-    title: "Strict Agent Loop & Frontend Integration"
-    status: pending
-    owner: "Devon"
-    priority: high
-    dependencies: ["6-1", "6-2", "6-6", "6-7", "6-8"]
+# --- Notes (2025-12-10) ---
+# Updated by Adam (Architect) for Phase 6 Milestone 1 (Beyond5 Roadmap v2.0):
+# - Marked 6‑1 as completed (implementation done per log).
+# - Removed incomplete Phase 6 tasks (6‑2 through 6‑9, 6‑11, 6‑13, 6‑14, 6‑15).
+# - Added new UI‑first subtasks 6‑099 through 6‑106 with explicit human‑verification checklists.
+# - Dependencies follow the OTA/CDP integration flow:
+#   6‑099 (UI reorg) → 6‑100 (UnifiedAdapter) → 6‑101 (Observation) → 6‑102 (Thinking)
+#   → 6‑105 (Manifest) & 6‑106 (OrionAgent update).
+#   Parallel: 6‑103 (Prompt editing) and 6‑104 (Context window).
+# - All new logs will include internal‑logic descriptions and expected outputs.

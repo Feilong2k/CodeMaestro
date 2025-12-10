@@ -1,0 +1,17 @@
+Orion Quick Commands (paste these into chat)
+
+Basic docs actions:
+- list docs
+- list docs/AfterPhase5
+- search docs for Phase6
+- read Docs/Phase6_Plan.md
+
+Git actions:
+- git status
+- which branch
+
+Notes:
+- These work without an AI key (local router).
+- Synthetic chat states are off by default; System Log will be cleaner.
+- Queued runs (not chat) write to DB; to verify:
+  node scripts/run-agent-executor-once.js

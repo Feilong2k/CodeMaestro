@@ -1,0 +1,48 @@
+# Subtask Log: 6-11 (Agent Health Check & Recovery)
+id: "6-11"
+title: "Agent Health Check & Recovery (Heartbeat + Admin Reset)"
+status: pending
+branch: "subtask/6-11-agent-health-recovery"
+
+phase: 6
+owner: "Devon"
+priority: high
+
+description: |
+  Add lightweight health monitoring and a manual recovery path for stuck agent
+  runs. Each FSM transition updates last_activity; a new health endpoint
+  summarizes active subtasks and flags those with no heartbeat beyond
+  configurable thresholds. Operators can reset a stuck subtask to RETRY_WAIT or
+  ABORTED via an admin endpoint. System Log shows warning/clear events.
+
+dependencies:
+  - "6-1"   # FSM core/logging
+  - "6-10"  # WebSocket basic events
+
+acceptanceCriteria:
+  - "Each FSM transition updates last_activity (derived from agent_fsm_log or cached)."
+  - "GET /api/agent-health returns [{ subtaskId, agent, state, lastActivity, status: ok|stuck, hint }]."
+  - "PUT /api/agent-health/:id/reset transitions a stuck subtask to RETRY_WAIT or ABORTED and logs the action."
+  - "WebSocket emits a stuck warning event when threshold exceeded and a clear event when recovered."
+
+requiredActions:
+  - "Expose helper in AgentFsmLogService (or new service) to compute last_activity per subtask."
+  - "Implement /api/agent-health (GET) and /api/agent-health/:id/reset (PUT)."
+  - "Emit socket warnings when a subtask flips to stuck; clear when activity resumes."
+  - "Add integration tests: simulate delayed activity; assert stuck flag and reset behavior."
+
+links:
+  - scope: "Docs/Futures/Phase6_FSM_Error_and_HealthCheck_Scope.md"
+
+audit:
+  risks:
+    - risk: "False positives for long ACT steps"
+      mitigation: "Emit ACT tick heartbeat (e.g., every 60s) to refresh last_activity."
+    - risk: "Conflicts with retry timers on reset"
+      mitigation: "Use per-subtask transition locks; reset cancels pending timers."
+
+history:
+  - ts: "2025-12-09T19:36:00Z"
+    role: architect
+    action: CREATED
+    message: "Initialized subtask log with endpoints, criteria, and risks"

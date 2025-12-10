@@ -1,0 +1,168 @@
+# Subtask Log: 6-106 (Updated OrionAgent.chat with Protocol‑Selection Dashboard)
+id: "6-106"
+title: "Updated OrionAgent.chat with Protocol‑Selection Dashboard"
+status: pending
+branch: "subtask/6-106-orionagent-protocol-dashboard"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Replace the current split‑brain routing in `OrionAgent.chat` with the new OTA/CDP protocol selection (based on observation classification). Additionally, add a UI dashboard that shows the active protocol for each request, with a visual badge next to chat messages and a detailed breakdown in the Workspace tab.
+
+constraint_discovery:
+  subtask_id: "6-106"
+  owner: "Orion"
+  concern: "Protocol Visibility & Agent Loop Integration"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Update OrionAgent.chat to use observation stage"
+      description: "Replace the existing routing that uses TacticalAdapter/StrategicAdapter with the new observation‑thinking‑action flow."
+    - action: "Integrate protocol selection"
+      description: "Based on the observation classification, route the request through direct, basic OTA, or CDP‑enhanced thinking protocols."
+    - action: "Add protocol badge to chat UI"
+      description: "Display a small badge (e.g., 'Direct', 'Basic OTA', 'CDP‑Enhanced') next to each user and assistant message in the chat panel."
+    - action: "Create protocol dashboard in Workspace"
+      description: "Add a section in the Workspace tab that shows the protocol selection for the current request, with details (classification, reasoning, etc.)."
+
+  resources_touched:
+    - resource: "backend/src/agents/OrionAgent.js"
+      constraint: "Must integrate with observation stage (6‑101) and thinking protocols (6‑102) while maintaining backward compatibility for existing tests."
+    - resource: "frontend/src/components/ChatPanel.vue"
+      constraint: "Must add protocol badges without breaking existing chat layout."
+    - resource: "frontend/src/components/OrionWorkspace.vue"
+      constraint: "Must add a protocol dashboard section that updates in real time."
+
+  resource_physics:
+    - resource: "UI Real Estate"
+      constraint: "Adding badges to chat messages may clutter the interface on small screens."
+      risk: "Chat becomes harder to read."
+      mitigation: "Make badges subtle (small, colored dot) that expands on hover to show the protocol name."
+
+    - resource: "Backward Compatibility"
+      constraint: "Existing tests for OrionAgent may fail due to changes in the chat flow."
+      risk: "Need to update tests to reflect new behavior, but must not break the test suite."
+      mitigation: "Update test mocks to expect the new observation stage; keep the same overall input‑output behavior."
+
+  verification:
+    - action: "OrionAgent Unit Tests"
+      method: "Test that OrionAgent.chat calls the observation stage and routes to the correct thinking protocol."
+    - action: "UI Integration Tests"
+      method: "Test that the chat UI displays protocol badges and the Workspace dashboard updates accordingly."
+
+implementation_plan:
+  - component: "Updated OrionAgent.chat"
+    path: "backend/src/agents/OrionAgent.js"
+    details: |
+      - Replace the current `chat` method to:
+          1. Call ObservationClassifier (6‑101) to get classification.
+          2. Based on classification.protocol, call ProtocolRouter (6‑102) to get the thinking prompt (or skip thinking for direct).
+          3. Use UnifiedAdapter (6‑100) with the selected prompt to generate reasoning and tool calls.
+          4. Execute tool calls and return results.
+      - Ensure the agent context includes the classification and protocol for logging.
+
+  - component: "Protocol Badge Component"
+    path: "frontend/src/components/ProtocolBadge.vue (new)"
+    details: |
+      - A small Vue component that displays a colored dot and the protocol name.
+      - Accepts a `protocol` prop (direct, basic_ota, cdp_enhanced).
+      - Uses CSS to show tooltip on hover.
+
+  - component: "ChatPanel Integration"
+    path: "frontend/src/components/ChatPanel.vue"
+    details: |
+      - For each message in the chat, add a ProtocolBadge next to the message header.
+      - The protocol information must be included in the message data (via WebSocket event).
+
+  - component: "Protocol Dashboard in Workspace"
+    path: "frontend/src/components/OrionWorkspace.vue"
+    details: |
+      - Add a new section (or tab) in the Workspace that shows the current request's protocol selection and classification details.
+      - This dashboard updates in real time as new requests are processed.
+
+  - component: "WebSocket Event for Protocol"
+    path: "backend/src/services/ProtocolService.js (new) or extend existing"
+    details: |
+      - Emit a WebSocket event `orion:protocol` when a request is classified, containing the protocol and classification details.
+      - The frontend subscribes to this event to update the badge and dashboard.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for updated OrionAgent.chat (Red)"
+  - "[ ] [TDD] Implement OrionAgent.chat with observation and protocol routing (Green)"
+  - "[ ] [TDD] Implement ProtocolBadge component and integrate with ChatPanel"
+  - "[ ] [Integration] Test that a chat request shows the correct protocol badge and dashboard update"
+
+agentInstructions:
+  devon:
+    summary: |
+      Update OrionAgent.chat to use the new OTA/CDP flow and add UI elements to display the active protocol.
+      All work must stay within backend/src/** and frontend/src/**.
+    steps:
+      - "Modify `OrionAgent.chat` to integrate observation stage and protocol routing."
+      - "Create `ProtocolService.js` to emit WebSocket events for protocol selection."
+      - "Create `ProtocolBadge.vue` component."
+      - "Update `ChatPanel.vue` to include protocol badges for each message."
+      - "Update `OrionWorkspace.vue` to add a protocol dashboard section."
+      - "Run tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for the updated OrionAgent and protocol UI, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Update existing OrionAgent unit tests to reflect the new flow (observation → thinking)."
+      - "Create unit tests for ProtocolBadge component and the protocol dashboard."
+      - "Create integration tests that verify protocol badges appear in the chat and the dashboard updates."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify that a greeting (direct protocol) shows a 'Direct' badge in the chat."
+      method: "Send 'Hi Orion' and look at the chat message badge."
+      expected: "The user message and Orion's response have a small badge labeled 'Direct' (or a dot)."
+      verified: false
+    - id: "HV-2"
+      action: "Check that a basic OTA request shows a 'Basic OTA' badge."
+      method: "Send 'Save our chat to Docs' and inspect the chat badge."
+      expected: "The request and response show a 'Basic OTA' badge."
+      verified: false
+    - id: "HV-3"
+      action: "Verify that a CDP‑enhanced request shows a 'CDP‑Enhanced' badge and details in the Workspace."
+      method: "Send 'Refactor auth module to use JWT' and check the chat badge and Workspace dashboard."
+      expected: "Chat shows 'CDP‑Enhanced' badge; Workspace dashboard displays classification and protocol details."
+      verified: false
+    - id: "HV-4"
+      action: "Confirm that the protocol dashboard updates in real time for each new request."
+      method: "Send multiple requests of different types and observe the Workspace dashboard."
+      expected: "Dashboard updates with the protocol and classification for each request, possibly as a list."
+      verified: false
+
+internal_logic: |
+  **Flow in OrionAgent.chat**:
+  1. Receive user message.
+  2. Call ObservationClassifier (if not explicit command) to get classification.
+  3. Determine protocol: direct, basic_ota, or cdp_enhanced.
+  4. Emit WebSocket event with protocol and classification.
+  5. If direct: immediate response (no thinking).
+  6. If basic_ota or cdp_enhanced: call ProtocolRouter to get thinking prompt, then UnifiedAdapter.
+  7. Execute tool calls and return results.
+  8. The agent FSM (6‑1) logs each state transition.
+
+  **UI Updates**:
+  - The WebSocket event `orion:protocol` is sent to the frontend.
+  - The ChatPanel listens and adds a protocol badge to the message (both user and assistant).
+  - The Workspace dashboard also listens and displays the protocol details in a dedicated section.
+
+expected_output: |
+  - OrionAgent.chat uses the new observation‑thinking‑action flow with protocol selection.
+  - Each chat message displays a protocol badge (direct, basic OTA, CDP‑enhanced).
+  - The Workspace tab includes a real‑time protocol dashboard showing details of the current request.
+
+history:
+  - ts: "2025-12-10T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for Updated OrionAgent.chat with Protocol‑Selection Dashboard (Task 6‑106)."

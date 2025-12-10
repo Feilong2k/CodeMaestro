@@ -1,0 +1,183 @@
+# Subtask Log: 6-102 (Thinking Protocols with CDP Level 0 Audit Trail & Verification)
+id: "6-102"
+title: "Thinking Protocols with CDP Level 0 Audit Trail & Verification"
+status: pending
+branch: "subtask/6-102-thinking-protocols"
+
+phase: 6
+owner: "Devon"
+priority: critical
+
+description: |
+  Implement the three thinking protocols (direct, basic OTA, CDP‑enhanced) that correspond to the classification from the observation stage. For CDP‑enhanced tasks, include a structured CDP Level 0 audit (5‑assumption check, capability verification, constraint identification, risk flagging) and a verification stage after actions. The audit trail and verification results are displayed in the Orion’s Workspace tab.
+
+constraint_discovery:
+  subtask_id: "6-102"
+  owner: "Orion"
+  concern: "Structured Thinking & Safety Verification"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Design three thinking prompts (direct, basic OTA, CDP‑enhanced)"
+      description: "Create prompt templates for each protocol, with CDP‑enhanced including a CDP Level 0 template."
+    - action: "Implement protocol router"
+      description: "Based on the observation classification, route the request to the appropriate thinking prompt."
+    - action: "Implement CDP Level 0 audit"
+      description: "For CDP‑enhanced tasks, run a structured audit and output the results as JSON."
+    - action: "Integrate verification stage"
+      description: "After each action, run verification (automated checks or user confirmation) and log the outcome."
+
+  resources_touched:
+    - resource: "Observation classification (6‑101)"
+      constraint: "Thinking protocol must match the protocol selected by the observation stage."
+    - resource: "UnifiedAdapter (6‑100)"
+      constraint: "All thinking prompts must be executed via UnifiedAdapter to get JSON reasoning."
+    - resource: "Orion’s Workspace tab"
+      constraint: "CDP audit trail and verification results must be streamed to the Workspace tab."
+
+  resource_physics:
+    - resource: "Token Overhead for CDP Level 0"
+      constraint: "CDP audit adds significant tokens to the prompt."
+      risk: "Increased cost and potential context overflow."
+      mitigation: "Keep the CDP template concise; use placeholders that the LLM fills briefly."
+
+    - resource: "Verification Latency"
+      constraint: "Automated verification (e.g., linting, type‑check) may take several seconds."
+      risk: "Slows down the agent loop, especially for small edits."
+      mitigation: "Run verification asynchronously where possible; for quick checks, run synchronously but with timeout."
+
+  verification:
+    - action: "Protocol Router Unit Tests"
+      method: "Test that the router selects the correct thinking prompt based on classification."
+    - action: "CDP Audit Integration Tests"
+      method: "Test that a CDP‑enhanced task produces a structured audit trail and that it appears in the Workspace."
+
+implementation_plan:
+  - component: "Thinking Prompt Templates"
+    path: "backend/src/prompts/thinking_direct.md, thinking_basic.md, thinking_cdp.md (new)"
+    details: |
+      - **direct**: No prompt (immediate response for greetings, simple questions).
+      - **basic OTA**: Standard thinking prompt that includes project context and encourages chain‑of‑thought reasoning.
+      - **CDP‑enhanced**: Extends basic OTA with a CDP Level 0 section that asks the LLM to:
+          1. List assumptions (max 5).
+          2. Verify capabilities (tools, permissions).
+          3. Identify constraints (time, dependencies, risks).
+          4. Flag risks (high/medium/low).
+          5. Plan verification steps.
+
+  - component: "ProtocolRouter Service"
+    path: "backend/src/services/ProtocolRouter.js (new)"
+    details: |
+      - Accepts the observation classification and the user request.
+      - Returns the appropriate thinking prompt (or `null` for direct protocol).
+      - For CDP‑enhanced, injects the CDP Level 0 template into the prompt.
+
+  - component: "CDP Level 0 Audit Parser"
+    path: "backend/src/services/CdpAuditParser.js (new)"
+    details: |
+      - Extracts the CDP audit section from the LLM response.
+      - Validates the structure and logs it to the database (extended `agent_fsm_log.phase_data`).
+      - Emits a WebSocket event `orion:cdp_audit` with the audit details.
+
+  - component: "Verification Stage"
+    path: "backend/src/services/VerificationService.js (new)"
+    details: |
+      - After each action (tool call), runs verification:
+        - Automated: run lint, type‑check, file existence, command exit code.
+        - User‑driven: ask the user for confirmation (via chat).
+      - Logs verification result to `agent_fsm_log` (phase_data) and emits WebSocket event.
+
+  - component: "Workspace Integration"
+    path: "frontend/src/components/OrionWorkspace.vue"
+    details: |
+      - Listen for `orion:cdp_audit` and `orion:verification` events.
+      - Display the CDP audit as a collapsible tree and verification results as success/failure indicators.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for ProtocolRouter and CDP audit parser (Red)"
+  - "[ ] [TDD] Implement ProtocolRouter and CDP audit parser (Green)"
+  - "[ ] [TDD] Implement VerificationService and integrate with agent loop"
+  - "[ ] [Integration] Test that a CDP‑enhanced task shows audit trail in Workspace and verification runs after action"
+
+agentInstructions:
+  devon:
+    summary: |
+      Implement the thinking protocols, CDP Level 0 audit, and verification stage, ensuring they integrate with the existing agent loop and Workspace UI.
+      All work must stay within backend/src/** and frontend/src/** for the Workspace component.
+    steps:
+      - "Create the three thinking prompt templates in `backend/src/prompts/`."
+      - "Implement `ProtocolRouter.js` that selects the prompt based on classification."
+      - "Implement `CdpAuditParser.js` to extract and validate CDP audit from LLM responses."
+      - "Implement `VerificationService.js` to run automated and user‑driven verification."
+      - "Update the Workspace component to display CDP audit and verification events."
+      - "Run tests to verify functionality."
+
+  tara:
+    summary: |
+      Own all tests for thinking protocols, CDP audit, and verification, strictly in backend/__tests__/** and frontend/__tests__/**.
+      Do not modify implementation files.
+    steps:
+      - "Create unit tests for ProtocolRouter, CdpAuditParser, and VerificationService."
+      - "Create integration tests that simulate a CDP‑enhanced task and assert that audit events are emitted and displayed in the Workspace."
+      - "Create frontend unit tests for the Workspace component rendering of CDP audit and verification."
+
+human_verification:
+  description: "Check each item after manually verifying the feature works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify that a greeting (direct protocol) bypasses thinking and gets an immediate response."
+      method: "Send 'Hi Orion' and observe that no thinking prompt is used (no reasoning in Workspace)."
+      expected: "Immediate greeting response; no CDP audit or verification in Workspace."
+      verified: false
+    - id: "HV-2"
+      action: "Check that a basic OTA task (1‑3 steps) uses the basic thinking prompt and shows reasoning in Workspace."
+      method: "Send 'Save our chat to Docs' and watch the Workspace tab."
+      expected: "Workspace shows reasoning steps but no CDP audit."
+      verified: false
+    - id: "HV-3"
+      action: "Verify that a CDP‑enhanced task (>3 steps) shows a CDP Level 0 audit in Workspace."
+      method: "Send 'Refactor auth module to use JWT' and watch the Workspace tab."
+      expected: "Workspace displays a structured CDP audit with assumptions, capabilities, constraints, risks."
+      verified: false
+    - id: "HV-4"
+      action: "Confirm that verification runs after an action and the result is shown in Workspace."
+      method: "Send a request that edits a file (e.g., 'Add a comment to README.md')."
+      expected: "After the edit, Workspace shows a verification step (e.g., 'File check passed')."
+      verified: false
+
+internal_logic: |
+  **Protocol Selection**:
+  - Based on the observation classification:
+    - `direct`: No thinking; immediate response (e.g., greetings).
+    - `basic_ota`: Use the basic thinking prompt (no CDP).
+    - `cdp_enhanced`: Use the CDP‑enhanced thinking prompt.
+
+  **CDP Level 0 Template**:
+  The CDP‑enhanced prompt includes a section like:
+  ```
+  ## CDP Level 0 (Pre‑flight Check)
+  Please answer the following before proceeding:
+  1. Assumptions: (list up to 5 assumptions you are making)
+  2. Capabilities: (do we have the tools and permissions?)
+  3. Constraints: (time, dependencies, technical limits)
+  4. Risks: (high/medium/low – what could go wrong?)
+  5. Verification: (how will you verify the outcome?)
+  ```
+
+  **Verification Flow**:
+  1. After a tool call (e.g., file edit), the agent enters VERIFY state (FSM from 6‑1).
+  2. VerificationService runs the appropriate check (e.g., lint for code, existence for file).
+  3. If automated check passes, move to next step; if fails, retry or escalate.
+  4. For user‑driven verification, the agent asks the user in the chat and waits for confirmation.
+
+expected_output: |
+  - Three working thinking prompts (direct, basic OTA, CDP‑enhanced).
+  - CDP Level 0 audit trail displayed in the Workspace tab for complex tasks.
+  - Verification stage that runs after actions and shows results in the Workspace.
+  - All of the above integrated with the existing agent FSM and Workspace UI.
+
+history:
+  - ts: "2025-12-10T08:00:00Z"
+    role: orchestrator
+    action: CREATED
+    message: "Initialized subtask for Thinking Protocols with CDP Level 0 audit trail (Task 6‑102)."
