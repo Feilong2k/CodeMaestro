@@ -1,0 +1,218 @@
+# Subtask Log: 6-111 (OTA/CDP Integration Test Suite – Unit & Integration)
+id: "6-111"
+title: "OTA/CDP Integration Test Suite (Unit & Integration)"
+status: pending
+branch: "subtask/6-111-ota-cdp-test-suite"
+
+phase: 6
+owner: "Tara"
+priority: high
+
+description: |
+  Create a comprehensive test suite covering the OTA/CDP integration milestone (subtasks 6‑099 through 6‑110).
+  This includes unit tests for new adapters, protocols, and UI components, as well as integration tests that
+  simulate the full Observe‑Think‑Act loop with live UI streaming. All tests must be written in the appropriate
+  test directories (backend/__tests__/, frontend/__tests__/) and must not modify implementation source files.
+  Mocks used during testing must be clearly marked and removed when the corresponding implementation is complete.
+
+constraint_discovery:
+  subtask_id: "6-111"
+  owner: "Orion"
+  concern: "Testing Coverage & Mock Cleanup"
+  date: "2025-12-10"
+
+  atomic_actions:
+    - action: "Create unit tests for UnifiedAdapter (6‑100)"
+      description: "Test JSON reasoning, tool‑calling, and live UI streaming."
+    - action: "Create unit tests for ObservationStage (6‑101)"
+      description: "Test classification logic and UI‑displayed observation tags."
+    - action: "Create unit tests for ThinkingProtocols (6‑102)"
+      description: "Test CDP Level 0 audit trail and verification steps."
+    - action: "Create integration tests for the 50/50 UI layout (6‑099)"
+      description: "Test tab switching, chat styling, and log panel behavior."
+    - action: "Create end‑to‑end test scenarios for the full OTA loop"
+      description: "Simulate a complete OTA/CDP cycle and verify UI updates and backend state."
+    - action: "Ensure mock cleanup when implementations are ready"
+      description: "Remove or replace temporary mocks with real implementations once Devon's subtasks are complete."
+
+  resources_touched:
+    - resource: "backend/__tests__/unit/**"
+      constraint: "Must not break existing unit tests; follow existing Jest patterns."
+    - resource: "frontend/__tests__/**"
+      constraint: "Must use Vitest and follow existing Vue component testing patterns."
+    - resource: "backend/__tests__/__mocks__/**"
+      constraint: "Temporary mocks must be clearly documented and removed after implementation."
+    - resource: "frontend/__tests__/__mocks__/**"
+      constraint: "Frontend mocks must be isolated and cleaned up after UI components are stable."
+
+  resource_physics:
+    - resource: "Test Data Isolation"
+      constraint: "Tests must not interfere with production data or each other."
+      risk: "Tests may leave side‑effects that affect subsequent runs."
+      mitigation: "Use transactional rollbacks for DB tests, and reset stores for frontend tests."
+
+    - resource: "Mock vs. Real Implementation"
+      constraint: "Mocks must be used only when the real component is unavailable (blocked by dependency)."
+      risk: "Mocks may drift from real behavior, causing false passes."
+      mitigation: "Review and update mocks as soon as the real implementation is available; remove mocks after the dependent subtask is completed."
+
+  verification:
+    - action: "Unit Test Coverage"
+      method: "Run `npm test` in backend and frontend; verify coverage meets 80% for new code."
+    - action: "Integration Test Pass"
+      method: "Run integration test suite and verify all scenarios pass."
+    - action: "Mock Cleanup Audit"
+      method: "After each dependent subtask is completed, check that corresponding mocks have been removed."
+
+implementation_plan:
+  - component: "UnifiedAdapter Unit Tests"
+    path: "backend/__tests__/unit/unifiedAdapter.test.js"
+    details: |
+      - Test JSON reasoning (parsing, error handling).
+      - Test tool‑calling integration with the Tool Registry.
+      - Test live UI streaming via WebSocket events.
+      - Use temporary mocks for Tool Registry and WebSocket until 6‑100 is complete.
+      - Remove mocks when 6‑100 is marked 'completed'.
+
+  - component: "ObservationStage Unit Tests"
+    path: "backend/__tests__/unit/observationStage.test.js"
+    details: |
+      - Test classification of user inputs (bug, feature, question, etc.).
+      - Test generation of observation tags and UI‑display formatting.
+      - Mock the LLM client until 6‑101 is complete.
+      - Replace mock with real LLM client after 6‑101 is done.
+
+  - component: "ThinkingProtocols Unit Tests"
+    path: "backend/__tests__/unit/thinkingProtocols.test.js"
+    details: |
+      - Test CDP Level 0 audit trail (step‑by‑step reasoning logging).
+      - Test verification of constraints and decision‑making.
+      - Mock the Constraint Service until 6‑102 is complete.
+      - Update tests to use real service after 6‑102 is done.
+
+  - component: "UI Integration Tests"
+    path: "frontend/__tests__/integration/otaLoop.spec.ts"
+    details: |
+      - Test the 50/50 layout (CombinedLogPanel tabs, chat styling).
+      - Test live updates in the Activity Log and System Log.
+      - Test chat modernization (text wrapping, grey background for user messages).
+      - Use Vue Test Utils and Testing Library; mock WebSocket events.
+
+  - component: "End‑to‑End OTA Scenario"
+    path: "backend/__tests__/integration/otaE2E.test.js"
+    details: |
+      - Simulate a full OTA cycle: user request → observation → thinking → action.
+      - Verify backend state changes and UI event emissions.
+      - Use a test‑only database and clean up after each run.
+
+  - component: "Mock Cleanup Procedure"
+    path: "Docs/Testing/Mock_Cleanup_Protocol.md"
+    details: |
+      - Document each mock created for 6‑100, 6‑101, 6‑102, etc.
+      - Specify the subtask that will replace the mock.
+      - After the dependent subtask is completed, remove the mock and update tests to use the real implementation.
+      - This procedure ensures the test suite evolves with the implementation.
+
+requiredActions:
+  - "[ ] [TDD] Create failing unit tests for UnifiedAdapter (Red)"
+  - "[ ] [TDD] Implement unit tests for UnifiedAdapter (Green)"
+  - "[ ] [TDD] Create failing unit tests for ObservationStage (Red)"
+  - "[ ] [TDD] Implement unit tests for ObservationStage (Green)"
+  - "[ ] [TDD] Create failing unit tests for ThinkingProtocols (Red)"
+  - "[ ] [TDD] Implement unit tests for ThinkingProtocols (Green)"
+  - "[ ] [Integration] Create UI integration tests for 50/50 layout and chat styling"
+  - "[ ] [Integration] Create end‑to‑end OTA scenario test"
+  - "[ ] [Refactor] Remove mocks for completed subtasks and update tests accordingly"
+  - "[ ] [Verification] Run full test suite and ensure 80% coverage on new code"
+
+agentInstructions:
+  tara:
+    summary: |
+      Own all test artifacts for the OTA/CDP integration. Write unit and integration tests for the new components,
+      ensuring mocks are used only when necessary and are cleaned up when the real implementation is ready.
+      All work must stay within test directories (backend/__tests__/, frontend/__tests__/).
+    steps:
+      - "Create unit tests for UnifiedAdapter, ObservationStage, and ThinkingProtocols (using mocks as needed)."
+      - "Create integration tests for the UI layout and chat modernization (6‑099)."
+      - "Create an end‑to‑end test that simulates a full OTA loop."
+      - "Document each mock in `Docs/Testing/Mock_Cleanup_Protocol.md` with its corresponding subtask."
+      - "Monitor the manifest for completion of dependent subtasks (6‑100, 6‑101, 6‑102, etc.)."
+      - "As each dependent subtask is completed, remove the associated mocks and update tests to use the real implementation."
+      - "Run the full test suite and verify coverage."
+
+  devon:
+    summary: |
+      Coordinate with Tara to provide timely completion of subtasks 6‑100, 6‑101, 6‑102, etc.
+      Once a subtask is marked 'completed', inform Tara so she can remove the corresponding mocks.
+    steps:
+      - "Notify Tara when a subtask (e.g., 6‑100) is ready for real implementation testing."
+      - "Review any test failures that arise after mock removal and fix implementation issues if needed."
+
+human_verification:
+  description: "Check each item after manually verifying the test suite works as described."
+  items:
+    - id: "HV-1"
+      action: "Verify unit tests for UnifiedAdapter pass (with mocks)."
+      method: "Run `cd backend && npm test -- unifiedAdapter.test.js`."
+      expected: "All tests pass."
+      verified: false
+    - id: "HV-2"
+      action: "Verify unit tests for ObservationStage pass (with mocks)."
+      method: "Run `cd backend && npm test -- observationStage.test.js`."
+      expected: "All tests pass."
+      verified: false
+    - id: "HV-3"
+      action: "Verify unit tests for ThinkingProtocols pass (with mocks)."
+      method: "Run `cd backend && npm test -- thinkingProtocols.test.js`."
+      expected: "All tests pass."
+      verified: false
+    - id: "HV-4"
+      action: "Verify UI integration tests pass."
+      method: "Run `cd frontend && npm test -- otaLoop.spec.ts`."
+      expected: "All tests pass."
+      verified: false
+    - id: "HV-5"
+      action: "Verify end‑to‑end OTA scenario passes."
+      method: "Run `cd backend && npm test -- otaE2E.test.js`."
+      expected: "All tests pass."
+      verified: false
+    - id: "HV-6"
+      action: "Check that mock cleanup document exists and is up‑to‑date."
+      method: "Open `Docs/Testing/Mock_Cleanup_Protocol.md` and verify each mock is listed with its corresponding subtask."
+      expected: "Document is present and accurately reflects current mocks."
+      verified: false
+    - id: "HV-7"
+      action: "After a dependent subtask (e.g., 6‑100) is completed, verify mocks have been removed."
+      method: "Check the relevant test file (e.g., `unifiedAdapter.test.js`) for any remaining mocks."
+      expected: "Mocks have been replaced with real implementations or removed."
+      verified: false
+
+internal_logic: |
+  **Test Strategy**:
+  - **Unit Tests**: Isolate each new component (UnifiedAdapter, ObservationStage, ThinkingProtocols) and test its logic with mocks for dependencies.
+  - **Integration Tests**: Test the interaction between components, especially the UI layout and real‑time streaming.
+  - **End‑to‑End Tests**: Simulate a complete user‑initiated OTA loop and verify the system behaves as expected.
+
+  **Mock Management**:
+  - Mocks are temporary placeholders for components that are not yet implemented.
+  - Each mock is documented in `Mock_Cleanup_Protocol.md` with the subtask that will replace it.
+  - When a subtask is completed, Tara removes the mock and updates the tests to use the real implementation.
+  - This ensures the test suite evolves with the codebase and does not rely on outdated assumptions.
+
+  **Coverage Goal**: 80% coverage for new code (as per CodeMaestro standards).
+
+expected_output:
+  - A complete set of unit and integration tests for the OTA/CDP integration.
+  - All tests pass in both backend and frontend.
+  - Mocks are properly cleaned up as implementations become available.
+  - Documentation of mock cleanup process for future reference.
+
+notes_and_answers:
+  **Note**: This subtask is a testing‑only subtask and does not involve implementation changes outside of test files.
+  **Answer to User Concern**: The mock cleanup procedure ensures that mocks are taken down when Devon finishes the implementation.
+
+history:
+  - ts: "2025-12-10T13:00:00Z"
+    role: architect
+    action: CREATED
+    message: "Created subtask 6‑111 to provide comprehensive testing for the OTA/CDP integration milestone."

@@ -147,42 +147,42 @@ human_verification:
       action: "Verify the UI layout splits 50/50 between Chat and Log panels."
       method: "Load the web app; visually confirm the screen is divided evenly."
       expected: "Chat panel on left half, combined Activity/System Log panel on right half."
-      verified: false
+      verified: complete
     - id: "HV-2"
       action: "Check that the right panel has two tabs: 'Activity Log' and 'System Log'."
       method: "Look at the right panel; see two tab headers."
       expected: "Tabs visible and labeled correctly."
-      verified: false
+      verified: Complete
     - id: "HV-3"
       action: "Verify switching tabs shows the correct log content."
       method: "Click 'Activity Log' tab; see shell‑output streaming. Click 'System Log' tab; see WebSocket events."
       expected: "Each tab displays its respective log content; no mixing."
-      verified: false
+      verified: Complete
     - id: "HV-4"
       action: "Confirm chat messages wrap text (no horizontal scroll)."
       method: "Send a long message; ensure it wraps within the chat panel."
       expected: "No horizontal scrollbar appears at the bottom of the chat panel."
-      verified: false
+      verified: Complete
     - id: "HV-5"
       action: "Verify chat messages are simplified (no logo, name, time)."
       method: "Inspect a chat message; confirm only the message text is displayed with left padding."
       expected: "No Orion logo, no name, no timestamp."
-      verified: false
+      verified: Complete
     - id: "HV-6"
       action: "Check user messages have grey background."
       method: "Send a message as user; see the background colour is grey."
       expected: "User message background is grey; AI message background is default."
-      verified: false
+      verified: Complete
     - id: "HV-7"
       action: "Verify compact view is enforced (no view‑toggle button)."
       method: "Look for the Normal/Compact toggle button; it should be gone."
       expected: "No view‑toggle button present."
-      verified: false
+      verified: Complete
     - id: "HV-8"
       action: "Confirm chat messages use 95% width with side padding."
       method: "Inspect a chat message; check its width and padding."
       expected: "Message width is 95% of the chat panel with equal left/right margins."
-      verified: false
+      verified: Complete
 
 internal_logic: |
   **Layout Decision**: 
