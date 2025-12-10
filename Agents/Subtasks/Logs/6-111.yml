@@ -114,14 +114,14 @@ implementation_plan:
       - This procedure ensures the test suite evolves with the implementation.
 
 requiredActions:
-  - "[ ] [TDD] Create failing unit tests for UnifiedAdapter (Red)"
+  - "[x] [TDD] Create failing unit tests for UnifiedAdapter (Red)"
   - "[ ] [TDD] Implement unit tests for UnifiedAdapter (Green)"
-  - "[ ] [TDD] Create failing unit tests for ObservationStage (Red)"
+  - "[x] [TDD] Create failing unit tests for ObservationStage (Red)"
   - "[ ] [TDD] Implement unit tests for ObservationStage (Green)"
-  - "[ ] [TDD] Create failing unit tests for ThinkingProtocols (Red)"
+  - "[x] [TDD] Create failing unit tests for ThinkingProtocols (Red)"
   - "[ ] [TDD] Implement unit tests for ThinkingProtocols (Green)"
-  - "[ ] [Integration] Create UI integration tests for 50/50 layout and chat styling"
-  - "[ ] [Integration] Create end‑to‑end OTA scenario test"
+  - "[x] [Integration] Create UI integration tests for 50/50 layout and chat styling"
+  - "[x] [Integration] Create end‑to‑end OTA scenario test"
   - "[ ] [Refactor] Remove mocks for completed subtasks and update tests accordingly"
   - "[ ] [Verification] Run full test suite and ensure 80% coverage on new code"
 
@@ -216,3 +216,7 @@ history:
     role: architect
     action: CREATED
     message: "Created subtask 6‑111 to provide comprehensive testing for the OTA/CDP integration milestone."
+  - ts: "2025-12-10T14:48:00Z"
+    role: tester
+    action: PROGRESS
+    message: "Created failing unit tests (Red phase) for UnifiedAdapter, ObservationStage, and ThinkingProtocols. Updated UI integration tests for 50/50 layout and created end-to-end OTA scenario test. Updated Mock Cleanup Protocol."

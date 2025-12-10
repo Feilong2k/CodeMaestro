@@ -24,7 +24,7 @@ Object.defineProperty(window, "matchMedia", {
   })),
 });
 
-describe("MainLayout Integration Tests (Three-Panel Layout)", () => {
+describe("MainLayout Integration Tests (Two-Panel Layout)", () => {
   beforeEach(() => {
     // Reset mocks
     mockFetch.mockClear();
@@ -49,7 +49,7 @@ describe("MainLayout Integration Tests (Three-Panel Layout)", () => {
     expect(mainLayout.classes()).toContain("main-layout");
   });
 
-  it("should have 12-column grid structure with 2:1:1 ratio for desktop", () => {
+  it("should have 12-column grid structure with 50/50 ratio for desktop", () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ status: "ok", message: "Backend is healthy" }),
@@ -65,16 +65,17 @@ describe("MainLayout Integration Tests (Three-Panel Layout)", () => {
     // Should have responsive grid classes for desktop (12-column grid)
     expect(gridContainer.classes()).toContain("lg:grid-cols-12");
 
-    // Check column spans for left, center, right
+    // Check column spans for left and right (50/50)
     const leftAside = gridContainer.find("aside.lg\\:col-span-6");
     expect(leftAside.exists()).toBe(true);
-    const centerMain = gridContainer.find("main.lg\\:col-span-3");
-    expect(centerMain.exists()).toBe(true);
-    const rightAside = gridContainer.find("aside.lg\\:col-span-3");
+    const rightAside = gridContainer.find("aside.lg\\:col-span-6");
     expect(rightAside.exists()).toBe(true);
+    // There should be no main (center) element
+    const centerMain = gridContainer.find("main.lg\\:col-span-3");
+    expect(centerMain.exists()).toBe(false);
   });
 
-  it("should render left slot (Chat/Views), center slot (System Log), and right slot (Activity)", () => {
+  it("should render left slot (Chat) and right slot (Combined Log Panel)", () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ status: "ok", message: "Backend is healthy" }),
@@ -82,24 +83,24 @@ describe("MainLayout Integration Tests (Three-Panel Layout)", () => {
 
     const wrapper = mount(App);
 
-    // Check left slot contains ChatPanel (or other views) – at least a chat panel component
+    // Check left slot contains ChatPanel
     const leftSlot = wrapper.find("aside.lg\\:col-span-6");
     expect(leftSlot.exists()).toBe(true);
-    // ChatPanel is rendered when currentView is 'dashboard' (default)
     const chatPanel = leftSlot.findComponent({ name: "ChatPanel" });
     expect(chatPanel.exists()).toBe(true);
 
-    // Check center slot contains SystemLogPanel
-    const centerSlot = wrapper.find("main.lg\\:col-span-3");
-    expect(centerSlot.exists()).toBe(true);
-    const systemLogPanel = centerSlot.findComponent(SystemLogPanel);
-    expect(systemLogPanel.exists()).toBe(true);
-
-    // Check right slot contains ActivityLog
-    const rightSlot = wrapper.find("aside.lg\\:col-span-3");
+    // Check right slot contains CombinedLogPanel (new component)
+    const rightSlot = wrapper.find("aside.lg\\:col-span-6");
     expect(rightSlot.exists()).toBe(true);
-    const activityLog = rightSlot.findComponent({ name: "ActivityLog" });
-    expect(activityLog.exists()).toBe(true);
+    const combinedLogPanel = rightSlot.findComponent({ name: "CombinedLogPanel" });
+    expect(combinedLogPanel.exists()).toBe(true);
+
+    // The CombinedLogPanel should contain ActivityLog and SystemLogPanel as tabs
+    // We can check for the presence of tab buttons
+    const tabs = combinedLogPanel.findAll('[role="tab"]');
+    expect(tabs).toHaveLength(2);
+    expect(tabs[0].text()).toContain('Activity Log');
+    expect(tabs[1].text()).toContain('System Log');
   });
 
   it("should apply matrix theme styling to all panels", () => {
@@ -142,7 +143,7 @@ describe("MainLayout Integration Tests (Three-Panel Layout)", () => {
     expect(leftAside.classes()).toContain("hidden");
     expect(leftAside.classes()).toContain("lg:block");
 
-    const rightAside = gridContainer.find("aside.lg\\:col-span-3");
+    const rightAside = gridContainer.find("aside.lg\\:col-span-6");
     expect(rightAside.classes()).toContain("hidden");
     expect(rightAside.classes()).toContain("lg:block");
   });
@@ -155,14 +156,15 @@ describe("MainLayout Integration Tests (Three-Panel Layout)", () => {
 
     const wrapper = mount(App);
     // We cannot directly manipulate the store without exposing it, but we can test that the layout remains.
-    // Instead, we can check that the three panels are always present regardless of view.
+    // Instead, we can check that the two panels are always present regardless of view.
     const mainLayout = wrapper.findComponent(MainLayout);
     expect(mainLayout.exists()).toBe(true);
 
-    // All three panels should be present
+    // Both panels should be present
     expect(mainLayout.find("aside.lg\\:col-span-6").exists()).toBe(true);
-    expect(mainLayout.find("main.lg\\:col-span-3").exists()).toBe(true);
-    expect(mainLayout.find("aside.lg\\:col-span-3").exists()).toBe(true);
+    expect(mainLayout.find("aside.lg\\:col-span-6", 1).exists()).toBe(true);
+    // There should be no main (center) panel
+    expect(mainLayout.find("main.lg\\:col-span-3").exists()).toBe(false);
   });
 });
 
