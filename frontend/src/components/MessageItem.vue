@@ -1,10 +1,8 @@
 <template>
-  <div class="message mb-4">
+  <div class="message mb-2">
     <div 
-      class="message-content font-matrix-sans whitespace-pre-wrap rounded-lg px-4 py-3 w-[95%] mx-auto"
-      :class="[
-        alignment === 'right' ? 'bg-gray-100 text-text-primary' : 'bg-bg-elevated text-text-secondary border border-line-base'
-      ]"
+      class="message-content compact-message font-matrix-sans whitespace-pre-wrap break-words rounded-lg px-4 py-2 w-[95%] mx-auto max-w-full"
+      :class="alignment === 'right' ? 'user-message' : 'bg-bg-elevated text-text-secondary border border-line-base'"
       v-html="renderedMessage"
       ref="messageContent"
     />
@@ -61,7 +59,8 @@ const emit = defineEmits(['typing-complete'])
 const md = new MarkdownIt({
   html: false,
   linkify: true,
-  typographer: true
+  typographer: true,
+  breaks: false
 })
 
 const messageContent = ref(null)
@@ -137,3 +136,58 @@ watch(() => props.message, () => {
   }
 })
 </script>
+
+<style scoped>
+.message-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+.compact-message {
+  font-size: 0.875rem; /* 14px, 2 points smaller than base 16px */
+  line-height: 1.3;
+  padding: 0.5rem 1rem !important; /* py-2 px-4 already present, but ensure */
+}
+
+.compact-message :deep(*) {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+
+.compact-message :deep(p),
+.compact-message :deep(h1),
+.compact-message :deep(h2),
+.compact-message :deep(h3),
+.compact-message :deep(h4),
+.compact-message :deep(h5),
+.compact-message :deep(h6) {
+  margin: 0;
+  padding: 0;
+}
+
+.compact-message :deep(p + p) {
+  margin-top: 0.25rem;
+}
+
+.compact-message :deep(ul),
+.compact-message :deep(ol) {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.user-message {
+  background-color: #d1d5db !important; /* gray-300 */
+  color: #111827 !important; /* gray-900 */
+}
+
+.user-message :deep(*) {
+  color: #111827 !important;
+}
+</style>

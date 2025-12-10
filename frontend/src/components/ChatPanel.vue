@@ -1,7 +1,7 @@
 <template>
-  <div class="chat-panel bg-bg-layer border border-line-base rounded-xl p-6 shadow-matrix-glow h-full flex flex-col">
+  <div class="chat-panel bg-bg-layer border border-line-base rounded-xl p-6 shadow-matrix-glow h-full flex flex-col overflow-x-hidden">
     <!-- Message list area - takes available space -->
-    <div ref="messageListEl" class="message-list flex-1 space-y-4 mb-6 overflow-y-auto pr-2">
+    <div ref="messageListEl" class="message-list flex-1 space-y-4 mb-6 overflow-y-auto overflow-x-hidden pr-2 break-words">
       <MessageItem
         v-for="msg in chatStore.messages"
         :key="msg.id"
