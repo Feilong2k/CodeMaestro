@@ -62,6 +62,25 @@ const md = new MarkdownIt({
   typographer: true,
   breaks: false
 })
+// Compact markup: minimize spacing in paragraphs, headings, and lists
+md.renderer.rules.paragraph_open = () => '<p style="margin:0 0 1em 0;">';
+md.renderer.rules.paragraph_close = () => '</p>';
+md.renderer.rules.heading_open = (tokens, idx) => {
+  const tag = tokens[idx].tag;
+  return `<${tag} style="margin:0.5em 0 0.25em 0;padding:0;">`;
+};
+md.renderer.rules.heading_close = (tokens, idx) => `</${tokens[idx].tag}>`;
+md.renderer.rules.bullet_list_open = () => '<ul style="margin:0 0 1em 0;padding-left:1.25rem;list-style-type:disc;">';
+md.renderer.rules.bullet_list_close = () => '</ul>';
+md.renderer.rules.ordered_list_open = () => '<ol style="margin:0 0 1em 0;padding-left:1.25rem;list-style-type:decimal;">';
+md.renderer.rules.ordered_list_close = () => '</ol>';
+md.renderer.rules.list_item_open = () => '<li style="margin:0;padding:0;">';
+md.renderer.rules.list_item_close = () => '</li>';
+// Collapse softbreaks to a single space; keep hardbreaks as single <br>
+const _soft = md.renderer.rules.softbreak || (() => '\n');
+md.renderer.rules.softbreak = () => ' ';
+const _hard = md.renderer.rules.hardbreak || (() => '<br/>');
+md.renderer.rules.hardbreak = () => '<br/>';
 
 const messageContent = ref(null)
 const displayedText = ref('')
@@ -75,6 +94,25 @@ const escapeHtml = (text) => {
   return div.innerHTML
 }
 
+// Preprocess message to enforce single-space after sentence punctuation when a newline is used
+// Does not alter list items, headings, or code blocks
+function preprocessMessage(src) {
+  if (!src) return ''
+  // Protect code fences by splitting on ``` blocks
+  const parts = String(src).split(/```/)
+  for (let i = 0; i < parts.length; i += 2) {
+    // Only process non-code segments (even indices)
+    parts[i] = parts[i]
+      // Replace newline after sentence punctuation with a single space
+      // when the next line does not start with list/heading markers
+      .replace(/([.!?])\s*\n(?!\s*(?:[-*+]\s|\d+\.\s|#{1,6}\s))/g, '$1 ')
+      // Enforce exactly one space after sentence punctuation (collapse multiple spaces)
+      .replace(/([.!?])\s{2,}/g, '$1 ')
+  }
+  // Rejoin, preserving code blocks
+  return parts.join('```')
+}
+
 const renderedMessage = computed(() => {
   if (props.typingEffect && !isTypingComplete.value) {
     // During typing, show plain text (escaped) with line breaks
@@ -82,8 +120,9 @@ const renderedMessage = computed(() => {
     return escaped.replace(/\n/g, '<br>')
   }
   
-  // After typing complete, render markdown
-  const unsafeHtml = md.render(props.message)
+  // After typing complete, render markdown (with compact sentence spacing)
+  const preprocessed = preprocessMessage(props.message)
+  const unsafeHtml = md.render(preprocessed)
   return DOMPurify.sanitize(unsafeHtml)
 })
 
@@ -149,7 +188,7 @@ watch(() => props.message, () => {
 .compact-message {
   font-size: 0.875rem; /* 14px, 2 points smaller than base 16px */
   line-height: 1.3;
-  padding: 0.5rem 1rem 0 1rem !important; /* top, right, bottom, left - bottom padding removed */
+  padding: 0.5rem 1rem 1em 1rem !important; /* add 1em bottom padding inside bubble */
 }
 
 .compact-message :deep(*) {
@@ -173,14 +212,17 @@ watch(() => props.message, () => {
 }
 
 .compact-message :deep(p + p) {
-  margin-top: 0.25rem;
+  margin-top: 0; /* spacing handled by paragraph bottom margin (1em) */
 }
 
 .compact-message :deep(ul),
 .compact-message :deep(ol) {
-  margin: 0;
+  margin: 0 0 1em 0;
   padding-left: 1.25rem;
+  list-style-position: outside;
 }
+.compact-message :deep(ul) { list-style-type: disc; }
+.compact-message :deep(ol) { list-style-type: decimal; }
 
 .compact-message :deep(li) {
   margin: 0;
@@ -206,8 +248,8 @@ watch(() => props.message, () => {
 .compact-message :deep(h4),
 .compact-message :deep(h5),
 .compact-message :deep(h6) {
-  margin-top: 0;
-  margin-bottom: 0;
+  margin-top: 0.5em;
+  margin-bottom: 0.25em;
   padding-top: 0;
   padding-bottom: 0;
 }
@@ -234,5 +276,22 @@ watch(() => props.message, () => {
 
 .user-message :deep(*) {
   color: #111827 !important;
+}
+
+/* Ensure last paragraph doesn't add extra bottom gap */
+.message-content :deep(p:last-child) {
+  margin-bottom: 0 !important;
+}
+.message-content :deep(h1:last-child),
+.message-content :deep(h2:last-child),
+.message-content :deep(h3:last-child),
+.message-content :deep(h4:last-child),
+.message-content :deep(h5:last-child),
+.message-content :deep(h6:last-child) {
+  margin-bottom: 0 !important;
+}
+.message-content :deep(ul:last-child),
+.message-content :deep(ol:last-child) {
+  margin-bottom: 0 !important;
 }
 </style>

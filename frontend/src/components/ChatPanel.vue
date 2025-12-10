@@ -68,7 +68,9 @@
 
     <!-- Input area - fixed at bottom -->
     <div class="flex items-end space-x-3">
+      <!-- Normal mode: contenteditable div -->
       <div
+        v-if="!terminalMode"
         ref="inputEl"
         class="chat-input flex-1 bg-bg-base border border-line-base rounded-lg p-3 min-h-[3rem] max-h-32 overflow-y-auto focus:outline-none focus:ring-1 focus:ring-accent-primary focus:border-accent-primary"
         contenteditable="true"
@@ -77,6 +79,17 @@
         aria-label="Chat input"
         @keydown.enter.prevent="sendMessage"
       />
+      <!-- Terminal mode: textarea with multiline support -->
+      <textarea
+        v-else
+        ref="textareaEl"
+        class="terminal-input flex-1 bg-bg-base border border-line-base rounded-lg p-3 min-h-[3rem] max-h-32 overflow-y-auto focus:outline-none focus:ring-1 focus:ring-accent-primary focus:border-accent-primary font-matrix-mono text-sm text-accent-primary placeholder:text-accent-primary/60 resize-none"
+        placeholder="> Type your command (Alt+Enter for new line)..."
+        aria-label="Terminal input"
+        rows="1"
+        @keydown="handleTerminalKeydown"
+        @input="adjustTextareaHeight"
+      ></textarea>
       <button
         class="send-button px-5 py-2.5 bg-accent-primary hover:bg-accent-primary/80 text-bg-base rounded-lg font-medium transition-colors duration-fast shadow-matrix-glow hover:shadow-matrix-glow-lg focus:outline-none focus:ring-2 focus:ring-accent-primary/50"
         type="button"
@@ -105,21 +118,38 @@ import { storeToRefs } from 'pinia'
 import MessageItem from './MessageItem.vue'
 
 const inputEl = ref(null)
+const textareaEl = ref(null)
 const messageListEl = ref(null)
 const chatStore = useChatStore()
 const appStore = useAppStore()
-const { currentView } = storeToRefs(appStore)
+const { currentView, terminalMode } = storeToRefs(appStore)
 const { setCurrentView } = appStore
 
 const sendMessage = async () => {
-  const text = inputEl.value?.innerText?.trim()
+  let text = ''
+  if (terminalMode.value && textareaEl.value) {
+    text = textareaEl.value.value.trim()
+  } else if (!terminalMode.value && inputEl.value) {
+    text = inputEl.value.innerText.trim()
+  }
   if (!text || chatStore.sending) return
 
-  inputEl.value.innerText = ''
+  // Clear input
+  if (terminalMode.value && textareaEl.value) {
+    textareaEl.value.value = ''
+    adjustTextareaHeight()
+  } else if (!terminalMode.value && inputEl.value) {
+    inputEl.value.innerText = ''
+  }
+  
   await chatStore.sendMessage(text)
   // Focus back on input
   nextTick(() => {
-    inputEl.value.focus()
+    if (terminalMode.value && textareaEl.value) {
+      textareaEl.value.focus()
+    } else if (!terminalMode.value && inputEl.value) {
+      inputEl.value.focus()
+    }
   })
 }
 
@@ -133,6 +163,33 @@ const setView = (view) => {
 
 const getAvatarBg = (sender) => {
   return sender === 'Orion' ? 'bg-accent-primary' : 'bg-accent-secondary'
+}
+
+const handleTerminalKeydown = (event) => {
+  // Alt+Enter for new line
+  if (event.altKey && event.key === 'Enter') {
+    event.preventDefault()
+    const textarea = event.target
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = textarea.value
+    textarea.value = text.substring(0, start) + '\n' + text.substring(end)
+    textarea.selectionStart = textarea.selectionEnd = start + 1
+    adjustTextareaHeight()
+    return
+  }
+  // Enter without Alt to send
+  if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey && !event.altKey) {
+    event.preventDefault()
+    sendMessage()
+  }
+}
+
+const adjustTextareaHeight = () => {
+  if (!textareaEl.value) return
+  textareaEl.value.style.height = 'auto'
+  const newHeight = Math.min(textareaEl.value.scrollHeight, 128) // max 128px
+  textareaEl.value.style.height = newHeight + 'px'
 }
 
 const getAvatarText = (sender) => {
@@ -179,6 +236,18 @@ const scrollToBottom = () => {
 
 // Periodic scroll during typewriter (for long messages)
 let scrollInterval = null
+// Focus management when terminal mode changes
+watch(terminalMode, (isTerminal) => {
+  nextTick(() => {
+    if (isTerminal && textareaEl.value) {
+      textareaEl.value.focus()
+      adjustTextareaHeight()
+    } else if (!isTerminal && inputEl.value) {
+      inputEl.value.focus()
+    }
+  })
+})
+
 watch(() => chatStore.sending, (sending) => {
   if (sending) {
     scrollInterval = setInterval(scrollToBottom, 500)
@@ -196,6 +265,10 @@ onMounted(() => {
   // Initial scroll to bottom
   if (messageListEl.value) {
     messageListEl.value.scrollTop = messageListEl.value.scrollHeight
+  }
+  // Initial focus on normal input
+  if (!terminalMode.value && inputEl.value) {
+    inputEl.value.focus()
   }
 })
 </script>

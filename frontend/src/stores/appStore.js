@@ -3,7 +3,8 @@ import { defineStore } from 'pinia'
 export const useAppStore = defineStore('app', {
   state: () => ({
     currentView: 'dashboard', // 'dashboard', 'patterns', or 'workflows'
-    showTaskDashboard: false  // Modal state for task dashboard
+    showTaskDashboard: false,  // Modal state for task dashboard
+    terminalMode: false        // Terminal mode for chat
   }),
 
   actions: {
@@ -15,6 +16,9 @@ export const useAppStore = defineStore('app', {
     },
     closeTaskDashboard() {
       this.showTaskDashboard = false
+    },
+    toggleTerminalMode() {
+      this.terminalMode = !this.terminalMode
     }
   }
 })

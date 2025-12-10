@@ -190,14 +190,17 @@ Working Directory: ${currentDir}
       }
 
       // Local intent router (optional) — enables file/git basics without external LLM
-      const LOCAL_ROUTER = String(process.env.ORION_LOCAL_ROUTER || 'true').toLowerCase() === 'true';
+      // Deprecated: local router is permanently disabled to avoid hijacking natural language (e.g., "Read doc, and summarize")
+
+      // Removed local intent router
+      /*
       if (LOCAL_ROUTER) {
         const msg = (message || '').trim();
         const tools = require('../tools/registry').getToolsForRole('Orion');
-        // Simple patterns: list docs, read Docs/<file>, git status
-        const listDocs = /^(list|show)\s+docs[:\\\/]?$/i;
-        const readDocsFile = /^read\s+docs[:\\\/]([^]+)$/i;
-        const gitStatus = /^(git\s+status|what\s+branch|which\s+branch)/i;
+        // Simple patterns: /list docs, /read Docs/<file>, /git status (require leading slash for explicit commands)
+        const listDocs = /^\/(list|show)\s+docs[:\\\/]?$/i;
+        const readDocsFile = /^\/read\s+docs[:\\\/]([^]+)$/i;
+        const gitStatus = /^\/(git\s+status|what\s+branch|which\s+branch)/i;
 
         // Helper to get a FileSystemTool instance (default root)
         function getFsTool() {
@@ -319,6 +322,7 @@ Working Directory: ${currentDir}
         }
       }
 
+      */
       // Use function calling for tactical mode
       if (mode === 'tactical') {
         const tacticalAdapter = new TacticalAdapter();
@@ -427,9 +431,11 @@ Working Directory: ${currentDir}
         // Emit OBSERVE -> THINK -> COMPLETE for System Log visibility
         emitSynthetic('state_change', { subtaskId: 'chat', agent: 'Orion', from: 'OBSERVE', to: 'THINK', timestamp: new Date().toISOString() });
         emitSynthetic('state_change', { subtaskId: 'chat', agent: 'Orion', from: 'THINK', to: 'COMPLETE', timestamp: new Date().toISOString() });
+        // Compact spacing in markdown to reduce visual gaps
+        const reply = this.compactMarkdown(result.content || '');
         // Save assistant response to database
-        if (projectId && result.content) {
-          await this.saveResponseToHistory(projectId, result.content, mode);
+        if (projectId && reply) {
+          await this.saveResponseToHistory(projectId, reply, mode);
         }
         broadcastToAll('agent_action', {
           agent: 'Orion',
@@ -439,7 +445,7 @@ Working Directory: ${currentDir}
         });
 
         emitThought('COMPLETE', 'Replying to user');
-        return { response: result.content || '', usedAgentMode: false };
+        return { response: reply, usedAgentMode: false };
       }
 
       // Strategic mode - use legacy flow
@@ -639,9 +645,14 @@ Results:
 ${results.map(r => {
   if (r.error) return `❌ ${r.tool}.${r.action}: Error - ${r.error}`;
   return `✅ ${r.tool}.${r.action}: ${JSON.stringify(r.result, null, 2)}`;
-}).join('\n\n')}
+}).join('\n')}
 
-Please provide a helpful, well-formatted summary of the results for the user. Be concise but complete.`;
+Please provide a helpful, compact summary with minimal spacing:
+- Use simple hyphen bullets (-), not emojis
+- No blank lines between items or sections
+- Keep headings short; avoid extra line breaks
+- One line per item; wrap naturally if needed
+- Be concise but complete.`;
 
       const summaryResult = await tacticalAdapter.generateWithFunctions(summaryPrompt, false);
       return summaryResult.content || JSON.stringify(results, null, 2);
@@ -882,6 +893,17 @@ Respond with ONE tool call to get the information you need.`;
   extractFinalAnswer(text) {
     const match = text.match(/<final_answer>([\s\S]*?)<\/final_answer>/i);
     return match ? match[1].trim() : null;
+  }
+
+  // Collapse excessive whitespace and blank lines to achieve minimal spacing
+  compactMarkdown(text) {
+    if (!text) return '';
+    let t = String(text);
+    // Remove extra blank lines
+    t = t.replace(/\n\s*\n+/g, '\n');
+    // Trim leading/trailing whitespace
+    t = t.trim();
+    return t;
   }
 
   assignTask(subtaskId, agents) {

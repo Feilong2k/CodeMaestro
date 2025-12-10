@@ -101,6 +101,21 @@
 
       <!-- Right: User Menu -->
       <div class="flex items-center space-x-4">
+        <!-- Terminal Mode Toggle -->
+        <button
+          @click="appStore.toggleTerminalMode()"
+          class="flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs font-matrix-sans transition-colors duration-fast"
+          :class="appStore.terminalMode ? 'bg-accent-primary text-bg-base shadow-matrix-glow' : 'bg-bg-layer/60 text-text-secondary hover:text-text-primary hover:shadow-matrix-glow border border-line-base'"
+          title="Toggle Terminal Mode"
+        >
+          <svg v-if="appStore.terminalMode" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span class="hidden sm:inline">{{ appStore.terminalMode ? 'Terminal' : 'Terminal' }}</span>
+        </button>
         <!-- User Avatar (placeholder) -->
         <div class="w-8 h-8 rounded-full bg-bg-layer/60 border border-line-base/60 shadow-matrix-glow"></div>
       </div>
